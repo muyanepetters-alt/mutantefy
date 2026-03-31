@@ -36,7 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bnav-item:active .bnav-icon{transform:scale(.85)}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;transition:border-color .2s}
 .prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
-.prog-fill{height:100%;border-radius:3px}
+.prog-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
 .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .metric{background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
@@ -75,9 +75,11 @@ select option{background:var(--bg2);color:var(--white)}
 .rota-item span{font-size:14px;font-weight:600}
 .alert-warn{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--orange);background:rgba(232,103,10,.1);border:1px solid rgba(232,103,10,.2)}
 .alert-ok{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--green);background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.2)}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;white-space:nowrap}
-.toast.show{opacity:1}
-.toast.err{background:var(--danger)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e1e1e;color:#fff;padding:12px 20px 14px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;min-width:200px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:rgba(224,82,82,.4)}
+.toast-bar{height:3px;border-radius:2px;margin-top:8px;width:100%;animation:toastBar 2.5s linear forwards}
+@keyframes toastBar{from{width:100%}to{width:0%}}
 .sub-pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sub-pills::-webkit-scrollbar{display:none}
 .sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap}
@@ -87,7 +89,9 @@ select option{background:var(--bg2);color:var(--white)}
 .hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative;overflow:hidden}
+.login-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(232,103,10,.12) 0%,transparent 70%);pointer-events:none}
+.login-wrap::after{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:repeating-linear-gradient(45deg,rgba(232,103,10,.02) 0px,rgba(232,103,10,.02) 1px,transparent 1px,transparent 40px);pointer-events:none}
 .loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
 .falta-txt{font-size:10px;color:var(--muted);margin-bottom:5px}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
@@ -99,7 +103,7 @@ select option{background:var(--bg2);color:var(--white)}
 </head>
 <body>
 <div class="app" id="app"><div class="loading">Carregando...</div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><div id="toast-msg"></div><div class="toast-bar" id="toast-bar" style="background:var(--green)"></div></div>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -308,8 +312,14 @@ async function carregarEncontros(){
 
 function showToast(msg,err=false){
   const t=document.getElementById("toast");
-  t.textContent=msg;t.className="toast"+(err?" err":"")+" show";
-  setTimeout(()=>t.classList.remove("show"),2500);
+  const m=document.getElementById("toast-msg");
+  const b=document.getElementById("toast-bar");
+  const ic=err?"❌ ":"✅ ";
+  if(m)m.textContent=ic+msg;
+  if(b){b.style.background=err?"var(--danger)":"var(--green)";b.style.animation="none";b.offsetHeight;b.style.animation="toastBar 2.5s linear forwards";}
+  t.className="toast"+(err?" err":"")+" show";
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>t.classList.remove("show"),2500);
 }
 
 async function uploadFoto(file){
@@ -525,7 +535,7 @@ function renderDiretor(el){
           <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
         <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -656,11 +666,12 @@ function renderDiretor(el){
     if(TA==="log")carregarAuditLog();
     if(TA==="votacao")carregarVotacoes();
     if(TA==="reunioes")carregarReunioes();
+    if(TA==="usuarios")setTimeout(carregarStatusMembros,300);
     if(TA==="mensalidades")carregarMensalidades();
     if(TA==="galeria")carregarGaleria();
   },100);
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -1018,7 +1029,7 @@ function renderBarman(el){
           <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
         <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1142,7 +1153,7 @@ function renderBarman(el){
       </div>`:""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -1173,7 +1184,7 @@ function renderMembro(el){
           <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
         <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1296,7 +1307,7 @@ function renderMembro(el){
     ${TM==="sede"?htmlSede(true):""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -2448,7 +2459,10 @@ function htmlUsuarios(){
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer" onclick="window.toggleUsuario('${m.uid}')">
           ${avatarEl(m.fotoUrl,m.apelido,36)}
           <div style="flex:1">
-            <div style="font-size:13px;font-weight:600">${m.apelido}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="font-size:13px;font-weight:600">${m.apelido}</div>
+              <div id="status-${m.uid}" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0"></div>
+            </div>
             <div style="font-size:11px;color:var(--muted)">${m.moto||"—"}</div>
           </div>
           <div style="display:flex;gap:6px">
@@ -2504,6 +2518,22 @@ window.filtrarMembros=(texto)=>{
     el.style.display=(!q||apelido.includes(q))?"block":"none";
   });
 };
+
+async function carregarStatusMembros(){
+  try{
+    const dataSex=proxSexta();
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",dataSex),where("tipo","==","presenca")));
+    const confs={};
+    snap.docs.forEach(d=>{const r=d.data();confs[r.membroId]=r.resposta;});
+    MEMBROS.forEach(m=>{
+      const el=document.getElementById("status-"+m.uid);
+      if(!el)return;
+      const r=confs[m.uid];
+      el.style.background=r==="sim"?"var(--green)":r==="nao"?"var(--danger)":"#444";
+      el.title=r==="sim"?"✅ Confirmado esta sexta":r==="nao"?"❌ Não vai esta sexta":"⏳ Sem resposta";
+    });
+  }catch{}
+}
 window.toggleUsuario=uid=>{const el=document.getElementById("ue-"+uid);if(el)el.style.display=el.style.display==="block"?"none":"block";};
 window.toggleTipo=()=>{
   const t=document.getElementById("km-tipo")?.value;
