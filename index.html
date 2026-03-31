@@ -411,12 +411,9 @@ function htmlClubeCorpo(){
       {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
       {id:"galeria",ic:"📸",lb:"Galeria",sub:"Fotos dos eventos"},
-      {id:"votacao",ic:"🗳️",lb:"Votação",sub:"Enquetes do clube"},
-      {id:"whatsapp",ic:"💬",lb:"WhatsApp",sub:"Mensagens rápidas"},
       {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos"},
       {id:"caixabar",ic:"🍺",lb:"Caixa do Bar",sub:"Entradas e saídas"},
-      {id:"aniversarios",ic:"🎂",lb:"Aniversários",sub:"Membros do clube"},
       {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
     ];
     if(!TA||TA==="home"){
@@ -463,12 +460,9 @@ function htmlClubeCorpo(){
       ${TA==="sede_adm"?htmlSede(true):""}
       ${TA==="usuarios"?htmlUsuarios():""}
       ${TA==="eventos"?`<div>${EVENTOS.length===0?'<p style="font-size:13px;color:#555">Nenhum evento cadastrado.</p>':EVENTOS.map(ev=>evCardMembro(ev)).join("")}</div>`:""}
-      ${TA==="votacao"?`<div id="vot-admin-lista"><span class="spin">⟳</span></div>`:""}
-      ${TA==="whatsapp"?htmlWhatsapp():""}
       ${TA==="honra"?htmlPlacaHonra():""}
       ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
       ${TA==="caixabar"?htmlCaixaBar():""}
-      ${TA==="aniversarios"?htmlAniversarios():""}
       ${TA==="galeria"?htmlGaleria():""}
       ${TA==="reunioes"?htmlReunioes():""}
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
@@ -519,7 +513,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -638,6 +632,8 @@ function renderDiretor(el){
         </div>
       </div>`:""}
     ${TM==="clube"?htmlClubeCorpo():""}
+    ${TM==="galeria"?htmlGaleria():""}
+    ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="sede"?htmlSede(true):""}
 
@@ -651,11 +647,12 @@ function renderDiretor(el){
     if(TA==="reunioes")carregarReunioes();
     if(TA==="mensalidades")carregarMensalidades();
     if(TA==="caixabar")carregarCaixaBar();
-    if(TA==="aniversarios")carregarAniversarios();
     if(TA==="galeria")carregarGaleria();
   },100);
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
 function proxQuarta(){
@@ -686,7 +683,7 @@ function proxSexta(){
 function htmlSede(canEdit){
   const abaSede=window._sedeAba||"presenca";
   const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
-  const tabs=[["presenca","⛪","Sede","Presença sexta"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["reunioes","📋","Reuniões","Atas e presenças"]];
+  const tabs=[["presenca","⛪","Presença Sexta","Confirme sua presença"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["aniversariosSede","🎂","Aniversários","Membros do clube"],["reunioes","📋","Reuniões","Atas e presenças"]];
   return`<div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
       ${tabs.map(([a,ic,lb,sub])=>
@@ -698,6 +695,7 @@ function htmlSede(canEdit){
       ${abaSede==="limpeza"?htmlSedeLimpeza(canEdit,isAdminOrDir):""}
       ${abaSede==="bar"||abaSede==="churrasco"?(UP&&(UP.isAdmin||UP.isBarman)?htmlEscalaGerenciar(abaSede):htmlEscalaVisualizacao(abaSede,isAdminOrDir)):""}
       ${abaSede==="eventosSede"?htmlEventosSede():""}
+      ${abaSede==="aniversariosSede"?htmlAniversarios():""}
       ${abaSede==="reunioes"?htmlReunioes():""}
     </div>
   </div>`;
@@ -1024,7 +1022,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1104,6 +1102,8 @@ function renderBarman(el){
         <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
         <div id="rm-custom-result"></div>
       </div>`:""}
+    ${TM==="galeria"?htmlGaleria():""}
+    ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="sede"?htmlSede(true):""}
 
@@ -1148,6 +1148,8 @@ function renderBarman(el){
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
 function renderMembro(el){
@@ -1168,7 +1170,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1286,11 +1288,15 @@ function renderMembro(el){
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
       </div>`:""}
+    ${TM==="galeria"?htmlGaleria():""}
+    ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="sede"?htmlSede(true):""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel")setTimeout(carregarPainelResumo,100);
+  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
 function htmlVotacaoAdmin(){
@@ -1400,86 +1406,26 @@ async function carregarVotacoes(){
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
 }
 
-function htmlGaleria(){
-  const evFut=EVENTOS.filter(e=>new Date(e.data)<=new Date()).slice(-5).reverse(); // últimos 5 eventos passados
-  const evTodos=[...EVENTOS].sort((a,b)=>b.data.localeCompare(a.data));
-  return`<div class="card">
-    <div class="sec-title">📸 Galeria de fotos</div>
-    <label>Evento</label>
-    <select id="gal-evento" onchange="window.carregarGaleriaEvento(this.value)" style="margin-bottom:14px">
-      <option value="">Selecione um evento...</option>
-      ${evTodos.map(e=>`<option value="${e.id}">${e.nome} — ${fmtDate(e.data)}</option>`).join("")}
-    </select>
-    <div id="gal-upload-area" style="display:none;margin-bottom:14px">
-      <label style="text-transform:none;letter-spacing:0;font-size:13px;cursor:pointer;padding:10px 16px;border:2px dashed var(--border);border-radius:10px;background:var(--bg3);color:var(--muted);display:block;text-align:center" for="gal-input">📷 Toque para adicionar foto</label>
-      <input type="file" id="gal-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoGaleria(this)"/>
+function htmlVotacoesTab(){
+  return`<div class="card" id="painel-votacoes-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
+      <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
     </div>
-    <div id="gal-fotos"><div style="font-size:12px;color:#555;text-align:center;padding:20px">Selecione um evento para ver as fotos</div></div>
+    <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+      <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
+      <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
+      <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
+      <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
+      <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
+        <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
+      </div>
+    </div>
+    <div id="painel-votacoes"><span class="spin">⟳</span></div>
   </div>`;
 }
-
-window.carregarGaleriaEvento=async(eventoId)=>{
-  const uploadArea=document.getElementById("gal-upload-area");
-  const el=document.getElementById("gal-fotos");
-  if(!eventoId){if(uploadArea)uploadArea.style.display="none";return;}
-  if(uploadArea)uploadArea.style.display="block";
-  if(el)el.innerHTML=`<span class="spin">⟳</span>`;
-  try{
-    const snap=await getDocs(query(collection(db,"galeria"),where("eventoId","==",parseInt(eventoId)),orderBy("criadoEm","desc")));
-    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555;text-align:center;padding:20px">Nenhuma foto ainda. Seja o primeiro!</div>`;return;}
-    el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      ${snap.docs.map(d=>{
-        const f=d.data();
-        return`<div style="position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1">
-          <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="window.verFotoGaleria('${f.url}','${f.apelido}','${f.data||""}')"/>
-          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:6px 8px">
-            <div style="font-size:10px;color:#fff;font-weight:600">${f.apelido}</div>
-          </div>
-          ${(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="window.excluirFotoGaleria('${d.id}','${eventoId}')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>`:""}
-        </div>`;
-      }).join("")}
-    </div>`;
-  }catch(e){if(el)el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
-};
-
-window.uploadFotoGaleria=async(input)=>{
-  const file=input.files[0];
-  if(!file)return;
-  const eventoId=document.getElementById("gal-evento")?.value;
-  if(!eventoId){showToast("Selecione um evento primeiro.",true);return;}
-  const ev=EVENTOS.find(e=>e.id===parseInt(eventoId));
-  showToast("Enviando foto...");
-  try{
-    const url=await uploadFoto(file);
-    await addDoc(collection(db,"galeria"),{
-      eventoId:parseInt(eventoId),eventoNome:ev?.nome||"",
-      url,autorId:CU.uid,apelido:UP.apelido,
-      data:new Date().toISOString().slice(0,10),
-      criadoEm:serverTimestamp()
-    });
-    input.value="";
-    showToast("✅ Foto adicionada!");
-    window.carregarGaleriaEvento(eventoId);
-  }catch(e){showToast("Erro ao enviar foto.",true);}
-};
-
-window.verFotoGaleria=(url,apelido,data)=>{
-  const overlay=document.createElement("div");
-  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px";
-  overlay.innerHTML=`
-    <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:10px;object-fit:contain"/>
-    <div style="color:#fff;font-size:12px;margin-top:10px;text-align:center">${apelido}${data?" · "+fmtDate(data):""}</div>
-    <button onclick="this.parentElement.remove()" style="margin-top:14px;padding:10px 24px;border-radius:8px;border:1px solid #555;background:transparent;color:#fff;font-size:14px;cursor:pointer">Fechar</button>`;
-  document.body.appendChild(overlay);
-};
-
-window.excluirFotoGaleria=async(id,eventoId)=>{
-  if(!confirm("Excluir esta foto?"))return;
-  try{await deleteDoc(doc(db,"galeria",id));showToast("Foto excluída.");window.carregarGaleriaEvento(eventoId);}
-  catch{showToast("Erro.",true);}
-};
-
-async function carregarGaleria(){} // carregamento lazy via select
 
 async function carregarPlacaHonra(){} // renderizado estaticamente
 
@@ -2235,6 +2181,7 @@ window.trocarAbaSede=(aba)=>{
   else if(aba==="limpeza")el.innerHTML=htmlSedeLimpeza(canEdit,isAdminOrDir);
   else if(aba==="reunioes"){el.innerHTML=htmlReunioes();setTimeout(carregarReunioes,50);}
   else if(aba==="eventosSede"){el.innerHTML=htmlEventosSede();setTimeout(carregarEventosSede,50);}
+  else if(aba==="aniversariosSede"){el.innerHTML=htmlAniversarios();}
   else{window._barAba=aba;el.innerHTML=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
   if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
   else if(aba!=="reunioes"&&aba!=="eventosSede")setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();if(UP&&(UP.isAdmin||UP.isBarman))carregarCaixaBarRapido();},50);
