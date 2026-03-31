@@ -559,7 +559,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"],["clube","🎯","Diretoria"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -736,11 +736,9 @@ function renderDiretor(el){
           <div>${htmlConquistas(UP,REGS)}</div>
         </div>
       </div>`:""}
-    ${TM==="contatos"?htmlContatos():""}
     ${TM==="clube"?htmlClubeCorpo():""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
-    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -1112,7 +1110,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1208,7 +1206,6 @@ function renderBarman(el){
       </div>`:""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
-    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -1321,7 +1318,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1496,7 +1493,6 @@ function renderMembro(el){
       </div>`:""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
-    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -1532,7 +1528,7 @@ function htmlWhatsApp(ctx){
   // Cabeçalho com sub-abas Mensagens / Mural / Rotas
   return`<div style="display:flex;gap:8px;margin-bottom:14px">
     <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
-    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📋 Mural</button>
+    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📌 Mural</button>
     <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🗺️ Rotas</button>
   </div>
   <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
