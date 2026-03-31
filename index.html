@@ -577,8 +577,15 @@ function renderDiretor(el){
         <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-sm"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
-      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="ev-view-lista" onclick="window.setEvView('lista')" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">☰ Lista</button>
+        <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
+      </div>
+      <div id="ev-lista-wrap">
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+      </div>
+      <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
@@ -1063,8 +1070,15 @@ function renderBarman(el){
         <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
-      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="ev-view-lista" onclick="window.setEvView('lista')" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">☰ Lista</button>
+        <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
+      </div>
+      <div id="ev-lista-wrap">
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+      </div>
+      <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
@@ -1211,8 +1225,15 @@ function renderMembro(el){
         <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev" }">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
-      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="ev-view-lista" onclick="window.setEvView('lista')" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">☰ Lista</button>
+        <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
+      </div>
+      <div id="ev-lista-wrap">
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+      </div>
+      <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
@@ -1409,6 +1430,105 @@ function htmlVotacoesTab(){
 }
 
 async function carregarPlacaHonra(){} // renderizado estaticamente
+
+// ═══════════════════════════════════════════════════
+// CALENDÁRIO VISUAL DE EVENTOS
+// ═══════════════════════════════════════════════════
+let _evView="lista";
+let _calMes=new Date().getMonth();
+let _calAno=new Date().getFullYear();
+
+window.setEvView=(view)=>{
+  _evView=view;
+  const lista=document.getElementById("ev-lista-wrap");
+  const cal=document.getElementById("ev-cal-wrap");
+  const btnL=document.getElementById("ev-view-lista");
+  const btnC=document.getElementById("ev-view-cal");
+  if(!lista||!cal)return;
+  lista.style.display=view==="lista"?"block":"none";
+  cal.style.display=view==="cal"?"block":"none";
+  if(btnL){btnL.style.background=view==="lista"?"var(--orange)":"var(--bg3)";btnL.style.color=view==="lista"?"#fff":"var(--muted)";btnL.style.border=view==="lista"?"none":"1px solid var(--border)";}
+  if(btnC){btnC.style.background=view==="cal"?"var(--orange)":"var(--bg3)";btnC.style.color=view==="cal"?"#fff":"var(--muted)";btnC.style.border=view==="cal"?"none":"1px solid var(--border)";}
+  if(view==="cal")renderCalendario();
+};
+
+function renderCalendario(){
+  const cal=document.getElementById("ev-cal-wrap");
+  if(!cal)return;
+  const hoje=new Date();
+  const ano=_calAno, mes=_calMes;
+  const primeiroDia=new Date(ano,mes,1).getDay(); // 0=dom
+  const diasNoMes=new Date(ano,mes+1,0).getDate();
+  const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+  // Mapear eventos do mês
+  const eventosPorDia={};
+  EVENTOS.forEach(ev=>{
+    const d=new Date(ev.data+"T00:00:00");
+    if(d.getMonth()===mes&&d.getFullYear()===ano){
+      const dia=d.getDate();
+      if(!eventosPorDia[dia])eventosPorDia[dia]=[];
+      eventosPorDia[dia].push(ev);
+    }
+  });
+
+  // Células do calendário
+  let cells="";
+  // Dias da semana header
+  cells+=dias.map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px 0;text-transform:uppercase">${d}</div>`).join("");
+
+  // Células vazias antes do primeiro dia
+  for(let i=0;i<primeiroDia;i++) cells+=`<div></div>`;
+
+  // Dias do mês
+  for(let dia=1;dia<=diasNoMes;dia++){
+    const ehHoje=hoje.getDate()===dia&&hoje.getMonth()===mes&&hoje.getFullYear()===ano;
+    const evs=eventosPorDia[dia]||[];
+    const temEv=evs.length>0;
+    cells+=`<div onclick="${temEv?`window.verEvDia(${dia},${mes},${ano})`:"return false"}"
+      style="min-height:44px;border-radius:8px;padding:4px;cursor:${temEv?"pointer":"default"};
+      background:${ehHoje?"rgba(232,103,10,.2)":temEv?"rgba(232,103,10,.08)":"transparent"};
+      border:1px solid ${ehHoje?"var(--orange)":temEv?"rgba(232,103,10,.3)":"transparent"};
+      position:relative;transition:background .15s">
+      <div style="font-size:12px;font-weight:${ehHoje?"700":"400"};color:${ehHoje?"var(--orange)":"var(--white)"};text-align:center">${dia}</div>
+      ${temEv?`<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px">${evs.map(()=>`<div style="width:6px;height:6px;border-radius:50%;background:var(--orange)"></div>`).join("")}</div>`:""}
+    </div>`;
+  }
+
+  // Detalhe do evento selecionado
+  cal.innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <button onclick="window.navCal(-1)" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:16px;cursor:pointer;font-family:inherit">‹</button>
+        <div style="font-size:15px;font-weight:700">${meses[mes]} ${ano}</div>
+        <button onclick="window.navCal(1)" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:16px;cursor:pointer;font-family:inherit">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+        ${cells}
+      </div>
+      ${Object.keys(eventosPorDia).length===0?`<div style="font-size:12px;color:#555;text-align:center;margin-top:14px">Nenhum evento neste mês</div>`:""}
+    </div>
+    <div id="ev-cal-detalhe"></div>`;
+}
+
+window.navCal=(dir)=>{
+  _calMes+=dir;
+  if(_calMes>11){_calMes=0;_calAno++;}
+  if(_calMes<0){_calMes=11;_calAno--;}
+  renderCalendario();
+};
+
+window.verEvDia=(dia,mes,ano)=>{
+  const evs=EVENTOS.filter(ev=>{
+    const d=new Date(ev.data+"T00:00:00");
+    return d.getDate()===dia&&d.getMonth()===mes&&d.getFullYear()===ano;
+  });
+  const det=document.getElementById("ev-cal-detalhe");
+  if(!det)return;
+  det.innerHTML=evs.map(ev=>evCardMembro(ev)).join("");
+  det.scrollIntoView({behavior:"smooth",block:"nearest"});
+};
 
 // ═══════════════════════════════════════════════════
 // GALERIA
