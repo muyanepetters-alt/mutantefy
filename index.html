@@ -203,6 +203,7 @@ async function carregarPedagiosCustom(){
 
 const toInt=n=>Math.round(n||0).toLocaleString("pt-BR");
 const brl=n=>Number(n||0).toFixed(2).replace(".",",");
+const brlNum=n=>Number(n||0).toFixed(2); // para inputs type=number (usa ponto)
 const fmtDate=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch{return d||""}};
 const initials=n=>(n||"MC").trim().split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join("");
 const avatarEl=(foto,apelido,size=32)=>foto
@@ -238,13 +239,13 @@ function htmlRota(c,dest,pedInfo,eventoId){
     <div class="rota-item">
       <small>🛣️ Pedágio ida+volta</small>
       <div style="display:flex;align-items:center;gap:4px">
-        <span>R$ </span><input type="number" value="${brl(c.ped)}" step="1" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="ped-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
+        <span>R$ </span><input type="number" value="${brlNum(c.ped)}" step="1" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="ped-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
       </div>
     </div>
     <div class="rota-item">
       <small>⛽ Gasolina (R$/L)</small>
       <div style="display:flex;align-items:center;gap:4px">
-        <input type="number" value="${brl(c.gas)}" step="0.01" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="gas-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
+        <input type="number" value="${brlNum(c.gas)}" step="0.01" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="gas-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
       </div>
     </div>
     <div class="rota-item"><small>💰 Total estimado</small><span style="color:var(--orange);font-weight:700" id="total-est-${eventoId||'custom'}">R$${brl(c.total)}</span></div>
@@ -405,15 +406,12 @@ function htmlClubeCorpo(){
       {id:"membros",ic:"🏍️",lb:"Ranking de km",sub:"Meta anual"},
       {id:"cadastrar",ic:"➕",lb:"Cadastrar",sub:"Novo membro"},
       {id:"lancar",ic:"📍",lb:"Lançar Km",sub:"Registrar saída"},
-      {id:"rota",ic:"🗺️",lb:"Planejar Rota",sub:"Custos de viagem"},
-      {id:"presenca",ic:"🎟️",lb:"Presença",sub:"Confirmações"},
-      {id:"sede_adm",ic:"⛪",lb:"Sede",sub:"Confirmações sexta"},
+      {id:"presenca",ic:"🎟️",lb:"Presença",sub:"Confirmações eventos"},
       {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
-      {id:"galeria",ic:"📸",lb:"Galeria",sub:"Fotos dos eventos"},
       {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos"},
-      {id:"caixabar",ic:"🍺",lb:"Caixa do Bar",sub:"Entradas e saídas"},
+      {id:"reunioes",ic:"📋",lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
     ];
     if(!TA||TA==="home"){
@@ -455,14 +453,11 @@ function htmlClubeCorpo(){
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="lancar"?htmlLancarKm():""}
-      ${TA==="rota"?htmlRotaAdmin():""}
       ${TA==="presenca"?`<div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
-      ${TA==="sede_adm"?htmlSede(true):""}
       ${TA==="usuarios"?htmlUsuarios():""}
       ${TA==="eventos"?`<div>${EVENTOS.length===0?'<p style="font-size:13px;color:#555">Nenhum evento cadastrado.</p>':EVENTOS.map(ev=>evCardMembro(ev)).join("")}</div>`:""}
       ${TA==="honra"?htmlPlacaHonra():""}
       ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
-      ${TA==="caixabar"?htmlCaixaBar():""}
       ${TA==="galeria"?htmlGaleria():""}
       ${TA==="reunioes"?htmlReunioes():""}
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
@@ -646,7 +641,6 @@ function renderDiretor(el){
     if(TA==="votacao")carregarVotacoes();
     if(TA==="reunioes")carregarReunioes();
     if(TA==="mensalidades")carregarMensalidades();
-    if(TA==="caixabar")carregarCaixaBar();
     if(TA==="galeria")carregarGaleria();
   },100);
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
@@ -807,7 +801,6 @@ function htmlEscalaGerenciar(tipo){window._barAba=tipo;
       <button class="btn-primary" onclick="window.${isBar?"salvarEscalaBar":"salvarEscalaChurrasco"}()" ${!isBar?`style="background:var(--green)"`:""}>Salvar escala ${isBar?"do bar":"do churrasco"}</button>
     </div>
   </div>
-  ${htmlCaixaBarResumo()}
   <div class="card">
     <div class="sec-title" id="bar-lista-titulo">📋 Escalas futuras — ${ic} ${label}</div>
     <div id="escala-lista"><span class="spin">⟳</span></div>
@@ -846,28 +839,7 @@ async function carregarBarVisualizacao(){
   await carregarEscalaLista();
 }
 
-function htmlCaixaBarResumo(){
-  // Resumo rápido da caixa do bar para exibir na aba Bar
-  const isBarAdmin=UP&&(UP.isAdmin||UP.isBarman);
-  if(!isBarAdmin)return"";
-  return`<div class="card" style="border-color:rgba(76,175,125,.3)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="sec-title" style="margin-bottom:0">💰 Caixa do Bar</div>
-      <div id="cb-saldo-rapido" style="font-size:14px;font-weight:700;color:var(--green)"><span class="spin">⟳</span></div>
-    </div>
-    <button onclick="window.setTM('clube');setTimeout(()=>{window.setTA('caixabar');setTimeout(carregarCaixaBar,100);},100)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Ver caixa completa →</button>
-  </div>`;
-}
 
-async function carregarCaixaBarRapido(){
-  const el=document.getElementById("cb-saldo-rapido");
-  if(!el)return;
-  try{
-    const snap=await getDocs(collection(db,"caixa_bar"));
-    const saldo=snap.docs.reduce((acc,d)=>{const r=d.data();return r.tipo==="entrada"?acc+r.valor:acc-r.valor;},0);
-    el.innerHTML=`<span style="color:${saldo>=0?"var(--green)":"var(--danger)"}">R$ ${brl(Math.abs(saldo))}</span>`;
-  }catch{}
-}
 
 function htmlBarGerenciar(){
   const abaBar=window._barAba||"bar";
@@ -1430,6 +1402,65 @@ function htmlVotacoesTab(){
 async function carregarPlacaHonra(){} // renderizado estaticamente
 
 // ═══════════════════════════════════════════════════
+// GALERIA
+// ═══════════════════════════════════════════════════
+function htmlGaleria(){
+  return`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sec-title" style="margin-bottom:0">📸 Galeria de fotos</div>
+      <label style="text-transform:none;letter-spacing:0;font-size:12px;cursor:pointer;padding:7px 12px;border:1px solid var(--orange);border-radius:8px;background:transparent;color:var(--orange);margin:0;font-weight:600" for="galeria-upload">+ Foto</label>
+      <input type="file" id="galeria-upload" accept="image/*" multiple style="display:none;margin:0" onchange="window.uploadFotosGaleria(this)"/>
+    </div>
+    <select id="galeria-filtro-evento" onchange="window.filtrarGaleria()" style="margin-bottom:12px">
+      <option value="">Todos os eventos</option>
+      ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join("")}
+      <option value="geral">Geral / Sede</option>
+    </select>
+    <div id="galeria-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+async function carregarGaleria(eventoId){
+  const el=document.getElementById("galeria-grid");
+  if(!el)return;
+  el.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const snap=await getDocs(query(collection(db,"galeria"),orderBy("criadoEm","desc")));
+    const fotos=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(f=>!eventoId||(eventoId==="geral"?(!f.eventoId||f.eventoId==="geral"):f.eventoId===eventoId));
+    if(fotos.length===0){el.innerHTML=`<div style="grid-column:1/-1;font-size:12px;color:#555;padding:10px 0">Nenhuma foto ainda. Seja o primeiro a postar!</div>`;return;}
+    el.innerHTML=fotos.map(f=>`<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer" onclick="window.open('${f.url}','_blank')">
+      <img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>
+      ${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}
+    </div>`).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+
+window.filtrarGaleria=()=>{
+  const val=document.getElementById("galeria-filtro-evento")?.value;
+  carregarGaleria(val||null);
+};
+
+window.uploadFotosGaleria=async(input)=>{
+  const files=Array.from(input.files);
+  if(!files.length)return;
+  const eventoId=document.getElementById("galeria-filtro-evento")?.value||"geral";
+  showToast(`Enviando ${files.length} foto(s)...`);
+  try{
+    for(const file of files){
+      const url=await uploadFoto(file);
+      await addDoc(collection(db,"galeria"),{url,eventoId:eventoId||"geral",autorId:CU.uid,autorApelido:UP.apelido,criadoEm:serverTimestamp()});
+    }
+    showToast("✓ Fotos enviadas!");input.value="";carregarGaleria(eventoId||null);
+  }catch{showToast("Erro ao enviar.",true);}
+};
+
+window.excluirFotoGaleria=async(id)=>{
+  if(!confirm("Excluir esta foto?"))return;
+  try{await deleteDoc(doc(db,"galeria",id));showToast("Excluída.");carregarGaleria();}catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
 // GARAGEM
 // ═══════════════════════════════════════════════════
 window.salvarGaragem=async()=>{
@@ -1516,82 +1547,11 @@ function htmlAniversariosInicio(){
 // ═══════════════════════════════════════════════════
 // CAIXA DO BAR
 // ═══════════════════════════════════════════════════
-function htmlCaixaBar(){
-  return`<div class="card">
-    <div class="sec-title">💰 Caixa do Bar</div>
-    <div id="caixabar-saldo" style="text-align:center;padding:16px 0;margin-bottom:14px;border-bottom:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">SALDO ATUAL</div>
-      <div id="caixabar-valor" style="font-size:36px;font-weight:700;color:var(--green)"><span class="spin">⟳</span></div>
-    </div>
-    <div class="sec-title">➕ Novo lançamento</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button id="cb-tipo-entrada" onclick="window.setCbTipo('entrada')" style="flex:1;padding:10px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ Entrada</button>
-      <button id="cb-tipo-saida" onclick="window.setCbTipo('saida')" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">- Saída</button>
-    </div>
-    <label>Descrição</label><input type="text" id="cb-desc" placeholder="Ex: Venda de cervejas" autocomplete="off"/>
-    <label>Valor (R$)</label><input type="number" id="cb-valor" placeholder="Ex: 150.00" step="0.01"/>
-    <label>Data</label><input type="date" id="cb-data" value="${new Date().toISOString().slice(0,10)}"/>
-    <div id="cb-err" class="msg-err" style="display:none"></div>
-    <button class="btn-primary" onclick="window.salvarCaixaBar()">Salvar lançamento</button>
-  </div>
-  <div class="card">
-    <div class="sec-title">📋 Histórico</div>
-    <div id="caixabar-lista"><span class="spin">⟳</span></div>
-  </div>`;
-}
 
 let _cbTipo="entrada";
-window.setCbTipo=(tipo)=>{
-  _cbTipo=tipo;
-  const btnE=document.getElementById("cb-tipo-entrada");
-  const btnS=document.getElementById("cb-tipo-saida");
-  if(btnE){btnE.style.background=tipo==="entrada"?"var(--green)":"var(--bg3)";btnE.style.color=tipo==="entrada"?"#fff":"var(--muted)";btnE.style.border=tipo==="entrada"?"none":"1px solid var(--border)";}
-  if(btnS){btnS.style.background=tipo==="saida"?"var(--danger)":"var(--bg3)";btnS.style.color=tipo==="saida"?"#fff":"var(--muted)";btnS.style.border=tipo==="saida"?"none":"1px solid var(--border)";}
-};
 
-async function carregarCaixaBar(){
-  try{
-    const snap=await getDocs(query(collection(db,"caixa_bar"),orderBy("data","desc")));
-    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const saldo=docs.reduce((acc,d)=>d.tipo==="entrada"?acc+d.valor:acc-d.valor,0);
-    const elVal=document.getElementById("caixabar-valor");
-    const elLista=document.getElementById("caixabar-lista");
-    if(elVal)elVal.innerHTML=`<span style="color:${saldo>=0?"var(--green)":"var(--danger)"}">R$ ${brl(Math.abs(saldo))}${saldo<0?" (negativo)":""}</span>`;
-    if(elLista)elLista.innerHTML=docs.length===0?`<div style="font-size:12px;color:#555">Nenhum lançamento.</div>`:
-      docs.map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:20px">${d.tipo==="entrada"?"📥":"📤"}</span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600">${d.desc}</div>
-          <div style="font-size:11px;color:var(--muted)">${fmtDate(d.data)} · ${d.autor||""}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:14px;font-weight:700;color:${d.tipo==="entrada"?"var(--green)":"var(--danger)"}">${d.tipo==="entrada"?"+":"-"} R$${brl(d.valor)}</div>
-          <button onclick="window.excluirCaixaBar('${d.id}',${d.valor},'${d.tipo}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>
-        </div>
-      </div>`).join("");
-  }catch(e){console.error(e);}
-}
 
-window.salvarCaixaBar=async()=>{
-  const desc=document.getElementById("cb-desc")?.value.trim();
-  const valor=parseFloat(document.getElementById("cb-valor")?.value);
-  const data=document.getElementById("cb-data")?.value;
-  const err=document.getElementById("cb-err");
-  if(!desc||!valor||!data){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
-  err.style.display="none";
-  try{
-    await addDoc(collection(db,"caixa_bar"),{desc,valor,data,tipo:_cbTipo,autor:UP.apelido,criadoEm:serverTimestamp()});
-    document.getElementById("cb-desc").value="";
-    document.getElementById("cb-valor").value="";
-    showToast(`✓ ${_cbTipo==="entrada"?"Entrada":"Saída"} registrada!`);
-    carregarCaixaBar();
-  }catch{showToast("Erro.",true);}
-};
 
-window.excluirCaixaBar=async(id)=>{
-  if(!confirm("Excluir este lançamento?"))return;
-  try{await deleteDoc(doc(db,"caixa_bar",id));showToast("Excluído.");carregarCaixaBar();}catch{showToast("Erro.",true);}
-};
 
 // ═══════════════════════════════════════════════════
 // MENSALIDADES
@@ -2184,7 +2144,7 @@ window.trocarAbaSede=(aba)=>{
   else if(aba==="aniversariosSede"){el.innerHTML=htmlAniversarios();}
   else{window._barAba=aba;el.innerHTML=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
   if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
-  else if(aba!=="reunioes"&&aba!=="eventosSede")setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();if(UP&&(UP.isAdmin||UP.isBarman))carregarCaixaBarRapido();},50);
+  else if(aba!=="reunioes"&&aba!=="eventosSede")setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();},50);
 };
 window.confirmarSede=async(data,resposta,tipo)=>{
   const tp=tipo||"presenca";
