@@ -19,6 +19,20 @@
 :root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;--orange:#e8670a;--white:#f0f0f0;--muted:#888;--danger:#e05252;--green:#4caf7d}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;font-size:15px}
 .app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5)}
+.splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
+.splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash-logo{width:130px;height:130px;border-radius:50%;border:3px solid var(--orange);object-fit:contain;background:#111;animation:splashPulse 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(232,103,10,.4)}
+@keyframes splashPulse{0%,100%{box-shadow:0 0 20px rgba(232,103,10,.3)}50%{box-shadow:0 0 40px rgba(232,103,10,.7)}}
+.splash-title{font-size:20px;font-weight:700;letter-spacing:2px;margin-top:20px;color:var(--white)}
+.splash-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px}
+.splash-dots{display:flex;gap:6px;margin-top:24px}
+.splash-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);animation:splashDot 1.2s ease-in-out infinite}
+.splash-dot:nth-child(2){animation-delay:.2s}
+.splash-dot:nth-child(3){animation-delay:.4s}
+@keyframes splashDot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.confete{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
+.confete-p{position:absolute;width:8px;height:8px;border-radius:2px;animation:confeteFall linear forwards}
+@keyframes confeteFall{0%{top:-20px;opacity:1;transform:rotate(0deg)}100%{top:110vh;opacity:0;transform:rotate(720deg)}}
 .header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:2px solid rgba(232,103,10,.5);position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(232,103,10,.08) 0%,var(--bg2) 100%);flex-shrink:0}
 .header-flames{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#e8670a,#ff4500,#e8670a,#ff7a1a,#e8670a,transparent)}
 .header-info h2{font-size:17px;font-weight:700}
@@ -102,6 +116,13 @@ select option{background:var(--bg2);color:var(--white)}
 </style>
 </head>
 <body>
+<div id="splash" class="splash">
+  <img id="splash-logo" src="" class="splash-logo" onerror="this.style.display='none'" style="display:none"/>
+  <div id="splash-logo-fb" style="width:130px;height:130px;border-radius:50%;border:3px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:48px;animation:splashPulse 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(232,103,10,.4)">🏍️</div>
+  <div class="splash-title">MUTANTES MC ITAJAÍ</div>
+  <div class="splash-sub">KM TRACKER</div>
+  <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+</div>
 <div class="app" id="app"><div class="loading">Carregando...</div></div>
 <div class="toast" id="toast"><div id="toast-msg"></div><div class="toast-bar" id="toast-bar" style="background:var(--green)"></div></div>
 <script type="module">
@@ -430,6 +451,7 @@ function htmlClubeCorpo(){
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
       {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos"},
+      {id:"relatorio",ic:"📊",lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:"📋",lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
     ];
@@ -479,6 +501,7 @@ function htmlClubeCorpo(){
       ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
       ${TA==="galeria"?htmlGaleria():""}
       ${TA==="reunioes"?htmlReunioes():""}
+      ${TA==="relatorio"?htmlRelatorio():""}
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
     `;
   }
@@ -558,6 +581,13 @@ function renderDiretor(el){
         <div class="sec-title">📅 Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
+        </div>
+        <div id="mural-preview"><span class="spin">⟳</span></div>
+      </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
@@ -625,7 +655,34 @@ function renderDiretor(el){
         <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
       </div>
       <div class="card">
-        <div class="sec-title">🏍️ Garagem</div>
+        <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+          <div style="flex:1">
+            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
+              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
+              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+          <div class="grid2">
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sec-title">🏍️ Garagem</div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -656,6 +713,9 @@ function renderDiretor(el){
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="mural"?htmlMural():""}
+    ${TM==="rotas_club"?htmlRotasSugeridas():""}
+    ${TM==="relatorio"?htmlRelatorio():""}
     ${TM==="sede"?htmlSede(true):""}
 
     </div>
@@ -673,6 +733,8 @@ function renderDiretor(el){
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1052,6 +1114,13 @@ function renderBarman(el){
         <div class="sec-title">📅 Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
+        </div>
+        <div id="mural-preview"><span class="spin">⟳</span></div>
+      </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
@@ -1111,6 +1180,9 @@ function renderBarman(el){
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="mural"?htmlMural():""}
+    ${TM==="rotas_club"?htmlRotasSugeridas():""}
+    ${TM==="relatorio"?htmlRelatorio():""}
     ${TM==="sede"?htmlSede(true):""}
 
     ${TM==="perfil"?`
@@ -1124,7 +1196,34 @@ function renderBarman(el){
         <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
       </div>
       <div class="card">
-        <div class="sec-title">🏍️ Garagem</div>
+        <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+          <div style="flex:1">
+            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
+              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
+              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+          <div class="grid2">
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sec-title">🏍️ Garagem</div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -1155,6 +1254,8 @@ function renderBarman(el){
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1206,6 +1307,13 @@ function renderMembro(el){
       <div class="card">
         <div class="sec-title">📅 Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
+        </div>
+        <div id="mural-preview"><span class="spin">⟳</span></div>
       </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1274,7 +1382,34 @@ function renderMembro(el){
         <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
       </div>
       <div class="card">
-        <div class="sec-title">🏍️ Garagem</div>
+        <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+          <div style="flex:1">
+            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
+              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
+              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+          <div class="grid2">
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sec-title">🏍️ Garagem</div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -1304,11 +1439,16 @@ function renderMembro(el){
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="mural"?htmlMural():""}
+    ${TM==="rotas_club"?htmlRotasSugeridas():""}
+    ${TM==="relatorio"?htmlRelatorio():""}
     ${TM==="sede"?htmlSede(true):""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
+  if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1330,6 +1470,28 @@ function htmlVotacaoAdmin(){
 }
 
 function htmlWhatsApp(ctx){
+  // Cabeçalho com sub-abas Mensagens / Mural / Rotas
+  return`<div style="display:flex;gap:8px;margin-bottom:14px">
+    <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
+    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📋 Mural</button>
+    <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🗺️ Rotas</button>
+  </div>
+  <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
+  <div id="sub-msg-mural" style="display:none">${htmlMural()}</div>
+  <div id="sub-msg-rotas" style="display:none">${htmlRotasSugeridas()}</div>`;
+}
+window.setSubMsg=(aba)=>{
+  ["wpp","mural","rotas"].forEach(a=>{
+    const btn=document.getElementById("sub-"+a);
+    const el=document.getElementById("sub-msg-"+a);
+    const active=a===aba;
+    if(btn){btn.style.background=active?"var(--orange)":"var(--bg3)";btn.style.color=active?"#fff":"var(--muted)";btn.style.border=active?"none":"1px solid var(--border)";}
+    if(el)el.style.display=active?"block":"none";
+  });
+  if(aba==="mural")setTimeout(carregarMural,50);
+  if(aba==="rotas")setTimeout(carregarRotasSugeridas,50);
+};
+function htmlWhatsAppConteudo(ctx){
   const id=ctx||"painel";
   const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
   const ranking=sorted.slice(0,5).map((m,i)=>`${i+1}. ${m.apelido} — ${toInt(m.totalKm||0)} km`).join("%0A");
@@ -1441,6 +1603,208 @@ function htmlVotacoesTab(){
 }
 
 async function carregarPlacaHonra(){} // renderizado estaticamente
+
+// ═══════════════════════════════════════════════════
+// CONFETE — animação ao bater meta
+// ═══════════════════════════════════════════════════
+function dispararConfete(){
+  const cores=["#e8670a","#ff8c2a","#ffd700","#4caf7d","#fff","#e05252"];
+  const wrap=document.createElement("div");
+  wrap.className="confete";
+  document.body.appendChild(wrap);
+  for(let i=0;i<80;i++){
+    const p=document.createElement("div");
+    p.className="confete-p";
+    p.style.cssText=`left:${Math.random()*100}%;background:${cores[Math.floor(Math.random()*cores.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*2}s;border-radius:${Math.random()>0.5?"50%":"2px"}`;
+    wrap.appendChild(p);
+  }
+  showToast("🏆 Meta de 5.000 km atingida! Parabéns!");
+  setTimeout(()=>wrap.remove(),6000);
+}
+
+// ═══════════════════════════════════════════════════
+// MURAL DE RECADOS
+// ═══════════════════════════════════════════════════
+function htmlMural(){
+  return`<div class="card">
+    <div class="sec-title">💬 Mural do clube</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input type="text" id="mural-msg" placeholder="Escreva seu recado..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.postarMural()"/>
+      <button onclick="window.postarMural()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Postar</button>
+    </div>
+    <div id="mural-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+async function carregarMural(){
+  const el=document.getElementById("mural-lista");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"mural"),orderBy("criadoEm","desc")));
+    const docs=snap.docs.slice(0,30).map(d=>({id:d.id,...d.data()}));
+    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum recado ainda. Seja o primeiro!</div>`;return;}
+    el.innerHTML=docs.map(r=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px">
+        ${avatarEl(r.fotoUrl||"",r.autor,36)}
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <div style="font-size:12px;font-weight:700;color:var(--orange)">${r.autor}</div>
+            <div style="font-size:10px;color:#555">${r.criadoEm?.toDate?fmtDate(r.criadoEm.toDate().toISOString().slice(0,10)):""}</div>
+          </div>
+          <div style="font-size:13px;line-height:1.4">${r.msg}</div>
+          ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;margin-top:2px">✕ apagar</button>`:""}
+        </div>
+      </div>`).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
+}
+
+window.postarMural=async()=>{
+  const input=document.getElementById("mural-msg");
+  const msg=input?.value.trim();
+  if(!msg)return;
+  try{
+    await addDoc(collection(db,"mural"),{msg,autor:UP.apelido,autorId:CU.uid,fotoUrl:UP.fotoUrl||"",criadoEm:serverTimestamp()});
+    input.value="";carregarMural();
+  }catch{showToast("Erro ao postar.",true);}
+};
+
+window.excluirMural=async(id)=>{
+  try{await deleteDoc(doc(db,"mural",id));carregarMural();}catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// SUGESTÃO DE ROTAS
+// ═══════════════════════════════════════════════════
+function htmlRotasSugeridas(){
+  const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
+  return`<div class="card">
+    <div class="sec-title">🗺️ Rotas sugeridas pelos membros</div>
+    <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:14px">
+      <label>Nome da rota</label><input type="text" id="rs-nome" placeholder="Ex: Serra do Rio do Rastro" autocomplete="off"/>
+      <label>Distância (km)</label><input type="number" id="rs-dist" placeholder="Ex: 280"/>
+      <label>Descrição</label><input type="text" id="rs-desc" placeholder="Destaque da rota..." autocomplete="off"/>
+      <button class="btn-primary" onclick="window.sugerirRota()">📌 Sugerir rota</button>
+    </div>
+    <div id="rotas-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+async function carregarRotasSugeridas(){
+  const el=document.getElementById("rotas-lista");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"rotas_sugeridas"),orderBy("likes","desc")));
+    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma rota sugerida ainda.</div>`;return;}
+    el.innerHTML=docs.map(r=>{
+      const jaCurtiu=(r.curtidas||{})[CU.uid];
+      return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+          <div>
+            <div style="font-size:14px;font-weight:700">🗺️ ${r.nome}</div>
+            <div style="font-size:11px;color:var(--muted)">📍 ${r.dist||"??"} km · por ${r.autor}</div>
+            ${r.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${r.desc}</div>`:""}
+          </div>
+          <button onclick="window.curtirRota('${r.id}','${jaCurtiu?'des':''}')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;border-radius:10px;border:1px solid ${jaCurtiu?"var(--orange)":"var(--border)"};background:${jaCurtiu?"rgba(232,103,10,.15)":"transparent"};cursor:pointer;font-family:inherit">
+            <span style="font-size:18px">${jaCurtiu?"🧡":"🤍"}</span>
+            <span style="font-size:11px;font-weight:700;color:${jaCurtiu?"var(--orange)":"var(--muted)"}">${r.likes||0}</span>
+          </button>
+        </div>
+        ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirRotaSugerida('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕ remover</button>`:""}
+      </div>`;
+    }).join("");
+  }catch{el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
+}
+
+window.sugerirRota=async()=>{
+  const nome=document.getElementById("rs-nome")?.value.trim();
+  const dist=parseInt(document.getElementById("rs-dist")?.value)||0;
+  const desc=document.getElementById("rs-desc")?.value.trim();
+  if(!nome){showToast("Informe o nome da rota.",true);return;}
+  try{
+    await addDoc(collection(db,"rotas_sugeridas"),{nome,dist,desc:desc||"",autor:UP.apelido,autorId:CU.uid,likes:0,curtidas:{},criadoEm:serverTimestamp()});
+    document.getElementById("rs-nome").value="";document.getElementById("rs-dist").value="";document.getElementById("rs-desc").value="";
+    showToast("✓ Rota sugerida!");carregarRotasSugeridas();
+  }catch{showToast("Erro.",true);}
+};
+
+window.curtirRota=async(id,acao)=>{
+  try{
+    const ref=doc(db,"rotas_sugeridas",id);
+    const snap=await getDoc(ref);
+    const d=snap.data();
+    const curtidas=d.curtidas||{};
+    if(acao==="des"){delete curtidas[CU.uid];await setDoc(ref,{curtidas,likes:Math.max(0,(d.likes||1)-1)},{merge:true});}
+    else{curtidas[CU.uid]=true;await setDoc(ref,{curtidas,likes:(d.likes||0)+1},{merge:true});}
+    carregarRotasSugeridas();
+  }catch{showToast("Erro.",true);}
+};
+
+window.excluirRotaSugerida=async(id)=>{
+  try{await deleteDoc(doc(db,"rotas_sugeridas",id));carregarRotasSugeridas();}catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// RELATÓRIO ANUAL
+// ═══════════════════════════════════════════════════
+function htmlRelatorio(){
+  const ano=new Date().getFullYear();
+  const totalKmClube=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const membroTop=MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0))[0];
+  const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
+  const eventosRealizados=EVENTOS.filter(e=>new Date(e.data)<new Date()).length;
+  const totalEventos=EVENTOS.length;
+  return`<div class="card" style="border-color:rgba(232,103,10,.3)">
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:28px">📊</div>
+      <div style="font-size:18px;font-weight:700;margin-top:4px">Relatório ${ano}</div>
+      <div style="font-size:12px;color:var(--muted)">Mutantes MC Itajaí</div>
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="metric" style="padding:14px;text-align:center">
+        <div class="metric-label">🏍️ Km do clube</div>
+        <div class="metric-value" style="color:var(--orange);font-size:22px">${toInt(totalKmClube).toLocaleString("pt-BR")}</div>
+      </div>
+      <div class="metric" style="padding:14px;text-align:center">
+        <div class="metric-label">👥 Membros</div>
+        <div class="metric-value" style="font-size:22px">${MEMBROS.length}</div>
+      </div>
+      <div class="metric" style="padding:14px;text-align:center">
+        <div class="metric-label">🏆 Bateram a meta</div>
+        <div class="metric-value" style="color:var(--green);font-size:22px">${bateram}</div>
+      </div>
+      <div class="metric" style="padding:14px;text-align:center">
+        <div class="metric-label">📅 Eventos</div>
+        <div class="metric-value" style="font-size:22px">${eventosRealizados}/${totalEventos}</div>
+      </div>
+    </div>
+    ${membroTop?`<div style="background:rgba(232,103,10,.08);border:1px solid rgba(232,103,10,.2);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+      ${avatarEl(membroTop.fotoUrl,membroTop.apelido,44)}
+      <div>
+        <div style="font-size:11px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🥇 Mais km no ano</div>
+        <div style="font-size:16px;font-weight:700">${membroTop.apelido}</div>
+        <div style="font-size:13px;color:var(--muted)">${toInt(membroTop.totalKm||0).toLocaleString("pt-BR")} km rodados</div>
+      </div>
+    </div>`:""}
+    <div class="sec-title">📈 Ranking completo</div>
+    ${MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).map((m,i)=>{
+      const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
+      const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+      return`<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:8px">
+            ${avatarEl(m.fotoUrl,m.apelido,28)}
+            <span style="font-size:13px;font-weight:600">${medal} ${m.apelido}</span>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:${pct>=100?"var(--green)":"var(--orange)"}">${toInt(m.totalKm||0)} km</span>
+        </div>
+        <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct>=100?"var(--green)":"var(--orange)"};border-radius:3px;transition:width .8s"></div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
 
 // ═══════════════════════════════════════════════════
 // CALENDÁRIO VISUAL DE EVENTOS
@@ -2007,6 +2371,19 @@ async function carregarPainelResumo(){
           <div style="font-size:15px;font-weight:700;color:var(--orange)">+${toInt(r.km)} km</div>
         </div>`).join("");
     }
+  }
+  // Preview do mural
+  const muralEl=document.getElementById("mural-preview");
+  if(muralEl){
+    try{
+      const snap=await getDocs(query(collection(db,"mural"),orderBy("criadoEm","desc")));
+      const docs=snap.docs.slice(0,2).map(d=>({id:d.id,...d.data()}));
+      if(docs.length===0){muralEl.innerHTML=`<div style="font-size:12px;color:#555">Seja o primeiro a postar!</div>`;}
+      else{muralEl.innerHTML=docs.map(r=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        ${avatarEl(r.fotoUrl||"",r.autor,28)}
+        <div><div style="font-size:12px;font-weight:600;color:var(--orange)">${r.autor}</div><div style="font-size:12px">${r.msg}</div></div>
+      </div>`).join("");}
+    }catch{}
   }
   // Ações rápidas — confirmação de sede e limpeza
   const qaEl=document.getElementById("quick-actions-painel");
@@ -3128,6 +3505,12 @@ async function carregarPresencasAdmin(){
 }
       
 onAuthStateChanged(auth,async user=>{
+  // Mostrar splash com logo
+  const splashLogo=document.getElementById("splash-logo");
+  const splashFb=document.getElementById("splash-logo-fb");
+  const logoSalva=localStorage.getItem("mutantes_logo");
+  if(splashLogo&&logoSalva){splashLogo.src=logoSalva;splashLogo.style.display="block";if(splashFb)splashFb.style.display="none";}
+
   CU=user;TA="home";TM="painel";CONF={};
   if(!user){UP=null;REGS=[];MEMBROS=[];render();return;}
   document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
@@ -3145,6 +3528,14 @@ onAuthStateChanged(auth,async user=>{
     registrarTokenPush();
   }catch(e){console.error(e);}
   render();
+  // Esconder splash
+  setTimeout(()=>{const s=document.getElementById("splash");if(s)s.classList.add("hide");setTimeout(()=>{if(s)s.style.display="none";},650);},800);
+  // Confete se bateu a meta recentemente (primeiro login do dia com meta>=100%)
+  const km=UP.totalKm||0;
+  if(km>=META){
+    const key="meta_confete_"+new Date().toDateString();
+    if(!localStorage.getItem(key)){localStorage.setItem(key,"1");setTimeout(dispararConfete,1200);}
+  }
 });
 </script>
 </body>
