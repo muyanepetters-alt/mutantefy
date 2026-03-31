@@ -3762,7 +3762,8 @@ onAuthStateChanged(auth,async user=>{
   if(splashLogo&&logoSalva){splashLogo.src=logoSalva;splashLogo.style.display="block";if(splashFb)splashFb.style.display="none";}
 
   CU=user;TA="home";TM="painel";CONF={};
-  if(!user){UP=null;REGS=[];MEMBROS=[];render();return;}
+  const esconderSplash=()=>{const s=document.getElementById("splash");if(s){s.classList.add("hide");setTimeout(()=>{s.style.display="none";},650);}};
+  if(!user){UP=null;REGS=[];MEMBROS=[];render();setTimeout(esconderSplash,600);return;}
   document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
   try{
     const snap=await getDoc(doc(db,"usuarios",user.uid));
@@ -3779,7 +3780,7 @@ onAuthStateChanged(auth,async user=>{
   }catch(e){console.error(e);}
   render();
   // Esconder splash
-  setTimeout(()=>{const s=document.getElementById("splash");if(s)s.classList.add("hide");setTimeout(()=>{if(s)s.style.display="none";},650);},800);
+  setTimeout(esconderSplash,800);
   // Confete se bateu a meta recentemente (primeiro login do dia com meta>=100%)
   const km=UP.totalKm||0;
   if(km>=META){
