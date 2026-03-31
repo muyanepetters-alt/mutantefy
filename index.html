@@ -1,0 +1,3025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#e8670a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Mutantes MC"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link id="apple-touch-icon" rel="apple-touch-icon" href=""/>
+<link id="pwa-manifest" rel="manifest" href=""/>
+<title>MUTANTES MC ITAJAÍ — Km Tracker</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;--orange:#e8670a;--white:#f0f0f0;--muted:#888;--danger:#e05252;--green:#4caf7d}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;font-size:15px}
+.app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:3px solid var(--orange);position:relative;overflow:hidden;background:var(--bg2);flex-shrink:0}
+.header-flames{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#e8670a,#ff4500,#e8670a,#ff7a1a,#e8670a,transparent)}
+.header-info h2{font-size:17px;font-weight:700}
+.header-info p{font-size:12px;color:var(--muted);margin-top:2px}
+.header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.body{padding:16px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.bnav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.bnav::-webkit-scrollbar{display:none}
+.bnav-item{flex:1;min-height:58px;min-width:56px;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.bnav-item::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;border-radius:2px 2px 0 0;background:transparent}
+.bnav-item.nav-active::after{background:var(--orange)}
+.bnav-icon{font-size:22px;line-height:1;transition:transform .15s}
+.bnav-label{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.2px}
+.bnav-item.nav-active .bnav-label{color:var(--orange);font-weight:600}
+.bnav-item:active .bnav-icon{transform:scale(.88)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
+.prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
+.prog-fill{height:100%;border-radius:3px}
+.prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.metric{background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
+.metric-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.metric-value{font-size:30px;font-weight:700}
+.sec-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+.ev-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge-sm{background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3)}
+.badge-gr{background:rgba(76,175,125,.1);color:var(--green);border:1px solid rgba(76,175,125,.2)}
+.badge-admin{background:rgba(232,103,10,.2);color:var(--orange);border:1px solid var(--orange);font-size:9px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:12px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+input,select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;color:var(--white);background:var(--bg3);margin-bottom:14px}
+input:focus,select:focus{outline:none;border-color:var(--orange)}
+input::placeholder{color:#444}
+select option{background:var(--bg2);color:var(--white)}
+.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white)}
+.btn-primary{width:100%;padding:14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit}
+.btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
+.btn-edit{padding:6px 10px;border-radius:6px;border:1px solid rgba(232,103,10,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit}
+.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer}
+.ev-card.ev-sim{border-color:var(--green);background:rgba(76,175,125,.05)}
+.ev-card.ev-nao{border-color:var(--danger);background:rgba(224,82,82,.05)}
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.km-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.edit-box{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid rgba(232,103,10,.3);display:none}
+.det-box{display:none;margin-top:10px;background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
+.ev-det{display:none;margin-top:12px}
+.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.rota-result{background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px}
+.rota-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.rota-item small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:2px}
+.rota-item span{font-size:14px;font-weight:600}
+.alert-warn{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--orange);background:rgba(232,103,10,.1);border:1px solid rgba(232,103,10,.2)}
+.alert-ok{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--green);background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.2)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.err{background:var(--danger)}
+.sub-pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sub-pills::-webkit-scrollbar{display:none}
+.sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap}
+.sub-pill.active{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600}
+.msg-err{font-size:12px;color:var(--danger);margin-bottom:10px;padding:8px 12px;background:rgba(224,82,82,.1);border-radius:8px}
+.msg-ok{font-size:12px;color:var(--green);margin-bottom:10px;padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px}
+.hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--orange)}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+.falta-txt{font-size:10px;color:var(--muted);margin-bottom:5px}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.pres-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
+.pres-sim{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
+.pres-nao{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
+.lote-card{background:var(--bg2);border:2px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="app" id="app"><div class="loading">Carregando...</div></div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,query,where,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
+
+const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-mc.firebaseapp.com",projectId:"mutantes-mc",storageBucket:"mutantes-mc.firebasestorage.app",messagingSenderId:"696991823272",appId:"1:696991823272:web:174f19e5178c495e2a999d"};
+const fireApp=initializeApp(FC);
+const auth=getAuth(fireApp);
+const db=getFirestore(fireApp);
+const CLOUD="dqrmeibp1",PRESET="vofjfpio",META=5000;
+
+// ── PUSH NOTIFICATIONS ──────────────────────────────────────────
+// VAPID_KEY: gere em Firebase Console > Project Settings >
+//            Cloud Messaging > Web Push Certificates > Gerar par de chaves
+const VAPID_KEY="BIv0H3QbgJJPrYx7ydxWD9VGfEDeIx30ZVnfE0fPBhA_SCy9YD_ZHcA5_oecYIZIwNrqmKhW4aMeTQSm8XvCu4Y";
+let messaging=null;
+try{messaging=getMessaging(fireApp);}catch{}
+
+async function registrarTokenPush(){
+  if(!messaging||!CU)return;
+  try{
+    // Detecta o caminho base automaticamente
+    const swPath=location.pathname.replace(/\/[^/]*$/, "/")+"/firebase-messaging-sw.js";
+    const sw=await navigator.serviceWorker.register(swPath);
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){console.warn("Permissão de notificação negada.");return;}
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:sw});
+    if(token){
+      await setDoc(doc(db,"usuarios",CU.uid),{fcmToken:token},{merge:true});
+      onMessage(messaging,payload=>{
+        const {title,body}=payload.notification||{};
+        showToast((title?title+": ":"")+body,false);
+      });
+    }
+  }catch(e){console.warn("Push não disponível:",e.message);}
+}
+
+async function dispararPush(titulo,corpo,tokens){
+  if(!tokens||tokens.length===0)return;
+  try{
+    await addDoc(collection(db,"notificacoes_push"),{titulo,corpo,tokens,criadoEm:serverTimestamp()});
+  }catch{}
+}
+
+async function getTokenAdmin(){
+  try{
+    const snap=await getDocs(query(collection(db,"usuarios"),where("isAdmin","==",true)));
+    return snap.docs.map(d=>d.data().fcmToken).filter(Boolean);
+  }catch{return[];}
+}
+
+const LOTE=[
+  {apelido:"Frankc",    email:"frankc@mutantesmc.com",    senha:"Frank@2026"},
+  {apelido:"Chimia",    email:"chimia@mutantesmc.com",    senha:"Chimia@2026"},
+  {apelido:"Menotti",   email:"menotti@mutantesmc.com",   senha:"Menot@2026"},
+  {apelido:"Luke",      email:"luke@mutantesmc.com",      senha:"Luke@2026"},
+  {apelido:"Fechadinho",email:"fechadinho@mutantesmc.com",senha:"Fecha@2026"},
+  {apelido:"Kudelixo",  email:"kudelixo@mutantesmc.com",  senha:"Kudel@2026"},
+  {apelido:"Samir",     email:"samir@mutantesmc.com",     senha:"Samir@2026"},
+  {apelido:"Peter",     email:"peter@mutantesmc.com",     senha:"Peter@2026"},
+  {apelido:"Imundica",  email:"imundica@mutantesmc.com",  senha:"Imund@2026"},
+  {apelido:"Queixo",    email:"queixo@mutantesmc.com",    senha:"Queix@2026"},
+  {apelido:"Patrick",   email:"patrick@mutantesmc.com",   senha:"Patr@2026"},
+  {apelido:"Resta1",    email:"resta1@mutantesmc.com",    senha:"Resta@2026"},
+  {apelido:"TioEnio",   email:"tioenio@mutantesmc.com",   senha:"TioEn@2026"},
+  {apelido:"Renato",    email:"renato@mutantesmc.com",    senha:"Renat@2026"},
+  {apelido:"Singular",  email:"singular@mutantesmc.com",  senha:"Singu@2026"},
+  {apelido:"Corega",    email:"corega@mutantesmc.com",    senha:"Coreg@2026"},
+];
+
+const FRASES=["Born to be wild — Steppenwolf","Get your motor runnin' — Steppenwolf","I was born a ramblin' man — Allman Brothers","Runnin' down a dream — Tom Petty","Here I go again on my own — Whitesnake","I'm free as a bird now — Lynyrd Skynyrd","Highway to hell — AC/DC","Keep on rockin' in the free world — Neil Young","I believe in you — Savatage","When the crowds are gone — Savatage","Come join the murder — The White Buffalo","Ain't nobody gonna love you like the south — Black Stone Cherry","Soul machine — Black Stone Cherry","Like I roll — Black Stone Cherry"];
+const FRASE=FRASES[Math.floor(Math.random()*FRASES.length)];
+
+const LOGO_SM=`<svg width="42" height="42" viewBox="0 0 680 680" style="flex-shrink:0"><circle cx="340" cy="340" r="300" fill="#1a1a1a" stroke="#e8670a" stroke-width="18"/><circle cx="340" cy="340" r="265" fill="none" stroke="#e8670a" stroke-width="5"/><text x="340" y="300" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="62" font-weight="900" fill="#e8670a" letter-spacing="3">MUTANTES</text><line x1="180" y1="325" x2="500" y2="325" stroke="#e8670a" stroke-width="6"/><text x="340" y="375" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#aaa" letter-spacing="5">ITAJAÍ</text><text x="340" y="430" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="38" font-weight="900" fill="#fff" letter-spacing="6">TRACKER</text></svg>`;
+const LOGO_LG=`<svg width="110" height="110" viewBox="0 0 680 680"><circle cx="340" cy="340" r="300" fill="#1a1a1a" stroke="#e8670a" stroke-width="18"/><circle cx="340" cy="340" r="265" fill="none" stroke="#e8670a" stroke-width="5"/><text x="340" y="300" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="62" font-weight="900" fill="#e8670a" letter-spacing="3">MUTANTES</text><line x1="180" y1="325" x2="500" y2="325" stroke="#e8670a" stroke-width="6"/><text x="340" y="375" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#aaa" letter-spacing="5">ITAJAÍ</text><text x="340" y="430" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="38" font-weight="900" fill="#fff" letter-spacing="6">TRACKER</text></svg>`;
+
+const EVENTOS=[
+  {id:1,data:"2026-02-14",nome:"Viagem Fronteira RS",destino:"Uruguaiana - RS",sm:true,dist:1155,estado:"RS",ped:88,pedInfo:"BR-101+BR-116+RS (EGR/Triunfo) ~9 praças"},
+  {id:2,data:"2026-03-18",nome:"Evento Soledade",destino:"Soledade - RS",sm:false,dist:616,estado:"RS",ped:46,pedInfo:"BR-101+RS interior ~5 praças"},
+  {id:3,data:"2026-04-11",nome:"Acampamento Porto Vitória",destino:"Porto Vitória - PR",sm:true,dist:362,estado:"PR",ped:28,pedInfo:"BR-116 SC/PR (Arteris/CCR) ~4 praças"},
+  {id:4,data:"2026-05-16",nome:"Festa Mutantes MC – Erechim",destino:"Erechim - RS",sm:false,dist:466,estado:"RS",ped:40,pedInfo:"BR-282+RS (EGR) ~5 praças"},
+  {id:5,data:"2026-06-06",nome:"Acampamento Multi Clubes",destino:"Rancho Queimado - SC",sm:true,dist:140,estado:"SC",ped:8,pedInfo:"SC-282 ~1 praça"},
+  {id:6,data:"2026-07-18",nome:"Festa Mutantes MC – Tubarão",destino:"Tubarão - SC",sm:false,dist:215,estado:"SC",ped:14,pedInfo:"BR-101 Sul (Autopista Litoral Sul) ~2-3 praças"},
+  {id:7,data:"2026-08-20",nome:"Viagem Goiás",destino:"Goiânia - GO",sm:true,dist:1482,estado:"GO",ped:130,pedInfo:"BR-116+BR-153 múltiplos estados ~14 praças"},
+  {id:8,data:"2026-09-12",nome:"Aniversário Mutantes 30 anos",destino:"A confirmar",sm:false,dist:0,estado:"SC",ped:0,pedInfo:"Destino a confirmar"},
+  {id:9,data:"2026-10-17",nome:"Acampamento Raiz Matriz",destino:"Lages - SC",sm:true,dist:277,estado:"SC",ped:18,pedInfo:"BR-470+BR-282 ~2-3 praças"},
+  {id:10,data:"2026-11-21",nome:"Reunião Diretores",destino:"Lages - SC",sm:false,dist:277,estado:"SC",ped:18,pedInfo:"BR-470+BR-282 ~2-3 praças"},
+  {id:11,data:"2026-12-12",nome:"Festa Final de Ano – Indaial",destino:"Indaial - SC",sm:false,dist:71,estado:"SC",ped:5,pedInfo:"BR-470 ~1 praça"},
+];
+
+let PRECOS_GAS={SC:6.20,RS:6.15,PR:6.18,GO:6.25};
+let PEDAGIOS_CUSTOM={}; // overrides do admin salvos no Firestore
+
+async function carregarPedagiosCustom(){
+  try{
+    const snap=await getDoc(doc(db,"config","pedagios"));
+    if(snap.exists())PEDAGIOS_CUSTOM=snap.data()||{};
+  }catch{}
+}
+
+const toInt=n=>Math.round(n||0).toLocaleString("pt-BR");
+const brl=n=>Number(n||0).toFixed(2).replace(".",",");
+const fmtDate=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch{return d||""}};
+const initials=n=>(n||"MC").trim().split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join("");
+const avatarEl=(foto,apelido,size=32)=>foto
+  ?`<img src="${foto}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid var(--orange);flex-shrink:0"/>`
+  :`<div style="width:${size}px;height:${size}px;border-radius:50%;border:2px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.3)}px;font-weight:700;color:var(--orange);flex-shrink:0">${initials(apelido)}</div>`;
+
+function getLogo(){
+  const saved=UP&&UP.logoUrl?UP.logoUrl:localStorage.getItem("mutantes_logo");
+  if(saved)return`<img src="${saved}" onclick="window.trocarLogo()" style="width:167px;height:198px;object-fit:cover;border:2px solid var(--orange);cursor:pointer;border-radius:8px;flex-shrink:0"/>`;
+  return`<div onclick="window.trocarLogo()" style="width:167px;height:198px;border:2px solid var(--orange);border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#111">${LOGO_SM}</div>`;
+}
+
+function precoPorEstado(estado){
+  const pSC=PRECOS_GAS["SC"]||6.20;
+  const pDest=PRECOS_GAS[estado]||pSC;
+  return(pSC+pDest)/2;
+}
+
+function calcRota(distIda,auto,tanque,estado,pedIda,gasManual){
+  const gas=gasManual||precoPorEstado(estado||"SC");
+  const dt=distIda*2,lit=dt/auto,comb=lit*gas;
+  const ped=pedIda!=null?pedIda*2:0;
+  const alcance=tanque*auto,precisa=distIda>alcance;
+  const paradas=precisa?Math.ceil((dt-alcance)/alcance):0;
+  return{dt,lit,comb,ped,total:comb+ped,precisa,paradas,gas,pedReal:pedIda!=null};
+}
+
+function htmlRota(c,dest,pedInfo,eventoId){
+  const pedVal=eventoId!=null?PEDAGIOS_CUSTOM[eventoId]??null:null;
+  return`<div class="rota-grid">
+    <div class="rota-item"><small>📍 Total ida+volta</small><span>${toInt(c.dt)} km</span></div>
+    <div class="rota-item"><small>⛽ Combustível</small><span>${c.lit.toFixed(1)}L · R$${brl(c.comb)}</span></div>
+    <div class="rota-item">
+      <small>🛣️ Pedágio ida+volta</small>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span>R$ </span><input type="number" value="${brl(c.ped)}" step="1" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="ped-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
+      </div>
+    </div>
+    <div class="rota-item">
+      <small>⛽ Gasolina (R$/L)</small>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="number" value="${brl(c.gas)}" step="0.01" style="width:70px;padding:2px 5px;margin:0;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--white)" id="gas-manual-${eventoId||'custom'}" onchange="window.recalcTotal(${eventoId||'null'})"/>
+      </div>
+    </div>
+    <div class="rota-item"><small>💰 Total estimado</small><span style="color:var(--orange);font-weight:700" id="total-est-${eventoId||'custom'}">R$${brl(c.total)}</span></div>
+    <div class="rota-item"><small>🔄 Abastecimentos</small><span>${c.paradas===0?"Não precisa":c.paradas+"x no caminho"}</span></div>
+  </div>
+  <div class="${c.precisa?"alert-warn":"alert-ok"}">${c.precisa?"⚠️ Tanque não chega até "+dest+". Planejar abastecimento.":"✅ Tanque cheio chega até "+dest+" sem abastecer."}</div>`;
+}
+
+function evCardMembro(ev){
+  const conf=CONF[ev.id]||"";
+  const auto=parseFloat(UP.autonomia)||0,tanque=parseFloat(UP.tanque)||0;
+  const calc=auto&&tanque&&ev.dist?calcRota(ev.dist,auto,tanque,ev.estado,PEDAGIOS_CUSTOM[ev.id]??ev.ped):null;
+  const cls="ev-card"+(conf==="sim"?" ev-sim":conf==="nao"?" ev-nao":"");
+  const icon=conf==="sim"?"✅":conf==="nao"?"❌":"📅";
+  const badge=conf==="sim"?`<span class="badge badge-gr">Vou!</span>`:conf==="nao"?`<span class="badge pres-nao">Não vou</span>`:`<span class="badge" style="background:var(--bg3);color:#888;border:1px solid var(--border)">Pendente</span>`;
+  const enc=ENCONTROS[ev.id];
+  // Dias faltando
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const evData=new Date(ev.data+"T00:00:00");
+  const diasFalt=Math.round((evData-hoje)/(1000*60*60*24));
+  const diasLabel=diasFalt===0?"🔴 Hoje!":diasFalt===1?"🟠 Amanhã":diasFalt>0?`🕐 ${diasFalt} dias`:"";
+  return`<div class="${cls}" onclick="window.toggleEvDet('evd${ev.id}')">
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${icon} ${ev.nome}</div>
+        <div style="font-size:11px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>
+        ${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}
+        ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
+        ${diasLabel?`<span style="font-size:11px;color:${diasFalt===0?"var(--danger)":diasFalt<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${diasFalt===0?"rgba(224,82,82,.15)":diasFalt<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${diasFalt===0?"rgba(224,82,82,.3)":diasFalt<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
+      </div>
+    </div>
+    <div class="ev-det" id="evd${ev.id}">
+      ${enc?`<div style="background:rgba(76,175,125,.08);border:1px solid rgba(76,175,125,.2);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:6px">📍 PONTO DE ENCONTRO</div>
+        <div style="font-size:13px;font-weight:600">${enc.local}</div>
+        ${enc.hora?`<div style="font-size:12px;color:var(--muted);margin-top:2px">🕐 Saída: ${enc.hora}</div>`:""}
+        ${enc.resp?`<div style="font-size:12px;color:var(--muted)">👤 Responsável: ${enc.resp}</div>`:""}
+        ${enc.obs?`<div style="font-size:12px;color:var(--muted)">📝 ${enc.obs}</div>`:""}
+      </div>`:""}
+      ${calc?`<div class="rota-result">${htmlRota(calc,ev.destino,ev.pedInfo)}</div>`:`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os custos.</div>`}
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button style="flex:1;padding:10px;border-radius:8px;border:none;background:${conf==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'sim')">✅ Vou!</button>
+        <button style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'nao')">❌ Não vou</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+let CU=null,UP=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
+
+async function carregarEncontros(){
+  try{
+    const snap=await getDoc(doc(db,"config","encontros"));
+    if(snap.exists())ENCONTROS=snap.data()||{};
+  }catch{}
+}
+
+function showToast(msg,err=false){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.className="toast"+(err?" err":"")+" show";
+  setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+async function uploadFoto(file){
+  const fd=new FormData();
+  fd.append("file",file);fd.append("upload_preset",PRESET);fd.append("folder","mutantes-mc");
+  const r=await fetch("https://api.cloudinary.com/v1_1/"+CLOUD+"/image/upload",{method:"POST",body:fd});
+  const d=await r.json();
+  if(!d.secure_url)throw new Error("Falha no upload");
+  return d.secure_url;
+}
+
+function render(){
+  const el=document.getElementById("app");
+  if(!CU){renderLogin(el);return;}
+  if(!UP){el.innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;return;}
+  if(UP.isDiretor||UP.isAdmin)renderDiretor(el);
+  else renderMembro(el);
+}
+
+function atualizarIconePWA(url){
+  if(!url)return;
+  document.getElementById("apple-touch-icon").href=url;
+  const origin=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,"/");
+  const manifest={name:"Mutantes MC Itajaí",short_name:"Mutantes MC",start_url:origin,display:"standalone",background_color:"#0f0f0f",theme_color:"#e8670a",icons:[{src:url,sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:url,sizes:"512x512",type:"image/png"}]};
+  const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+  const old=document.getElementById("pwa-manifest");
+  if(old._blobUrl)URL.revokeObjectURL(old._blobUrl);
+  const blobUrl=URL.createObjectURL(blob);
+  old._blobUrl=blobUrl;
+  old.href=blobUrl;
+}
+
+async function carregarLogoPublica(){
+  try{
+    const logoSnap=await getDoc(doc(db,"config","logo"));
+    if(logoSnap.exists()){
+      const url=logoSnap.data().url;
+      localStorage.setItem("mutantes_logo",url);
+      atualizarIconePWA(url);
+    }
+  }catch{}
+}
+
+const _logoSalva=localStorage.getItem("mutantes_logo");
+if(_logoSalva)atualizarIconePWA(_logoSalva);
+carregarLogoPublica();
+
+function renderLogin(el){
+  const saved=localStorage.getItem("mutantes_logo");
+  el.innerHTML=`<div class="login-wrap">
+    <div style="margin-bottom:20px;position:relative;cursor:default" id="login-logo-wrap">
+      ${saved
+        ?`<img src="${saved}" style="width:140px;height:140px;object-fit:cover;border:3px solid var(--orange);border-radius:50%;display:block"/>`
+        :`<div style="width:140px;height:140px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111">${LOGO_LG}</div>`}
+    </div>
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center">MUTANTES MC ITAJAÍ</h1>
+    <p style="font-size:13px;color:#666;margin-bottom:32px;text-align:center">Km Tracker</p>
+    <div style="width:100%;max-width:340px">
+      <div id="l-err" class="msg-err" style="display:none"></div>
+      <label>Apelido</label><input type="text" id="l-apelido" placeholder="Seu apelido no clube" autocomplete="off"/>
+      <label>Senha</label><input type="password" id="l-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')window.fazerLogin()"/>
+      <button class="btn-primary" onclick="window.fazerLogin()" id="l-btn">Entrar</button>
+    </div>
+  </div>`;
+}
+
+function htmlCadastrar(){
+  return`
+    <div class="card">
+      <div class="sec-title">➕ Cadastrar individualmente</div>
+      <label>Foto</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div id="foto-preview" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0">📷</div>
+        <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--white);background:var(--bg3);margin:0" for="n-foto">Escolher foto</label>
+        <input type="file" id="n-foto" accept="image/*" style="display:none;margin:0" onchange="window.previewFoto(this)"/>
+      </div>
+      <label>Apelido</label><input type="text" id="n-apelido" placeholder="Ex: Faiska" autocomplete="off"/>
+      <label>E-mail</label><input type="email" id="n-email" placeholder="email@email.com" autocomplete="off"/>
+      <label>Senha inicial</label><input type="password" id="n-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password"/>
+      <label>Moto</label><input type="text" id="n-moto" placeholder="Ex: Royal Enfield Interceptor 650" autocomplete="off"/>
+      <div class="hint-box">🔑 Login: apelido + senha</div>
+      <div id="n-err" class="msg-err" style="display:none"></div>
+      <button class="btn-primary" onclick="window.cadastrarMembro()" id="n-btn">Cadastrar integrante</button>
+    </div>`;
+}
+
+
+function htmlClubeCorpo(){
+  const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
+  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  // Diretor: menu com subseções
+  if(UP.isDiretor||UP.isAdmin){
+    const dirMenus=[
+      {id:"membros",ic:"🏍️",lb:"Ranking de km",sub:"Meta anual"},
+      {id:"cadastrar",ic:"➕",lb:"Cadastrar",sub:"Novo membro"},
+      {id:"lancar",ic:"📍",lb:"Lançar Km",sub:"Registrar saída"},
+      {id:"rota",ic:"🗺️",lb:"Planejar Rota",sub:"Custos de viagem"},
+      {id:"presenca",ic:"🎟️",lb:"Presença",sub:"Confirmações"},
+      {id:"sede_adm",ic:"⛪",lb:"Sede",sub:"Confirmações sexta"},
+      {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
+      {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
+      {id:"galeria",ic:"📸",lb:"Galeria",sub:"Fotos dos eventos"},
+      {id:"votacao",ic:"🗳️",lb:"Votação",sub:"Enquetes do clube"},
+      {id:"whatsapp",ic:"💬",lb:"WhatsApp",sub:"Mensagens rápidas"},
+      {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
+      {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos"},
+      {id:"caixabar",ic:"🍺",lb:"Caixa do Bar",sub:"Entradas e saídas"},
+      {id:"aniversarios",ic:"🎂",lb:"Aniversários",sub:"Membros do clube"},
+      {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
+    ];
+    if(!TA||TA==="home"){
+      return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${dirMenus.map(m=>`<button onclick="window.setTA('${m.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:28px;line-height:1">${m.ic}</span>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--white)">${m.lb}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${m.sub}</div>
+          </div>
+        </button>`).join("")}
+      </div>`;
+    }
+    const cur=dirMenus.find(m=>m.id===TA);
+    return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <button onclick="window.setTA('home')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">← Voltar</button>
+        <div style="font-size:15px;font-weight:600">${cur?cur.ic+" "+cur.lb:""}</div>
+      </div>
+      ${TA==="membros"?`
+      <div class="grid2">
+        <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
+        <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
+      </div>
+      <div class="card">
+        <div class="sec-title">🏆 Ranking de km</div>
+        ${sorted.map((m,i)=>{
+          const p2=Math.round(((m.totalKm||0)/META)*100);
+          const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
+          return`<div style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
+              ${avatarEl(m.fotoUrl,m.apelido,30)}
+              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">adm)</span>`:""}</span>
+              <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
+            </div>
+            <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
+          </div>`;
+        }).join("")}
+      </div>`:""}
+      ${TA==="cadastrar"?htmlCadastrar():""}
+      ${TA==="lancar"?htmlLancarKm():""}
+      ${TA==="rota"?htmlRotaAdmin():""}
+      ${TA==="presenca"?`<div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
+      ${TA==="sede_adm"?htmlSede(true):""}
+      ${TA==="usuarios"?htmlUsuarios():""}
+      ${TA==="eventos"?`<div>${EVENTOS.length===0?'<p style="font-size:13px;color:#555">Nenhum evento cadastrado.</p>':EVENTOS.map(ev=>evCardMembro(ev)).join("")}</div>`:""}
+      ${TA==="votacao"?`<div id="vot-admin-lista"><span class="spin">⟳</span></div>`:""}
+      ${TA==="whatsapp"?htmlWhatsapp():""}
+      ${TA==="honra"?htmlPlacaHonra():""}
+      ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
+      ${TA==="caixabar"?htmlCaixaBar():""}
+      ${TA==="aniversarios"?htmlAniversarios():""}
+      ${TA==="galeria"?htmlGaleria():""}
+      ${TA==="reunioes"?htmlReunioes():""}
+      ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
+    `;
+  }
+  // Membro comum: ranking read-only
+  return`<div class="card">
+    <div class="sec-title">🏆 Ranking do clube</div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
+      <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
+    </div>
+    ${sorted.map((m,i)=>{
+      const p2=Math.round(((m.totalKm||0)/META)*100);
+      const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
+      return`<div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
+          ${avatarEl(m.fotoUrl,m.apelido,30)}
+          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">adm)</span>`:""}</span>
+          <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
+        </div>
+        <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function renderDiretor(el){
+  const km=UP.totalKm||0;
+  const pct=Math.min(100,Math.round((km/META)*100));
+  const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
+  const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid):REGS;
+  const clubeLabel=UP.isAdmin?"⚙️ Admin":"🏆 Clube";
+  const roleBadge=UP.isAdmin
+    ?`<span class="badge badge-admin" style="font-size:9px;vertical-align:middle;margin-left:4px">ADMIN</span>`
+    :`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3);padding:2px 6px;border-radius:20px">ADM</span>`;
+  el.innerHTML=`
+    <div class="header">
+      <div class="header-flames"></div>
+      ${UP.isAdmin?getLogo():avatarEl(UP.fotoUrl,UP.apelido,42)}
+      <div class="header-info">
+        <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
+        <p>${UP.moto||""} · Subsede Itajaí</p>
+        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+      </div>
+      <div class="header-right">
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+      </div>
+    </div>
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
+    <div class="body">
+    ${TM==="painel"?`
+      <div class="card">
+        <div class="sec-title">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+      </div>
+      <div class="grid2">
+        <div class="metric"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
+        <div class="metric"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${meuRegs.length}</div></div>
+      </div>
+      <div class="card" style="border-color:rgba(232,103,10,.3)">
+        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div id="quick-actions-painel"><span class="spin">⟳</span></div>
+      </div>
+      ${htmlAniversariosInicio()}
+      <div class="card">
+        <div class="sec-title">📅 Próximo evento</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+      </div>
+      <div class="card" id="painel-votacoes-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+        </div>
+        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
+          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
+            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
+          </div>
+        </div>
+        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+      </div>
+`:""}
+    ${TM==="historico"?`
+      ${meuRegs.length===0?`<p style="font-size:13px;color:#555">Nenhum km lançado ainda.</p>`:""}
+      ${meuRegs.map(r=>`<div class="hist-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
+          <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
+        </div>
+        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-sm"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+      </div>`).join("")}`:""}
+    ${TM==="eventos"?`
+      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+    ${TM==="rota"?`
+      <div class="card">
+        <div class="sec-title">🗺️ Planejar por evento</div>
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        <label>Evento</label>
+        <select id="rm-evento" onchange="window.calcMembroEvento()">
+          <option value="">Selecione...</option>
+          ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
+        </select>
+        <div id="rm-result"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title">⚙️ Rota personalizada</div>
+        <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
+        <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
+        <div id="rm-custom-result"></div>
+      </div>`:""}
+    ${TM==="perfil"?`
+      <div class="card">
+        <div class="sec-title">🔑 Trocar senha</div>
+        <div id="p-err" class="msg-err" style="display:none"></div>
+        <div id="p-ok" class="msg-ok" style="display:none"></div>
+        <label>Senha atual</label><input type="password" id="p-atual" autocomplete="current-password"/>
+        <label>Nova senha</label><input type="password" id="p-nova" autocomplete="new-password"/>
+        <label>Confirmar</label><input type="password" id="p-conf" autocomplete="new-password"/>
+        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">🏍️ Garagem</div>
+        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
+        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
+        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
+        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
+        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
+        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
+        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">👤 Meus dados</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+            ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+          </div>
+          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
+        </div>
+        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
+        <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎂 Data de nascimento</label>
+          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
+        </div>
+      </div>`:""}
+    ${TM==="clube"?htmlClubeCorpo():""}
+    ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="sede"?htmlSede(true):""}
+
+    </div>
+`;
+  if(TM==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))setTimeout(()=>{
+    if(TA==="presenca")carregarPresencasAdmin();
+    if(TA==="sede_adm")carregarSedeInfo();
+    if(TA==="log")carregarAuditLog();
+    if(TA==="votacao")carregarVotacoes();
+    if(TA==="reunioes")carregarReunioes();
+    if(TA==="mensalidades")carregarMensalidades();
+    if(TA==="caixabar")carregarCaixaBar();
+    if(TA==="aniversarios")carregarAniversarios();
+    if(TA==="galeria")carregarGaleria();
+  },100);
+  if(TM==="sede")setTimeout(carregarSedeInfo,100);
+  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+}
+
+function proxQuarta(){
+  const hoje=new Date();
+  const dia=hoje.getDay();
+  const diff=dia<=3?3-dia:7-(dia-3);
+  const q=new Date(hoje);
+  q.setDate(hoje.getDate()+(diff===0&&dia===3?0:diff===0?7:diff));
+  if(dia===3)q.setDate(hoje.getDate());
+  return q.toISOString().slice(0,10);
+}
+
+function htmlBnav(tabs){
+  return`<nav class="bnav">${tabs.map(([t,ic,lb])=>`<button class="bnav-item${TM===t?" nav-active":""}" onclick="window.setTM('${t}')"><span class="bnav-icon">${ic}</span><span class="bnav-label">${lb}</span></button>`).join("")}</nav>`;
+}
+
+function proxSexta(){
+  const hoje=new Date();
+  const dia=hoje.getDay();// 0=dom,5=sex
+  const diff=dia<=5?5-dia:6+5-dia+1;
+  const sx=new Date(hoje);
+  sx.setDate(hoje.getDate()+(diff===0&&dia===5?0:diff===0?7:diff));
+  // Se hoje é sexta, usa hoje
+  if(dia===5)sx.setDate(hoje.getDate());
+  return sx.toISOString().slice(0,10);
+}
+
+function htmlSede(canEdit){
+  const abaSede=window._sedeAba||"presenca";
+  const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
+  const tabs=[["presenca","⛪","Sede","Presença sexta"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["reunioes","📋","Reuniões","Atas e presenças"]];
+  return`<div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      ${tabs.map(([a,ic,lb,sub])=>
+        `<button id="sede-tab-${a}" onclick="window.trocarAbaSede('${a}')" style="background:${abaSede===a?"var(--orange)":"var(--bg2)"};border:${abaSede===a?"none":"1px solid var(--border)"};border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;cursor:pointer;font-family:inherit;text-align:left"><span style="font-size:26px;line-height:1">${ic}</span><div style="font-size:14px;font-weight:700;color:${abaSede===a?"#fff":"var(--white)"}">${lb}</div><div style="font-size:11px;color:${abaSede===a?"rgba(255,255,255,.75)":"var(--muted)"}">${sub}</div></button>`
+      ).join("")}
+    </div>
+    <div id="sede-conteudo">
+      ${abaSede==="presenca"?htmlSedePresenca(canEdit,isAdminOrDir):""}
+      ${abaSede==="limpeza"?htmlSedeLimpeza(canEdit,isAdminOrDir):""}
+      ${abaSede==="bar"||abaSede==="churrasco"?(UP&&(UP.isAdmin||UP.isBarman)?htmlEscalaGerenciar(abaSede):htmlEscalaVisualizacao(abaSede,isAdminOrDir)):""}
+      ${abaSede==="eventosSede"?htmlEventosSede():""}
+      ${abaSede==="reunioes"?htmlReunioes():""}
+    </div>
+  </div>`;
+}
+
+function htmlSedePresenca(canEdit,isAdminOrDir){
+  const dataSex=proxSexta();
+  const conf=CONF_SEDE["presenca_"+dataSex]||CONF_SEDE[dataSex]||"";
+  const isHojeSex=new Date().getDay()===5;
+  return`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <div style="font-size:14px;font-weight:600">${isHojeSex?"📍 Hoje — Sexta-feira":"📅 Próxima sexta-feira"}</div>
+        <div style="font-size:12px;color:var(--muted)">${fmtDate(dataSex)}</div>
+      </div>
+      ${isAdminOrDir?`<button onclick="window.limparSede('${dataSex}')" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:10px;cursor:pointer;font-family:inherit">Limpar</button>`:""}
+    </div>
+    ${canEdit?`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <button style="flex:1;padding:11px;border-radius:10px;border:none;background:${conf==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="window.confirmarSede('${dataSex}','sim','presenca')">⛪ Vou à sede!</button>
+      <button style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--danger);background:${conf==="nao"?"rgba(224,82,82,.2)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="window.confirmarSede('${dataSex}','nao','presenca')">❌ Não vou</button>
+    </div>`:""}
+    ${conf?`<div class="hint-box">${conf==="sim"?"✅ Você confirmou presença na sede!":"❌ Você marcou que não vai."}</div>`:""}
+    <div id="sede-lista"><span class="spin">⟳</span></div>
+    <div style="margin-top:14px">
+      <div class="sec-title">📆 Escalas da noite</div>
+      <div id="escala-hoje"><span class="spin">⟳</span></div>
+    </div>
+  </div>
+  ${htmlHistoricoCard("presenca")}`;
+}
+
+function htmlSedeLimpeza(canEdit,isAdminOrDir){
+  const dataQua=proxQuarta();
+  const conf=CONF_SEDE["limpeza_"+dataQua]||"";
+  const isHojeQua=new Date().getDay()===3;
+  return`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <div style="font-size:14px;font-weight:600">${isHojeQua?"🧹 Hoje — Quarta-feira":"🧹 Próxima quarta-feira"}</div>
+        <div style="font-size:12px;color:var(--muted)">${fmtDate(dataQua)}</div>
+      </div>
+      ${isAdminOrDir?`<button onclick="window.limparSedeQua('${dataQua}')" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:10px;cursor:pointer;font-family:inherit">Limpar</button>`:""}
+    </div>
+    ${canEdit?`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <button style="flex:1;padding:11px;border-radius:10px;border:none;background:${conf==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="window.confirmarSede('${dataQua}','sim','limpeza')">🧹 Vou limpar!</button>
+      <button style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--danger);background:${conf==="nao"?"rgba(224,82,82,.2)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="window.confirmarSede('${dataQua}','nao','limpeza')">❌ Não vou</button>
+    </div>`:""}
+    ${conf?`<div class="hint-box">${conf==="sim"?"✅ Você confirmou para a limpeza!":"❌ Você marcou que não vai."}</div>`:""}
+    <div id="sede-lista"><span class="spin">⟳</span></div>
+  </div>
+  ${htmlHistoricoCard("limpeza")}`;
+}
+
+function htmlHistoricoCard(tipo){
+  const key="hist_"+tipo;
+  const aberto=window["_"+key];
+  return`<div class="card">
+    <div style="display:flex;gap:6px;margin-bottom:${aberto?"10px":"0"};align-items:center">
+      <div class="sec-title" style="margin-bottom:0;flex:1">📅 Histórico</div>
+      <button onclick="window['_hist_${tipo}']=!window['_hist_${tipo}'];window.atualizarHistorico('${tipo}')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;font-family:inherit">${aberto?"▲ Fechar":"▼ Ver"}</button>
+    </div>
+    <div id="hist-conteudo-${tipo}" style="display:${aberto?"block":"none"}"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+function htmlEscalaVisualizacao(tipo,isAdminOrDir){
+  const ic=tipo==="bar"?"🍺":"🔥";
+  const label=tipo==="bar"?"Bar":"Churrasco";
+  const data=proxSexta();
+  return`<div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px">${ic} Escala do ${label}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Próxima sexta — ${fmtDate(data)}</div>
+    <div id="escala-proxima-${tipo}"><span class="spin">⟳</span></div>
+  </div>
+  <div class="card">
+    <div class="sec-title">📋 Próximas escalas</div>
+    <div id="escala-lista"><span class="spin">⟳</span></div>
+  </div>
+  ${htmlHistoricoCard(tipo)}`;
+}
+function htmlEscalaGerenciar(tipo){window._barAba=tipo;
+  const ic=tipo==="bar"?"🍺":"🔥";
+  const label=tipo==="bar"?"Bar":"Churrasco";
+  const opts=MEMBROS.map(m=>`<option value="${m.apelido}">${m.apelido}</option>`).join("");
+  const data=proxSexta();
+  const isBar=tipo==="bar";
+  const btnColor=isBar?"var(--orange)":"var(--green)";
+  return`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:14px;font-weight:600">${ic} Escala do ${label}</div>
+      <button onclick="window.toggleFormEscala('${tipo}')" style="padding:6px 12px;border-radius:8px;border:1px solid ${btnColor};background:transparent;color:${btnColor};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">➕ Cadastrar</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Próxima sexta — ${fmtDate(data)}</div>
+    <div id="escala-proxima-${tipo}"><span class="spin">⟳</span></div>
+  </div>
+  <div class="card" id="form-card-${tipo}" style="display:none">
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px">➕ Cadastrar escala ${isBar?"do bar":"do churrasco"}</div>
+    <div id="form-escala-${tipo}">
+      <label>Data (sexta-feira)</label>
+      <input type="date" id="${isBar?"bar":"chur"}-data" value="${data}" autocomplete="off"/>
+      <label>Membro 1</label>
+      <select id="${isBar?"bar":"chur"}-m1"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 2</label>
+      <select id="${isBar?"bar":"chur"}-m2"><option value="">Selecione...</option>${opts}</select>
+      ${!isBar?`<label>Membro 3</label><select id="chur-m3"><option value="">Selecione...</option>${opts}</select><label>Membro 4</label><select id="chur-m4"><option value="">Selecione...</option>${opts}</select>`:""}
+      <label>Observação (opcional)</label>
+      <input type="text" id="${isBar?"bar":"chur"}-obs" placeholder="Ex: ${isBar?"trazer gelo":"trazer carvão"}" autocomplete="off"/>
+      <div id="${isBar?"bar":"chur"}-err" class="msg-err" style="display:none"></div>
+      <button class="btn-primary" onclick="window.${isBar?"salvarEscalaBar":"salvarEscalaChurrasco"}()" ${!isBar?`style="background:var(--green)"`:""}>Salvar escala ${isBar?"do bar":"do churrasco"}</button>
+    </div>
+  </div>
+  ${htmlCaixaBarResumo()}
+  <div class="card">
+    <div class="sec-title" id="bar-lista-titulo">📋 Escalas futuras — ${ic} ${label}</div>
+    <div id="escala-lista"><span class="spin">⟳</span></div>
+  </div>
+  ${htmlHistoricoCard(tipo)}`;
+}
+
+function htmlBarVisualizacao(){
+  return`${htmlEscalaVisualizacao("bar",false)}`;
+}
+
+async function carregarBarVisualizacao(){
+  const dataSex=proxSexta();
+  try{
+    const snap=await getDocs(query(collection(db,"escala_bar"),where("data","==",dataSex)));
+    const el=document.getElementById("escala-proxima-bar");
+    if(el){
+      if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Não definida</div>`;
+      }else{
+        const e=snap.docs[0].data();
+        el.innerHTML=`<div style="font-size:13px;font-weight:600">${e.m1} & ${e.m2}</div>${e.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${e.obs}</div>`:""}`;
+      }
+    }
+  }catch{}
+  try{
+    const snap=await getDocs(query(collection(db,"escala_churrasco"),where("data","==",dataSex)));
+    const el=document.getElementById("escala-proxima-churrasco");
+    if(el){
+      if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Não definida</div>`;
+      }else{
+        const e=snap.docs[0].data();
+        el.innerHTML=`<div style="font-size:13px;font-weight:600">${[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ")}</div>${e.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${e.obs}</div>`:""}`;
+      }
+    }
+  }catch{}
+  await carregarEscalaLista();
+}
+
+function htmlCaixaBarResumo(){
+  // Resumo rápido da caixa do bar para exibir na aba Bar
+  const isBarAdmin=UP&&(UP.isAdmin||UP.isBarman);
+  if(!isBarAdmin)return"";
+  return`<div class="card" style="border-color:rgba(76,175,125,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="sec-title" style="margin-bottom:0">💰 Caixa do Bar</div>
+      <div id="cb-saldo-rapido" style="font-size:14px;font-weight:700;color:var(--green)"><span class="spin">⟳</span></div>
+    </div>
+    <button onclick="window.setTM('clube');setTimeout(()=>{window.setTA('caixabar');setTimeout(carregarCaixaBar,100);},100)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Ver caixa completa →</button>
+  </div>`;
+}
+
+async function carregarCaixaBarRapido(){
+  const el=document.getElementById("cb-saldo-rapido");
+  if(!el)return;
+  try{
+    const snap=await getDocs(collection(db,"caixa_bar"));
+    const saldo=snap.docs.reduce((acc,d)=>{const r=d.data();return r.tipo==="entrada"?acc+r.valor:acc-r.valor;},0);
+    el.innerHTML=`<span style="color:${saldo>=0?"var(--green)":"var(--danger)"}">R$ ${brl(Math.abs(saldo))}</span>`;
+  }catch{}
+}
+
+function htmlBarGerenciar(){
+  const abaBar=window._barAba||"bar";
+  const opts=MEMBROS.map(m=>`<option value="${m.apelido}">${m.apelido}</option>`).join("");
+  return`<div class="card">
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button id="bar-tab-bar" onclick="window.trocarAbaBar('bar')" style="padding:7px 18px;border-radius:20px;border:none;background:${abaBar==="bar"?"var(--orange)":"var(--bg3)"};color:${abaBar==="bar"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🍺 Bar</button>
+      <button id="bar-tab-churrasco" onclick="window.trocarAbaBar('churrasco')" style="padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:${abaBar==="churrasco"?"var(--green)":"var(--bg3)"};color:${abaBar==="churrasco"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🔥 Churrasco</button>
+    </div>
+    <div id="bar-conteudo">
+    ${abaBar==="bar"?`
+    <div class="sec-title">➕ Cadastrar escala do bar</div>
+    <label>Data (sexta-feira)</label>
+    <input type="date" id="bar-data" value="${proxSexta()}" autocomplete="off"/>
+    <label>Membro 1</label>
+    <select id="bar-m1"><option value="">Selecione...</option>${opts}</select>
+    <label>Membro 2</label>
+    <select id="bar-m2"><option value="">Selecione...</option>${opts}</select>
+    <label>Observação (opcional)</label>
+    <input type="text" id="bar-obs" placeholder="Ex: trazer gelo" autocomplete="off"/>
+    <div id="bar-err" class="msg-err" style="display:none"></div>
+    <button class="btn-primary" onclick="window.salvarEscalaBar()">Salvar escala do bar</button>`:`
+    <div class="sec-title">➕ Cadastrar escala do churrasco</div>
+    <label>Data (sexta-feira)</label>
+    <input type="date" id="chur-data" value="${proxSexta()}" autocomplete="off"/>
+    <label>Membro 1</label>
+    <select id="chur-m1"><option value="">Selecione...</option>${opts}</select>
+    <label>Membro 2</label>
+    <select id="chur-m2"><option value="">Selecione...</option>${opts}</select>
+    <label>Membro 3</label>
+    <select id="chur-m3"><option value="">Selecione...</option>${opts}</select>
+    <label>Membro 4</label>
+    <select id="chur-m4"><option value="">Selecione...</option>${opts}</select>
+    <label>Observação (opcional)</label>
+    <input type="text" id="chur-obs" placeholder="Ex: trazer carvão" autocomplete="off"/>
+    <div id="chur-err" class="msg-err" style="display:none"></div>
+    <button class="btn-primary" onclick="window.salvarEscalaChurrasco()" style="background:var(--green)">Salvar escala do churrasco</button>`}
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-title" id="bar-lista-titulo">📋 Escalas futuras — ${abaBar==="bar"?"🍺 Bar":"🔥 Churrasco"}</div>
+    <div id="escala-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+async function carregarSedeInfo(){
+  const abaSede=window._sedeAba||"presenca";
+  const isLimpeza=abaSede==="limpeza";
+  const data=isLimpeza?proxQuarta():proxSexta();
+  const tipo=isLimpeza?"limpeza":"presenca";
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",data),where("tipo","==",tipo)));
+    const todos=snap.docs.map(d=>d.data());
+    const vao=todos.filter(p=>p.resposta==="sim").sort((a,b)=>a.apelido.localeCompare(b.apelido));
+    const nao=todos.filter(p=>p.resposta==="nao").sort((a,b)=>a.apelido.localeCompare(b.apelido));
+    const responderam=new Set(todos.map(p=>p.membroId));
+    const semResposta=MEMBROS.filter(m=>!responderam.has(m.uid)).sort((a,b)=>a.apelido.localeCompare(b.apelido));
+    const el=document.getElementById("sede-lista");
+    if(el)el.innerHTML=`
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">✅ ${isLimpeza?"Vão limpar":"Confirmados"} (${vao.length})</div>
+        ${vao.length===0?`<div style="font-size:12px;color:#555;padding:4px 0">Nenhuma confirmação ainda</div>`
+          :vao.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+            ${avatarEl(MEMBROS.find(m=>m.uid===p.membroId)?.fotoUrl||"",p.apelido,26)}
+            <span style="font-size:13px;font-weight:500">${p.apelido}</span>
+          </div>`).join("")}
+      </div>
+      ${nao.length>0?`<div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--danger);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">❌ Não vão (${nao.length})</div>
+        ${nao.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+          ${avatarEl(MEMBROS.find(m=>m.uid===p.membroId)?.fotoUrl||"",p.apelido,26)}
+          <span style="font-size:13px;color:var(--muted)">${p.apelido}</span>
+        </div>`).join("")}
+      </div>`:""}
+      ${semResposta.length>0?`<div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">⏳ Sem resposta (${semResposta.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${semResposta.map(m=>`<span style="font-size:11px;color:var(--muted);background:var(--bg3);padding:2px 7px;border-radius:20px;border:1px solid var(--border)">${m.apelido}</span>`).join("")}</div>
+      </div>`:""}`;
+  }catch(e){console.error(e);}
+  if(!isLimpeza){
+    try{
+      const [snapBar,snapChur]=await Promise.all([
+        getDocs(query(collection(db,"escala_bar"),where("data","==",proxSexta()))),
+        getDocs(query(collection(db,"escala_churrasco"),where("data","==",proxSexta())))
+      ]);
+      const el=document.getElementById("escala-hoje");
+      if(el){
+        const bar=snapBar.empty?null:snapBar.docs[0].data();
+        const chur=snapChur.empty?null:snapChur.docs[0].data();
+        if(!bar&&!chur){el.innerHTML=`<span style="font-size:12px;color:#555">Escalas não definidas ainda.</span>`;return;}
+        el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${bar?`<div style="flex:1;min-width:110px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid rgba(232,103,10,.2)">
+            <div style="font-size:10px;font-weight:600;color:var(--orange);margin-bottom:3px">🍺 BAR</div>
+            <div style="font-size:12px;font-weight:600">${bar.m1} & ${bar.m2}</div>
+            ${bar.obs?`<div style="font-size:10px;color:var(--muted)">📝 ${bar.obs}</div>`:""}
+          </div>`:""}
+          ${chur?`<div style="flex:1;min-width:110px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid rgba(76,175,125,.2)">
+            <div style="font-size:10px;font-weight:600;color:var(--green);margin-bottom:3px">🔥 CHURRASCO</div>
+            <div style="font-size:12px;font-weight:600">${[chur.m1,chur.m2,chur.m3,chur.m4].filter(Boolean).join(" · ")}</div>
+            ${chur.obs?`<div style="font-size:10px;color:var(--muted)">📝 ${chur.obs}</div>`:""}
+          </div>`:""}
+        </div>`;
+      }
+    }catch{}
+  }
+}
+
+async function carregarEscalaLista(){
+  try{
+    const canEdit=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor);
+    const abaBar=window._barAba||"bar";
+    const col=abaBar==="churrasco"?"escala_churrasco":"escala_bar";
+    const snap=await getDocs(query(collection(db,col),orderBy("data","asc")));
+    const el=document.getElementById("escala-lista");
+    if(!el)return;
+    const hoje=new Date().toISOString().slice(0,10);
+    const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.data>=hoje);
+    el.innerHTML=docs.length===0?`<span style="font-size:12px;color:#555">Nenhuma escala cadastrada.</span>`:
+      docs.map(e=>{
+        const nomes=abaBar==="churrasco"
+          ?[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ")
+          :`${e.m1} & ${e.m2}`;
+        return`<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${fmtDate(e.data)}</div>
+            <div style="font-size:12px;color:${abaBar==="churrasco"?"var(--green)":"var(--orange)"}">
+              ${abaBar==="churrasco"?"🔥":"🍺"} ${nomes}
+            </div>
+            ${e.obs?`<div style="font-size:11px;color:var(--muted)">📝 ${e.obs}</div>`:""}
+          </div>
+          ${canEdit?`<button onclick="window.excluirEscala('${e.id}','${col}')" class="btn-danger">✕</button>`:""}
+        </div>`;
+      }).join("");
+  }catch(e){console.error(e);}
+}
+
+function renderBarman(el){
+  const km=UP.totalKm||0;
+  const pct=Math.min(100,Math.round((km/META)*100));
+  const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
+  el.innerHTML=`
+    <div class="header">
+      <div class="header-flames"></div>
+      ${avatarEl(UP.fotoUrl,UP.apelido,42)}
+      <div class="header-info">
+        <h2>🏍️ ${UP.apelido} <span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">BAR</span></h2>
+        <p>${UP.moto||""} · Subsede Itajaí</p>
+        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+      </div>
+      <div class="header-right">
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+      </div>
+    </div>
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"]])}
+    <div class="body">
+    ${TM==="painel"?`
+      <div class="card">
+        <div class="sec-title">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+      </div>
+      <div class="grid2">
+        <div class="metric"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
+        <div class="metric"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${REGS.length}</div></div>
+      </div>
+      <div class="card" style="border-color:rgba(232,103,10,.3)">
+        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div id="quick-actions-painel"><span class="spin">⟳</span></div>
+      </div>
+      ${htmlAniversariosInicio()}
+      <div class="card">
+        <div class="sec-title">📅 Próximo evento</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+      </div>
+      <div class="card" id="painel-votacoes-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+        </div>
+        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
+          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
+            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
+          </div>
+        </div>
+        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+      </div>
+`:""}
+    ${TM==="historico"?`
+      ${REGS.length===0?`<p style="font-size:13px;color:#555">Nenhum km lançado ainda.</p>`:""}
+      ${REGS.map(r=>`<div class="hist-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
+          <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
+        </div>
+        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+      </div>`).join("")}`:""}
+    ${TM==="eventos"?`
+      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+    ${TM==="rota"?`
+      <div class="card">
+        <div class="sec-title">🗺️ Planejar por evento</div>
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        <label>Evento</label>
+        <select id="rm-evento" onchange="window.calcMembroEvento()">
+          <option value="">Selecione...</option>
+          ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
+        </select>
+        <div id="rm-result"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title">⚙️ Rota personalizada</div>
+        <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
+        <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
+        <div id="rm-custom-result"></div>
+      </div>`:""}
+    ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="sede"?htmlSede(true):""}
+
+    ${TM==="perfil"?`
+      <div class="card">
+        <div class="sec-title">🔑 Trocar senha</div>
+        <div id="p-err" class="msg-err" style="display:none"></div>
+        <div id="p-ok" class="msg-ok" style="display:none"></div>
+        <label>Senha atual</label><input type="password" id="p-atual" autocomplete="current-password"/>
+        <label>Nova senha</label><input type="password" id="p-nova" autocomplete="new-password"/>
+        <label>Confirmar</label><input type="password" id="p-conf" autocomplete="new-password"/>
+        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">🏍️ Garagem</div>
+        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
+        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
+        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
+        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
+        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
+        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
+        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">👤 Meus dados</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+            ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+          </div>
+          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
+        </div>
+        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
+        <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎂 Data de nascimento</label>
+          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
+        </div>
+      </div>`:""}
+    </div>`;
+  if(TM==="sede")setTimeout(carregarSedeInfo,100);
+  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+}
+
+function renderMembro(el){
+  const km=UP.totalKm||0;
+  const pct=Math.min(100,Math.round((km/META)*100));
+  const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
+  el.innerHTML=`
+    <div class="header">
+      <div class="header-flames"></div>
+      ${avatarEl(UP.fotoUrl,UP.apelido,42)}
+      <div class="header-info">
+        <h2>🏍️ ${UP.apelido}</h2>
+        <p>${UP.moto||""} · Subsede Itajaí</p>
+        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+      </div>
+      <div class="header-right">
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+      </div>
+    </div>
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["perfil","👤","Perfil"]])}
+    <div class="body">
+    ${TM==="painel"?`
+      <div class="card">
+        <div class="sec-title">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+      </div>
+      <div class="grid2">
+        <div class="metric"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
+        <div class="metric"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${REGS.length}</div></div>
+      </div>
+      <div class="card" style="border-color:rgba(232,103,10,.3)">
+        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div id="quick-actions-painel"><span class="spin">⟳</span></div>
+      </div>
+      ${htmlAniversariosInicio()}
+      <div class="card">
+        <div class="sec-title">📅 Próximo evento</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+      </div>
+      <div class="card" id="painel-votacoes-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+        </div>
+        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
+          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
+          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
+            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
+          </div>
+        </div>
+        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+      </div>
+`:""}
+    ${TM==="historico"?`
+      ${REGS.length===0?`<p style="font-size:13px;color:#555">Nenhum km lançado ainda.</p>`:""}
+      ${REGS.map(r=>`<div class="hist-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
+          <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
+        </div>
+        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev" }">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+      </div>`).join("")}`:""}
+    ${TM==="eventos"?`
+      ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+      ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}`:""}
+    ${TM==="rota"?`
+      <div class="card">
+        <div class="sec-title">🗺️ Planejar por evento</div>
+        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        <label>Evento</label>
+        <select id="rm-evento" onchange="window.calcMembroEvento()">
+          <option value="">Selecione...</option>
+          ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
+        </select>
+        <div id="rm-result"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title">⚙️ Rota personalizada</div>
+        <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
+        <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
+        <div id="rm-custom-result"></div>
+      </div>`:""}
+    ${TM==="perfil"?`
+      <div class="card">
+        <div class="sec-title">🔑 Trocar senha</div>
+        <div id="p-err" class="msg-err" style="display:none"></div>
+        <div id="p-ok" class="msg-ok" style="display:none"></div>
+        <label>Senha atual</label><input type="password" id="p-atual" autocomplete="current-password"/>
+        <label>Nova senha</label><input type="password" id="p-nova" autocomplete="new-password"/>
+        <label>Confirmar</label><input type="password" id="p-conf" autocomplete="new-password"/>
+        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">🏍️ Garagem</div>
+        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
+        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
+        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
+        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
+        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
+        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
+        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
+        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
+      </div>
+      <div class="card">
+        <div class="sec-title">👤 Meus dados</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+            ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+          </div>
+          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
+        </div>
+        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
+        <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎂 Data de nascimento</label>
+          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
+        </div>
+      </div>`:""}
+    ${TM==="msgs"?htmlWhatsApp("painel"):""}
+    ${TM==="sede"?htmlSede(true):""}
+    </div>`;
+  if(TM==="sede")setTimeout(carregarSedeInfo,100);
+  if(TM==="painel")setTimeout(carregarPainelResumo,100);
+}
+
+function htmlVotacaoAdmin(){
+  return`<div class="card">
+    <div class="sec-title">➕ Nova enquete</div>
+    <label>Pergunta</label><input type="text" id="vot-pergunta" placeholder="Ex: Onde fazer o churrasquinho?" autocomplete="off"/>
+    <label>Opção 1</label><input type="text" id="vot-op1" placeholder="Ex: Sede" autocomplete="off"/>
+    <label>Opção 2</label><input type="text" id="vot-op2" placeholder="Ex: Parque" autocomplete="off"/>
+    <label>Opção 3 (opcional)</label><input type="text" id="vot-op3" placeholder="" autocomplete="off"/>
+    <label>Opção 4 (opcional)</label><input type="text" id="vot-op4" placeholder="" autocomplete="off"/>
+    <div id="vot-err" class="msg-err" style="display:none"></div>
+    <button class="btn-primary" onclick="window.criarVotacao()">Publicar enquete</button>
+  </div>
+  <div class="card">
+    <div class="sec-title">🗳️ Enquetes ativas e encerradas</div>
+    <div id="vot-admin-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+function htmlWhatsApp(ctx){
+  const id=ctx||"painel";
+  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const ranking=sorted.slice(0,5).map((m,i)=>`${i+1}. ${m.apelido} — ${toInt(m.totalKm||0)} km`).join("%0A");
+  const dataSex=proxSexta();
+  const msgs=[
+    {ic:"🗓️",lb:"Sede desta sexta",msg:`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A⛪ Sede aberta esta sexta, ${fmtDate(dataSex)}!%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`},
+    {ic:"🏆",lb:"Ranking de km",msg:`🏍️ *MUTANTES MC ITAJAÍ — Ranking de Km*%0A%0A${ranking}%0A%0AMeta: ${toInt(META)} km por membro em 2026%0AApp: https://muyanepetters-alt.github.io/mutantefy`},
+    {ic:"📅",lb:"Próximo evento",msg:(()=>{const ev=EVENTOS.filter(e=>new Date(e.data)>=new Date())[0];return ev?`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A📅 Próximo evento: *${ev.nome}*%0A🗓️ ${fmtDate(ev.data)}%0A📍 ${ev.destino}${ev.dist>0?`%0A🛣️ ${toInt(ev.dist*2)} km ida+volta`:""}%0A%0AConfirme sua presença no app:%0Ahttps://muyanepetters-alt.github.io/mutantefy`:"Nenhum evento futuro."})()},
+    {ic:"🧹",lb:"Limpeza desta quarta",msg:`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A🧹 Limpeza da sede esta quarta, ${fmtDate(proxQuarta())}!%0AConfirme no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`},
+    {ic:"🍺",lb:"Escala do bar esta sexta",msg:(()=>{const d=proxSexta();return`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A🍺 Escala do bar desta sexta, ${fmtDate(d)}:%0A%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`;})()},
+  ];
+  return`<div class="card">
+    <div class="sec-title">💬 Mensagens para o grupo</div>
+    ${msgs.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:22px">${m.ic}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.lb}</div></div>
+      <a href="https://wa.me/?text=${m.msg}" target="_blank" style="padding:8px 14px;border-radius:8px;background:#25d366;color:#fff;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0">Enviar</a>
+    </div>`).join("")}
+  </div>
+  <div class="card">
+    <div class="sec-title">✏️ Mensagem personalizada</div>
+    <textarea id="wpp-custom-${id}" placeholder="Escreva sua mensagem..." style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:10px"></textarea>
+    <a href="#" onclick="const t=document.getElementById('wpp-custom-${id}').value.trim();if(t)window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return false;" style="display:block;width:100%;padding:12px;border-radius:8px;background:#25d366;color:#fff;font-size:14px;font-weight:700;text-decoration:none;text-align:center">💬 Abrir no WhatsApp</a>
+  </div>`;
+}
+
+function htmlPlacaHonra(){
+  const alcancaram=MEMBROS.filter(m=>(m.totalKm||0)>=META).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const proximos=MEMBROS.filter(m=>(m.totalKm||0)<META&&(m.totalKm||0)>=(META*0.7)).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  return`<div class="card" style="border-color:rgba(232,103,10,.4);background:rgba(232,103,10,.04)">
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:40px;margin-bottom:8px">🏆</div>
+      <div style="font-size:16px;font-weight:700;color:var(--orange)">Placa de Honra 2026</div>
+      <div style="font-size:12px;color:var(--muted)">Membros que atingiram ${toInt(META)} km</div>
+    </div>
+    ${alcancaram.length===0
+      ?`<div style="text-align:center;font-size:13px;color:#555;padding:12px 0">Nenhum membro atingiu a meta ainda.</div>`
+      :alcancaram.map((m,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:22px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":"🏅"}</span>
+          ${avatarEl(m.fotoUrl,m.apelido,40)}
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700">${m.apelido}</div>
+            <div style="font-size:12px;color:var(--green)">✅ ${toInt(m.totalKm||0)} km</div>
+          </div>
+          <div style="font-size:20px">🏆</div>
+        </div>`).join("")}
+  </div>
+  ${proximos.length>0?`<div class="card">
+    <div class="sec-title">🔥 Quase lá — acima de 70%</div>
+    ${proximos.map(m=>{
+      const p=Math.round(((m.totalKm||0)/META)*100);
+      return`<div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          ${avatarEl(m.fotoUrl,m.apelido,28)}
+          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}</span>
+          <span style="font-size:12px;color:var(--orange)">${toInt(m.totalKm||0)} km · ${p}%</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${p}%;background:var(--orange)"></div></div>
+      </div>`;
+    }).join("")}
+  </div>`:""}`;
+}
+
+async function carregarVotacoes(){
+  const el=document.getElementById("vot-admin-lista");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"votacoes"),orderBy("criadoEm","desc")));
+    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma enquete ainda.</div>`;return;}
+    el.innerHTML=snap.docs.map(d=>{
+      const v=d.data();
+      const total=Object.values(v.votos||{}).length;
+      const contagem={};
+      Object.values(v.votos||{}).forEach(op=>{contagem[op]=(contagem[op]||0)+1;});
+      return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:600">${v.pergunta}</div>
+          <button onclick="window.encerrarVotacao('${d.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:1px solid rgba(224,82,82,.3);border-radius:5px;padding:2px 7px;cursor:pointer;font-family:inherit">${v.encerrada?"🗑️ Excluir":"⏹ Encerrar"}</button>
+        </div>
+        ${v.opcoes.map(op=>{const n=contagem[op]||0;const pct=total?Math.round((n/total)*100):0;
+          return`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>${op}</span><span style="color:var(--muted)">${n} voto${n!==1?"s":""} (${pct}%)</span></div>
+          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--orange);border-radius:3px;width:${pct}%"></div></div></div>`;
+        }).join("")}
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${total} resposta${total!==1?"s":""} · ${v.encerrada?"Encerrada":"Aberta"}</div>
+      </div>`;
+    }).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+
+function htmlGaleria(){
+  const evFut=EVENTOS.filter(e=>new Date(e.data)<=new Date()).slice(-5).reverse(); // últimos 5 eventos passados
+  const evTodos=[...EVENTOS].sort((a,b)=>b.data.localeCompare(a.data));
+  return`<div class="card">
+    <div class="sec-title">📸 Galeria de fotos</div>
+    <label>Evento</label>
+    <select id="gal-evento" onchange="window.carregarGaleriaEvento(this.value)" style="margin-bottom:14px">
+      <option value="">Selecione um evento...</option>
+      ${evTodos.map(e=>`<option value="${e.id}">${e.nome} — ${fmtDate(e.data)}</option>`).join("")}
+    </select>
+    <div id="gal-upload-area" style="display:none;margin-bottom:14px">
+      <label style="text-transform:none;letter-spacing:0;font-size:13px;cursor:pointer;padding:10px 16px;border:2px dashed var(--border);border-radius:10px;background:var(--bg3);color:var(--muted);display:block;text-align:center" for="gal-input">📷 Toque para adicionar foto</label>
+      <input type="file" id="gal-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoGaleria(this)"/>
+    </div>
+    <div id="gal-fotos"><div style="font-size:12px;color:#555;text-align:center;padding:20px">Selecione um evento para ver as fotos</div></div>
+  </div>`;
+}
+
+window.carregarGaleriaEvento=async(eventoId)=>{
+  const uploadArea=document.getElementById("gal-upload-area");
+  const el=document.getElementById("gal-fotos");
+  if(!eventoId){if(uploadArea)uploadArea.style.display="none";return;}
+  if(uploadArea)uploadArea.style.display="block";
+  if(el)el.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const snap=await getDocs(query(collection(db,"galeria"),where("eventoId","==",parseInt(eventoId)),orderBy("criadoEm","desc")));
+    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555;text-align:center;padding:20px">Nenhuma foto ainda. Seja o primeiro!</div>`;return;}
+    el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${snap.docs.map(d=>{
+        const f=d.data();
+        return`<div style="position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1">
+          <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="window.verFotoGaleria('${f.url}','${f.apelido}','${f.data||""}')"/>
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:6px 8px">
+            <div style="font-size:10px;color:#fff;font-weight:600">${f.apelido}</div>
+          </div>
+          ${(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="window.excluirFotoGaleria('${d.id}','${eventoId}')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>`:""}
+        </div>`;
+      }).join("")}
+    </div>`;
+  }catch(e){if(el)el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+};
+
+window.uploadFotoGaleria=async(input)=>{
+  const file=input.files[0];
+  if(!file)return;
+  const eventoId=document.getElementById("gal-evento")?.value;
+  if(!eventoId){showToast("Selecione um evento primeiro.",true);return;}
+  const ev=EVENTOS.find(e=>e.id===parseInt(eventoId));
+  showToast("Enviando foto...");
+  try{
+    const url=await uploadFoto(file);
+    await addDoc(collection(db,"galeria"),{
+      eventoId:parseInt(eventoId),eventoNome:ev?.nome||"",
+      url,autorId:CU.uid,apelido:UP.apelido,
+      data:new Date().toISOString().slice(0,10),
+      criadoEm:serverTimestamp()
+    });
+    input.value="";
+    showToast("✅ Foto adicionada!");
+    window.carregarGaleriaEvento(eventoId);
+  }catch(e){showToast("Erro ao enviar foto.",true);}
+};
+
+window.verFotoGaleria=(url,apelido,data)=>{
+  const overlay=document.createElement("div");
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px";
+  overlay.innerHTML=`
+    <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:10px;object-fit:contain"/>
+    <div style="color:#fff;font-size:12px;margin-top:10px;text-align:center">${apelido}${data?" · "+fmtDate(data):""}</div>
+    <button onclick="this.parentElement.remove()" style="margin-top:14px;padding:10px 24px;border-radius:8px;border:1px solid #555;background:transparent;color:#fff;font-size:14px;cursor:pointer">Fechar</button>`;
+  document.body.appendChild(overlay);
+};
+
+window.excluirFotoGaleria=async(id,eventoId)=>{
+  if(!confirm("Excluir esta foto?"))return;
+  try{await deleteDoc(doc(db,"galeria",id));showToast("Foto excluída.");window.carregarGaleriaEvento(eventoId);}
+  catch{showToast("Erro.",true);}
+};
+
+async function carregarGaleria(){} // carregamento lazy via select
+
+async function carregarPlacaHonra(){} // renderizado estaticamente
+
+// ═══════════════════════════════════════════════════
+// GARAGEM
+// ═══════════════════════════════════════════════════
+window.salvarGaragem=async()=>{
+  const moto=document.getElementById("m-nome")?.value.trim();
+  const ano=document.getElementById("m-ano")?.value;
+  const cil=document.getElementById("m-cil")?.value.trim();
+  const cor=document.getElementById("m-cor")?.value.trim();
+  const autonomia=parseFloat(document.getElementById("m-autonomia")?.value)||0;
+  const tanque=parseFloat(document.getElementById("m-tanque")?.value)||0;
+  const gasolina=parseFloat(document.getElementById("m-gasolina")?.value)||0;
+  if(!moto){showToast("Informe o nome da moto.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",CU.uid),{moto,motoAno:ano||"",motoCil:cil||"",motoCor:cor||"",autonomia,tanque,gasolina},{merge:true});
+    UP.moto=moto;UP.motoAno=ano;UP.motoCil=cil;UP.motoCor=cor;
+    UP.autonomia=autonomia;UP.tanque=tanque;UP.gasolina=gasolina;
+    showToast("✓ Garagem salva!");render();
+  }catch{showToast("Erro ao salvar.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// ANIVERSÁRIOS
+// ═══════════════════════════════════════════════════
+window.salvarNascimento=async()=>{
+  const nasc=document.getElementById("m-nascimento")?.value;
+  if(!nasc){showToast("Selecione a data.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",CU.uid),{nascimento:nasc},{merge:true});
+    UP.nascimento=nasc;showToast("✓ Data de nascimento salva!");
+  }catch{showToast("Erro.",true);}
+};
+
+function htmlAniversarios(){
+  const hoje=new Date();
+  const mesAtual=hoje.getMonth()+1;
+  const diaAtual=hoje.getDate();
+  const comAniversario=MEMBROS.filter(m=>m.nascimento).map(m=>{
+    const [ano,mes,dia]=m.nascimento.split("-").map(Number);
+    const idade=hoje.getFullYear()-ano-(mes>mesAtual||(mes===mesAtual&&dia>diaAtual)?1:0);
+    return{...m,mes,dia,idade};
+  }).sort((a,b)=>a.mes!==b.mes?a.mes-b.mes:a.dia-b.dia);
+  const doMes=comAniversario.filter(m=>m.mes===mesAtual);
+  const outros=comAniversario.filter(m=>m.mes!==mesAtual);
+  const meses=["","Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const isHoje=(m)=>m.mes===mesAtual&&m.dia===diaAtual;
+  const renderCard=(m)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+    ${avatarEl(m.fotoUrl,m.apelido,36)}
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:600">${m.apelido}${isHoje(m)?` <span style="color:var(--orange)">🎂 Hoje!</span>`:""}</div>
+      <div style="font-size:11px;color:var(--muted)">${m.dia.toString().padStart(2,"0")}/${m.mes.toString().padStart(2,"0")} · ${m.idade} anos</div>
+    </div>
+  </div>`;
+  return`<div class="card" style="${doMes.length>0?"border-color:rgba(232,103,10,.3)":""}">
+    <div class="sec-title">🎂 ${meses[mesAtual]} — ${doMes.length} aniversariante${doMes.length!==1?"s":""}</div>
+    ${doMes.length===0?`<div style="font-size:12px;color:#555">Nenhum aniversariante este mês.</div>`:doMes.map(renderCard).join("")}
+  </div>
+  ${outros.length>0?`<div class="card">
+    <div class="sec-title">📅 Próximos meses</div>
+    ${outros.map(renderCard).join("")}
+  </div>`:""}
+  ${MEMBROS.filter(m=>!m.nascimento).length>0?`<div class="hint-box">⚠️ ${MEMBROS.filter(m=>!m.nascimento).length} membros ainda não preencheram a data de nascimento no Perfil.</div>`:""}`;
+}
+
+async function carregarAniversarios(){}
+
+// ═══════════════════════════════════════════════════
+// ANIVERSÁRIOS NO INÍCIO (card)
+// ═══════════════════════════════════════════════════
+function htmlAniversariosInicio(){
+  const hoje=new Date();
+  const mes=hoje.getMonth()+1;
+  const dia=hoje.getDate();
+  const aniv=MEMBROS.filter(m=>{
+    if(!m.nascimento)return false;
+    const [,mm,dd]=m.nascimento.split("-").map(Number);
+    return mm===mes&&dd===dia;
+  });
+  if(aniv.length===0)return"";
+  return`<div class="card" style="border-color:var(--orange);background:rgba(232,103,10,.04)">
+    <div class="sec-title" style="color:var(--orange)">🎂 Aniversário hoje!</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${aniv.map(m=>`<div style="display:flex;align-items:center;gap:8px">${avatarEl(m.fotoUrl,m.apelido,32)}<span style="font-size:14px;font-weight:700">${m.apelido}</span></div>`).join("")}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// CAIXA DO BAR
+// ═══════════════════════════════════════════════════
+function htmlCaixaBar(){
+  return`<div class="card">
+    <div class="sec-title">💰 Caixa do Bar</div>
+    <div id="caixabar-saldo" style="text-align:center;padding:16px 0;margin-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">SALDO ATUAL</div>
+      <div id="caixabar-valor" style="font-size:36px;font-weight:700;color:var(--green)"><span class="spin">⟳</span></div>
+    </div>
+    <div class="sec-title">➕ Novo lançamento</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="cb-tipo-entrada" onclick="window.setCbTipo('entrada')" style="flex:1;padding:10px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ Entrada</button>
+      <button id="cb-tipo-saida" onclick="window.setCbTipo('saida')" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">- Saída</button>
+    </div>
+    <label>Descrição</label><input type="text" id="cb-desc" placeholder="Ex: Venda de cervejas" autocomplete="off"/>
+    <label>Valor (R$)</label><input type="number" id="cb-valor" placeholder="Ex: 150.00" step="0.01"/>
+    <label>Data</label><input type="date" id="cb-data" value="${new Date().toISOString().slice(0,10)}"/>
+    <div id="cb-err" class="msg-err" style="display:none"></div>
+    <button class="btn-primary" onclick="window.salvarCaixaBar()">Salvar lançamento</button>
+  </div>
+  <div class="card">
+    <div class="sec-title">📋 Histórico</div>
+    <div id="caixabar-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+let _cbTipo="entrada";
+window.setCbTipo=(tipo)=>{
+  _cbTipo=tipo;
+  const btnE=document.getElementById("cb-tipo-entrada");
+  const btnS=document.getElementById("cb-tipo-saida");
+  if(btnE){btnE.style.background=tipo==="entrada"?"var(--green)":"var(--bg3)";btnE.style.color=tipo==="entrada"?"#fff":"var(--muted)";btnE.style.border=tipo==="entrada"?"none":"1px solid var(--border)";}
+  if(btnS){btnS.style.background=tipo==="saida"?"var(--danger)":"var(--bg3)";btnS.style.color=tipo==="saida"?"#fff":"var(--muted)";btnS.style.border=tipo==="saida"?"none":"1px solid var(--border)";}
+};
+
+async function carregarCaixaBar(){
+  try{
+    const snap=await getDocs(query(collection(db,"caixa_bar"),orderBy("data","desc")));
+    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const saldo=docs.reduce((acc,d)=>d.tipo==="entrada"?acc+d.valor:acc-d.valor,0);
+    const elVal=document.getElementById("caixabar-valor");
+    const elLista=document.getElementById("caixabar-lista");
+    if(elVal)elVal.innerHTML=`<span style="color:${saldo>=0?"var(--green)":"var(--danger)"}">R$ ${brl(Math.abs(saldo))}${saldo<0?" (negativo)":""}</span>`;
+    if(elLista)elLista.innerHTML=docs.length===0?`<div style="font-size:12px;color:#555">Nenhum lançamento.</div>`:
+      docs.map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:20px">${d.tipo==="entrada"?"📥":"📤"}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${d.desc}</div>
+          <div style="font-size:11px;color:var(--muted)">${fmtDate(d.data)} · ${d.autor||""}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:${d.tipo==="entrada"?"var(--green)":"var(--danger)"}">${d.tipo==="entrada"?"+":"-"} R$${brl(d.valor)}</div>
+          <button onclick="window.excluirCaixaBar('${d.id}',${d.valor},'${d.tipo}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>
+        </div>
+      </div>`).join("");
+  }catch(e){console.error(e);}
+}
+
+window.salvarCaixaBar=async()=>{
+  const desc=document.getElementById("cb-desc")?.value.trim();
+  const valor=parseFloat(document.getElementById("cb-valor")?.value);
+  const data=document.getElementById("cb-data")?.value;
+  const err=document.getElementById("cb-err");
+  if(!desc||!valor||!data){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  err.style.display="none";
+  try{
+    await addDoc(collection(db,"caixa_bar"),{desc,valor,data,tipo:_cbTipo,autor:UP.apelido,criadoEm:serverTimestamp()});
+    document.getElementById("cb-desc").value="";
+    document.getElementById("cb-valor").value="";
+    showToast(`✓ ${_cbTipo==="entrada"?"Entrada":"Saída"} registrada!`);
+    carregarCaixaBar();
+  }catch{showToast("Erro.",true);}
+};
+
+window.excluirCaixaBar=async(id)=>{
+  if(!confirm("Excluir este lançamento?"))return;
+  try{await deleteDoc(doc(db,"caixa_bar",id));showToast("Excluído.");carregarCaixaBar();}catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// MENSALIDADES
+// ═══════════════════════════════════════════════════
+async function carregarMensalidades(){
+  const wrap=document.getElementById("mensalidades-wrap");
+  if(!wrap)return;
+  const hoje=new Date();
+  const mesAtual=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}`;
+  const meses=[];
+  for(let i=0;i<6;i++){
+    const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+    meses.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+  }
+  try{
+    const snap=await getDocs(collection(db,"mensalidades"));
+    const pagtos={};
+    snap.docs.forEach(d=>{const r=d.data();const k=r.membroId+"_"+r.mes;pagtos[k]={id:d.id,...r};});
+    const mesLabel=(m)=>{const [y,mo]=m.split("-");const nomes=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];return`${nomes[parseInt(mo)]}/${y.slice(2)}`;};
+    wrap.innerHTML=`<div class="card">
+      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;margin-bottom:14px">
+        ${meses.map(m=>`<button onclick="window._mesAtual='${m}';carregarMensalidades()" style="flex-shrink:0;padding:6px 14px;border-radius:20px;border:${(window._mesAtual||mesAtual)===m?"none":"1px solid var(--border)"};background:${(window._mesAtual||mesAtual)===m?"var(--orange)":"var(--bg3)"};color:${(window._mesAtual||mesAtual)===m?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${mesLabel(m)}</button>`).join("")}
+      </div>
+      ${(()=>{
+        const mes=window._mesAtual||mesAtual;
+        const pagos=MEMBROS.filter(m=>pagtos[m.uid+"_"+mes]?.pago);
+        const nao=MEMBROS.filter(m=>!pagtos[m.uid+"_"+mes]?.pago);
+        return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div class="metric" style="padding:12px"><div class="metric-label">✅ Pagos</div><div class="metric-value" style="color:var(--green)">${pagos.length}</div></div>
+          <div class="metric" style="padding:12px"><div class="metric-label">❌ Pendentes</div><div class="metric-value" style="color:var(--danger)">${nao.length}</div></div>
+        </div>
+        ${MEMBROS.map(m=>{
+          const k=m.uid+"_"+mes;
+          const p=pagtos[k];
+          return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+            ${avatarEl(m.fotoUrl,m.apelido,32)}
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.apelido}</div>${p?.pago&&p?.data?`<div style="font-size:10px;color:var(--muted)">${fmtDate(p.data)}</div>`:""}</div>
+            <button onclick="window.toggleMensalidade('${m.uid}','${m.apelido}','${mes}','${p?.id||""}')" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:${p?.pago?"#2a6e3f":"var(--bg3)"};color:${p?.pago?"#fff":"var(--muted)"};">${p?.pago?"✅ Pago":"Marcar"}</button>
+          </div>`;
+        }).join("")}`;
+      })()}
+    </div>`;
+  }catch(e){console.error(e);wrap.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
+}
+
+window.toggleMensalidade=async(uid,apelido,mes,docId)=>{
+  try{
+    if(docId){
+      const snap=await getDoc(doc(db,"mensalidades",docId));
+      const pago=snap.data()?.pago;
+      await setDoc(doc(db,"mensalidades",docId),{pago:!pago,data:!pago?new Date().toISOString().slice(0,10):""},{merge:true});
+    }else{
+      await addDoc(collection(db,"mensalidades"),{membroId:uid,apelido,mes,pago:true,data:new Date().toISOString().slice(0,10),criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    }
+    carregarMensalidades();
+  }catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// EVENTOS DA SEDE
+// ═══════════════════════════════════════════════════
+function htmlEventosSede(){
+  const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
+  return`${isAdmin?`<div class="card">
+    <div class="sec-title">➕ Novo evento na sede</div>
+    <label>Nome do evento</label><input type="text" id="es-nome" placeholder="Ex: Show ao vivo, Aniversário..." autocomplete="off"/>
+    <label>Data</label><input type="date" id="es-data"/>
+    <label>Hora</label><input type="time" id="es-hora" value="20:00"/>
+    <label>Descrição (opcional)</label><input type="text" id="es-desc" placeholder="Detalhes do evento" autocomplete="off"/>
+    <button class="btn-primary" onclick="window.salvarEventoSede()">Publicar evento</button>
+  </div>`:""}
+  <div class="card">
+    <div class="sec-title">🎉 Próximos eventos na sede</div>
+    <div id="eventos-sede-lista"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+async function carregarEventosSede(){
+  const el=document.getElementById("eventos-sede-lista");
+  if(!el)return;
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const snap=await getDocs(query(collection(db,"eventos_sede"),orderBy("data","asc")));
+    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const futuros=docs.filter(e=>e.data>=hoje);
+    const passados=docs.filter(e=>e.data<hoje).slice(-3).reverse();
+    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum evento cadastrado.</div>`;return;}
+    const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
+    const renderEv=(e,passado=false)=>{
+      const hoje2=new Date();hoje2.setHours(0,0,0,0);
+      const evData=new Date(e.data+"T00:00:00");
+      const dias=Math.round((evData-hoje2)/(1000*60*60*24));
+      const diasLabel=dias===0?"🔴 Hoje!":dias===1?"🟠 Amanhã":dias>0?`🕐 ${dias} dias`:"";
+      return`<div style="padding:12px 0;border-bottom:1px solid var(--border);opacity:${passado?".6":"1"}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div style="font-size:14px;font-weight:700">${e.nome}</div>
+            <div style="font-size:12px;color:var(--muted)">${fmtDate(e.data)}${e.hora?` · ${e.hora}`:""}</div>
+            ${e.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.desc}</div>`:""}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${diasLabel?`<span style="font-size:10px;font-weight:700;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:2px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
+            ${isAdmin?`<button onclick="window.excluirEventoSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`:""}
+          </div>
+        </div>
+      </div>`;
+    };
+    el.innerHTML=(futuros.length===0?`<div style="font-size:12px;color:#555;margin-bottom:10px">Nenhum evento futuro.</div>`:"")
+      +futuros.map(e=>renderEv(e)).join("")
+      +(passados.length>0?`<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-top:12px;margin-bottom:6px">Passados</div>`+passados.map(e=>renderEv(e,true)).join(""):"");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
+}
+
+window.salvarEventoSede=async()=>{
+  const nome=document.getElementById("es-nome")?.value.trim();
+  const data=document.getElementById("es-data")?.value;
+  const hora=document.getElementById("es-hora")?.value;
+  const desc=document.getElementById("es-desc")?.value.trim();
+  if(!nome||!data){showToast("Preencha nome e data.",true);return;}
+  try{
+    await addDoc(collection(db,"eventos_sede"),{nome,data,hora:hora||"",desc:desc||"",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    document.getElementById("es-nome").value="";document.getElementById("es-desc").value="";
+    showToast("✓ Evento publicado!");carregarEventosSede();
+  }catch{showToast("Erro.",true);}
+};
+
+window.excluirEventoSede=async(id)=>{
+  if(!confirm("Excluir este evento?"))return;
+  try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Excluído.");carregarEventosSede();}catch{showToast("Erro.",true);}
+};
+
+function htmlReunioes(){
+  return`<div class="card">
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="reun-tab-proxima" onclick="window.trocarAbaReuniao('proxima')" style="padding:6px 14px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📅 Próxima</button>
+      <button id="reun-tab-agendar" onclick="window.trocarAbaReuniao('agendar')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">➕ Agendar</button>
+      <button id="reun-tab-historico" onclick="window.trocarAbaReuniao('historico')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📋 Histórico</button>
+    </div>
+    <div id="reun-conteudo"><span class="spin">⟳</span></div>
+  </div>`;
+}
+
+window.trocarAbaReuniao=(aba)=>{
+  ["proxima","agendar","historico"].forEach(a=>{
+    const btn=document.getElementById("reun-tab-"+a);
+    if(!btn)return;
+    const active=a===aba;
+    btn.style.background=active?"var(--orange)":"var(--bg3)";
+    btn.style.color=active?"#fff":"var(--muted)";
+    btn.style.border=active?"none":"1px solid var(--border)";
+  });
+  window._reunAba=aba;
+  if(aba==="agendar")renderAbaAgendarReuniao();
+  else carregarReunioes();
+};
+
+function renderAbaAgendarReuniao(){
+  const el=document.getElementById("reun-conteudo");
+  if(!el)return;
+  el.innerHTML=`
+    <label>Data</label><input type="date" id="reun-data" autocomplete="off" style="margin-bottom:8px"/>
+    <label>Hora</label><input type="time" id="reun-hora" value="20:00" autocomplete="off" style="margin-bottom:8px"/>
+    <label>Pauta</label>
+    <textarea id="reun-pauta" placeholder="Tópicos que serão discutidos na reunião..." style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:10px"></textarea>
+    <div id="reun-err" class="msg-err" style="display:none"></div>
+    <button class="btn-primary" onclick="window.agendarReuniao()">Agendar reunião</button>`;
+}
+
+async function carregarReunioes(){
+  const el=document.getElementById("reun-conteudo");
+  if(!el)return;
+  const aba=window._reunAba||"proxima";
+  el.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const snap=await getDocs(query(collection(db,"reunioes"),orderBy("data","desc")));
+    const todas=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const futuras=[...todas.filter(r=>r.data>=hoje)].reverse();
+    const passadas=todas.filter(r=>r.data<hoje);
+    if(aba==="proxima"){
+      if(futuras.length===0){el.innerHTML=`<div style="font-size:12px;color:#555;padding:8px 0">Nenhuma reunião agendada. Use ➕ Agendar para criar.</div>`;return;}
+      const r=futuras[0];
+      const hoje2=new Date();hoje2.setHours(0,0,0,0);
+      const dias=Math.round((new Date(r.data+"T00:00:00")-hoje2)/(1000*60*60*24));
+      const minhaResp=(r.confirmacoes||{})[CU.uid]||"";
+      const podeEditar=UP&&(UP.isAdmin||UP.isDiretor);
+      el.innerHTML=`
+        <div style="background:rgba(232,103,10,.06);border:1px solid rgba(232,103,10,.2);border-radius:10px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+            <div>
+              <div style="font-size:15px;font-weight:700">📅 ${fmtDate(r.data)}</div>
+              <div style="font-size:13px;color:var(--muted)">🕐 ${r.hora||"--:--"}</div>
+            </div>
+            ${dias>=0?`<span style="font-size:11px;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${dias===0?"🔴 Hoje!":dias===1?"🟠 Amanhã":"🕐 "+dias+" dias"}</span>`:""}
+          </div>
+          ${r.pauta?`<div style="font-size:12px;background:var(--bg3);border-radius:6px;padding:8px;margin-bottom:10px;border-left:3px solid var(--orange)">📋 <strong>Pauta:</strong><br>${r.pauta}</div>`:""}
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button onclick="window.confirmarReuniao('${r.id}','sim')" style="flex:1;padding:10px;border-radius:8px;border:none;background:${minhaResp==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou!</button>
+            <button onclick="window.confirmarReuniao('${r.id}','nao')" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--danger);background:${minhaResp==="nao"?"rgba(224,82,82,.2)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>
+          </div>
+          ${minhaResp?`<div class="hint-box">${minhaResp==="sim"?"✅ Você confirmou presença!":"❌ Você marcou que não vai."}</div>`:""}
+        </div>
+        <div class="sec-title">👥 Confirmações</div>
+        <div style="margin-bottom:16px">${htmlConfirmacoesReuniao(r)}</div>
+        <div style="border-top:1px solid var(--border);padding-top:14px">
+          <div class="sec-title">📝 Ata pós-reunião</div>
+          ${r.ata?`<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border-left:3px solid var(--green);margin-bottom:10px;font-size:13px;line-height:1.5;white-space:pre-wrap">${r.ata}</div>`:"<div style='font-size:12px;color:#555;margin-bottom:10px'>Ata não registrada ainda.</div>"}
+          ${r.ataAnexoUrl?`<div style="margin-bottom:12px">${r.ataAnexoUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)?`<img src="${r.ataAnexoUrl}" style="max-width:100%;border-radius:8px;cursor:pointer" onclick="window.open('${r.ataAnexoUrl}','_blank')">`:`<a href="${r.ataAnexoUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--orange);font-size:12px;text-decoration:none;padding:8px 12px;border:1px solid rgba(232,103,10,.3);border-radius:8px">📎 ${r.ataAnexoNome||"Anexo da ata"}</a>`}</div>`:""}
+          ${podeEditar?`
+          <textarea id="reun-ata-${r.id}" placeholder="Registre as decisões, encaminhamentos, votações..." style="width:100%;min-height:100px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:8px">${r.ata||""}</textarea>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+            <label for="reun-anexo-${r.id}" style="text-transform:none;letter-spacing:0;font-size:12px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);margin:0;flex-shrink:0">📎 Anexar</label>
+            <input type="file" id="reun-anexo-${r.id}" accept="image/*,.pdf,.doc,.docx" style="display:none;margin:0" onchange="document.getElementById('reun-anexo-nome-${r.id}').textContent=this.files[0]?.name||''"/>
+            <span id="reun-anexo-nome-${r.id}" style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" style="flex:1" onclick="window.salvarAta('${r.id}')">💾 Salvar ata</button>
+            <button onclick="window.excluirReuniao('${r.id}')" style="padding:9px 14px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:13px">🗑️</button>
+          </div>`:""}
+        </div>`;
+    }else{
+      if(passadas.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma reunião passada ainda.</div>`;return;}
+      el.innerHTML=passadas.map(r=>`
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div>
+              <div style="font-size:13px;font-weight:600">📅 ${fmtDate(r.data)} · 🕐 ${r.hora||"—"}</div>
+              ${r.pauta?`<div style="font-size:11px;color:var(--muted);margin-top:2px">📋 ${r.pauta}</div>`:""}
+            </div>
+            <span style="font-size:10px;color:var(--muted)">✅ ${Object.values(r.confirmacoes||{}).filter(v=>v==="sim").length} presentes</span>
+          </div>
+          ${r.ata?`<div style="font-size:12px;background:var(--bg3);border-radius:6px;padding:8px;border-left:3px solid var(--green);white-space:pre-wrap;margin-bottom:4px">${r.ata}</div>`:`<div style="font-size:11px;color:#555">Sem ata.</div>`}
+          ${r.ataAnexoUrl?`<a href="${r.ataAnexoUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--orange);font-size:11px;text-decoration:none;margin-top:4px">📎 ${r.ataAnexoNome||"Anexo"}</a>`:""}
+        </div>`).join("");
+    }
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+
+function htmlConfirmacoesReuniao(r){
+  const confs=r.confirmacoes||{};
+  const vao=MEMBROS.filter(m=>confs[m.uid]==="sim");
+  const nao=MEMBROS.filter(m=>confs[m.uid]==="nao");
+  const semResp=MEMBROS.filter(m=>!confs[m.uid]);
+  return`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px">
+    ${vao.map(m=>`<span class="pres-badge pres-sim" style="font-size:10px">✅ ${m.apelido}</span>`).join("")}
+    ${nao.map(m=>`<span class="pres-badge pres-nao" style="font-size:10px">❌ ${m.apelido}</span>`).join("")}
+  </div>
+  <div style="font-size:10px;color:var(--muted)">✅ ${vao.length} · ❌ ${nao.length} · ⏳ ${semResp.length} sem resposta</div>`;
+}
+
+window.confirmarReuniao=async(reuniaoId,resp)=>{
+  try{
+    await setDoc(doc(db,"reunioes",reuniaoId),{[`confirmacoes.${CU.uid}`]:resp},{merge:true});
+    showToast(resp==="sim"?"✅ Presença confirmada!":"❌ Ausência registrada.");
+    carregarReunioes();
+  }catch{showToast("Erro.",true);}
+};
+
+window.agendarReuniao=async()=>{
+  const data=document.getElementById("reun-data")?.value;
+  const hora=document.getElementById("reun-hora")?.value;
+  const pauta=document.getElementById("reun-pauta")?.value.trim();
+  const err=document.getElementById("reun-err");
+  if(!data){err.textContent="Preencha a data.";err.style.display="block";return;}
+  err.style.display="none";
+  try{
+    await addDoc(collection(db,"reunioes"),{data,hora:hora||"",pauta:pauta||"",confirmacoes:{},ata:"",ataAnexoUrl:"",ataAnexoNome:"",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    showToast("✅ Reunião agendada!");
+    registrarLog("reuniao_agendada",`agendou reunião para ${fmtDate(data)}`,"");
+    window.trocarAbaReuniao("proxima");
+  }catch{showToast("Erro ao agendar.",true);}
+};
+
+window.salvarAta=async(reuniaoId)=>{
+  const ata=document.getElementById("reun-ata-"+reuniaoId)?.value.trim();
+  const input=document.getElementById("reun-anexo-"+reuniaoId);
+  const f=input?.files[0];
+  try{
+    let anexoUrl="",anexoNome="";
+    if(f){showToast("Enviando anexo...");anexoUrl=await uploadFoto(f);anexoNome=f.name;}
+    const update={ata:ata||""};
+    if(anexoUrl){update.ataAnexoUrl=anexoUrl;update.ataAnexoNome=anexoNome;}
+    await setDoc(doc(db,"reunioes",reuniaoId),update,{merge:true});
+    showToast("✅ Ata salva!");
+    registrarLog("ata_salva","salvou ata da reunião","");
+    carregarReunioes();
+  }catch{showToast("Erro ao salvar ata.",true);}
+};
+
+window.excluirReuniao=async(reuniaoId)=>{
+  if(!confirm("Excluir esta reunião?"))return;
+  try{
+    await deleteDoc(doc(db,"reunioes",reuniaoId));
+    showToast("Reunião excluída.");carregarReunioes();
+  }catch{showToast("Erro.",true);}
+};
+
+async function carregarPainelResumo(){
+  // Ações rápidas — confirmação de sede e limpeza
+  const qaEl=document.getElementById("quick-actions-painel");
+  if(qaEl){
+    try{
+      const dataSex=proxSexta();
+      const dataQua=proxQuarta();
+      const [snapSex,snapQua,snapBar,snapChur]=await Promise.all([
+        getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",dataSex),where("tipo","==","presenca"),where("membroId","==",CU.uid))),
+        getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",dataQua),where("tipo","==","limpeza"),where("membroId","==",CU.uid))),
+        getDocs(query(collection(db,"escala_bar"),where("data","==",dataSex))),
+        getDocs(query(collection(db,"escala_churrasco"),where("data","==",dataSex)))
+      ]);
+      const confSex=snapSex.empty?"":snapSex.docs[0].data().resposta;
+      const confQua=snapQua.empty?"":snapQua.docs[0].data().resposta;
+      const bar=snapBar.empty?null:snapBar.docs[0].data();
+      const chur=snapChur.empty?null:snapChur.docs[0].data();
+      CONF_SEDE["presenca_"+dataSex]=confSex;
+      CONF_SEDE["limpeza_"+dataQua]=confQua;
+      qaEl.innerHTML=`
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid ${confSex==="sim"?"rgba(76,175,125,.4)":confSex==="nao"?"rgba(224,82,82,.3)":"var(--border)"}">
+            <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">⛪ Sede · Sex ${fmtDate(dataSex).slice(0,5)}</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="window.confirmarSede('${dataSex}','sim','presenca');setTimeout(carregarPainelResumo,400)" style="flex:1;padding:11px 4px;border-radius:8px;border:1px solid ${confSex==="sim"?"transparent":"var(--border)"};background:${confSex==="sim"?"#2a6e3f":"var(--bg2)"};color:${confSex==="sim"?"#fff":"var(--white)"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button>
+              <button onclick="window.confirmarSede('${dataSex}','nao','presenca');setTimeout(carregarPainelResumo,400)" style="flex:1;padding:11px 4px;border-radius:8px;border:1px solid ${confSex==="nao"?"var(--danger)":"var(--border)"};background:${confSex==="nao"?"rgba(224,82,82,.15)":"var(--bg2)"};color:${confSex==="nao"?"var(--danger)":"var(--muted)"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não</button>
+            </div>
+          </div>
+          <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid ${confQua==="sim"?"rgba(76,175,125,.4)":confQua==="nao"?"rgba(224,82,82,.3)":"var(--border)"}">
+            <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🧹 Limpeza · Qua ${fmtDate(dataQua).slice(0,5)}</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="window.confirmarSede('${dataQua}','sim','limpeza');setTimeout(carregarPainelResumo,400)" style="flex:1;padding:11px 4px;border-radius:8px;border:1px solid ${confQua==="sim"?"transparent":"var(--border)"};background:${confQua==="sim"?"#2a6e3f":"var(--bg2)"};color:${confQua==="sim"?"#fff":"var(--white)"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button>
+              <button onclick="window.confirmarSede('${dataQua}','nao','limpeza');setTimeout(carregarPainelResumo,400)" style="flex:1;padding:11px 4px;border-radius:8px;border:1px solid ${confQua==="nao"?"var(--danger)":"var(--border)"};background:${confQua==="nao"?"rgba(224,82,82,.15)":"var(--bg2)"};color:${confQua==="nao"?"var(--danger)":"var(--muted)"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid rgba(232,103,10,.2)">
+            <div style="font-size:11px;color:var(--orange);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🍺 Bar · Sex ${fmtDate(dataSex).slice(0,5)}</div>
+            ${bar?`<div style="font-size:13px;font-weight:700">${bar.m1} & ${bar.m2}</div>${bar.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${bar.obs}</div>`:""}`:`<div style="font-size:12px;color:#555">Não definido</div>`}
+          </div>
+          <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid rgba(76,175,125,.2)">
+            <div style="font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🔥 Churrasco · Sex ${fmtDate(dataSex).slice(0,5)}</div>
+            ${chur?`<div style="font-size:12px;font-weight:700">${[chur.m1,chur.m2,chur.m3,chur.m4].filter(Boolean).join(" · ")}</div>${chur.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${chur.obs}</div>`:""}`:`<div style="font-size:12px;color:#555">Não definido</div>`}
+          </div>
+        </div>`;
+    }catch(e){console.error(e);}
+  }
+  // Votações abertas
+  try{
+    const vSnap=await getDocs(query(collection(db,"votacoes"),where("encerrada","==",false)));
+    const card=document.getElementById("painel-votacoes-card");
+    const el=document.getElementById("painel-votacoes");
+    if(!el)return;
+    if(vSnap.empty){
+      if(el)el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma enquete ativa no momento.</div>`;
+      return;
+    }
+
+    el.innerHTML=vSnap.docs.map(d=>{
+      const v=d.data();
+      const meuVoto=v.votos?.[CU.uid];
+      const total=Object.values(v.votos||{}).length;
+      const contagem={};Object.values(v.votos||{}).forEach(op=>{contagem[op]=(contagem[op]||0)+1;});
+      return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">${v.pergunta}</div>
+        ${meuVoto
+          ?v.opcoes.map(op=>{const n=contagem[op]||0;const pct=total?Math.round((n/total)*100):0;
+            return`<div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:${op===meuVoto?"var(--orange)":"var(--white)"};font-weight:${op===meuVoto?"700":"400"}">${op}${op===meuVoto?" ✓":""}</span><span style="color:var(--muted)">${pct}%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;background:${op===meuVoto?"var(--orange)":"#444"};border-radius:3px;width:${pct}%"></div></div></div>`;
+          }).join("")+`<div style="font-size:10px;color:var(--muted);margin-top:4px">${total} resposta${total!==1?"s":""}</div>`
+          :`<div style="display:flex;flex-direction:column;gap:6px">${v.opcoes.map(op=>`<button onclick="window.votar('${d.id}','${op}')" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;text-align:left">${op}</button>`).join("")}</div>`
+        }
+      </div>`;
+    }).join("");
+  }catch(e){console.error(e);}
+}
+
+async function registrarLog(acao,detalhe,alvo){
+  if(!CU||!UP)return;
+  try{
+    await addDoc(collection(db,"audit_log"),{
+      uid:CU.uid,apelido:UP.apelido,acao,detalhe:detalhe||"",alvo:alvo||"",
+      criadoEm:serverTimestamp()
+    });
+  }catch{}
+}
+
+async function carregarAuditLog(){
+  const el=document.getElementById("log-wrap")||document.getElementById("audit-log-lista");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"audit_log"),orderBy("criadoEm","desc")));
+    const logs=snap.docs.slice(0,60).map(d=>({id:d.id,...d.data()}));
+    if(logs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma ação registrada ainda.</div>`;return;}
+    const icones={
+      "km_lancado":"📍","km_editado":"✏️","km_excluido":"🗑️",
+      "compareceu":"🏁","presenca_confirmada":"✅","presenca_excluida":"🗑️",
+      "sede_confirmada":"⛪","membro_cadastrado":"➕","membro_excluido":"❌",
+      "diretor_ativado":"⬆️","barman_ativado":"🍺","escala_bar":"🍺",
+      "logo_atualizada":"📷","pedagio_editado":"🛣️"
+    };
+    el.innerHTML=logs.map(l=>{
+      const ts=l.criadoEm?.toDate?l.criadoEm.toDate():new Date();
+      const hora=ts.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+      const ic=icones[l.acao]||"📋";
+      return`<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+        <span style="font-size:18px;flex-shrink:0;line-height:1.3">${ic}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px"><span style="font-weight:600;color:var(--orange)">${l.apelido}</span> ${l.detalhe}</div>
+          ${l.alvo?`<div style="font-size:11px;color:var(--muted)">↳ ${l.alvo}</div>`:""}
+        </div>
+        <div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-top:2px">${hora}</div>
+      </div>`;
+    }).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar log.</div>`;}
+}
+
+window.limparSede=async(data)=>{
+  if(!confirm(`Limpar todas as confirmações da sede de ${fmtDate(data)}?`))return;
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",data)));
+    for(const d of snap.docs)await deleteDoc(doc(db,"sede_confirmacoes",d.id));
+    CONF_SEDE[data]="";
+    showToast("✓ Confirmações da sede limpas!");render();
+    setTimeout(carregarSedeInfo,200);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.recalcTotal=(evId)=>{
+  const key=evId!=null?evId:"custom";
+  const pedEl=document.getElementById("ped-manual-"+key);
+  const gasEl=document.getElementById("gas-manual-"+key);
+  const totEl=document.getElementById("total-est-"+key);
+  if(!pedEl||!gasEl||!totEl)return;
+  const ped=parseFloat(pedEl.value.replace(",","."))||0;
+  const gas=parseFloat(gasEl.value.replace(",","."))||0;
+  // Busca litros da última calc (guardado em data-lit)
+  const lit=parseFloat(pedEl.closest(".rota-result")?.dataset.lit)||0;
+  const comb=lit*gas;
+  totEl.textContent="R$"+brl(comb+ped);
+};
+window.trocarAbaBar=(aba)=>{
+  window._barAba=aba;
+  const opts=MEMBROS.map(m=>`<option value="${m.apelido}">${m.apelido}</option>`).join("");
+  // Atualiza estilo dos botões
+  const btnBar=document.getElementById("bar-tab-bar");
+  const btnChur=document.getElementById("bar-tab-churrasco");
+  if(btnBar){btnBar.style.background=aba==="bar"?"var(--orange)":"var(--bg3)";btnBar.style.color=aba==="bar"?"#fff":"var(--muted)";}
+  if(btnChur){btnChur.style.background=aba==="churrasco"?"var(--green)":"var(--bg3)";btnChur.style.color=aba==="churrasco"?"#fff":"var(--muted)";}
+  // Atualiza título da lista
+  const titulo=document.getElementById("bar-lista-titulo");
+  if(titulo)titulo.textContent=`📋 Escalas futuras — ${aba==="bar"?"🍺 Bar":"🔥 Churrasco"}`;
+  // Atualiza formulário
+  const el=document.getElementById("bar-conteudo");
+  if(el){
+    if(aba==="bar"){
+      el.innerHTML=`
+      <div class="sec-title">➕ Cadastrar escala do bar</div>
+      <label>Data (sexta-feira)</label>
+      <input type="date" id="bar-data" value="${proxSexta()}" autocomplete="off"/>
+      <label>Membro 1</label>
+      <select id="bar-m1"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 2</label>
+      <select id="bar-m2"><option value="">Selecione...</option>${opts}</select>
+      <label>Observação (opcional)</label>
+      <input type="text" id="bar-obs" placeholder="Ex: trazer gelo" autocomplete="off"/>
+      <div id="bar-err" class="msg-err" style="display:none"></div>
+      <button class="btn-primary" onclick="window.salvarEscalaBar()">Salvar escala do bar</button>`;
+    }else{
+      el.innerHTML=`
+      <div class="sec-title">➕ Cadastrar escala do churrasco</div>
+      <label>Data (sexta-feira)</label>
+      <input type="date" id="chur-data" value="${proxSexta()}" autocomplete="off"/>
+      <label>Membro 1</label>
+      <select id="chur-m1"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 2</label>
+      <select id="chur-m2"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 3</label>
+      <select id="chur-m3"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 4</label>
+      <select id="chur-m4"><option value="">Selecione...</option>${opts}</select>
+      <label>Observação (opcional)</label>
+      <input type="text" id="chur-obs" placeholder="Ex: trazer carvão" autocomplete="off"/>
+      <div id="chur-err" class="msg-err" style="display:none"></div>
+      <button class="btn-primary" onclick="window.salvarEscalaChurrasco()" style="background:var(--green)">Salvar escala do churrasco</button>`;
+    }
+  }
+  setTimeout(carregarEscalaLista,50);
+};
+function htmlWhatsapp(){return htmlWhatsApp("clube");}
+
+function htmlLancarKm(){
+  const opts=MEMBROS.map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join("");
+  return`<div class="card">
+    <div class="sec-title">📍 Lançar km para membro</div>
+    <div id="km-err" class="msg-err" style="display:none"></div>
+    <label>Membro</label>
+    <select id="km-membro"><option value="">Selecione...</option>${opts}</select>
+    <label>Tipo</label>
+    <select id="km-tipo" onchange="window.toggleTipo()">
+      <option value="rota">🗺️ Rota (evento)</option>
+      <option value="extra">⭐ Km extra</option>
+    </select>
+    <div id="km-evento-wrap">
+      <label>Evento</label>
+      <select id="km-evento" onchange="window.preencherEvento()">
+        <option value="">Selecione...</option>
+        ${EVENTOS.map(e=>`<option value="${e.id}" data-data="${e.data}" data-dist="${e.dist*2}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
+      </select>
+    </div>
+    <div id="km-desc-wrap" style="display:none">
+      <label>Descrição</label>
+      <input type="text" id="km-desc" placeholder="Ex: Passeio especial" autocomplete="off"/>
+    </div>
+    <label>Data</label>
+    <input type="date" id="km-data"/>
+    <label>Km rodados</label>
+    <input type="number" id="km-valor" placeholder="Ex: 320" step="1"/>
+    <button class="btn-primary" id="km-btn" onclick="window.lancarKm()">Lançar km</button>
+  </div>`;
+}
+
+function htmlRotaAdmin(){
+  return`
+  <div class="card">
+    <div class="sec-title">🗺️ Planejar por evento</div>
+    ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+    <label>Evento</label>
+    <select id="rm-evento" onchange="window.calcMembroEvento()">
+      <option value="">Selecione...</option>
+      ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
+    </select>
+    <div id="rm-result"></div>
+  </div>
+  <div class="card">
+    <div class="sec-title">⚙️ Rota personalizada</div>
+    <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
+    <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
+    <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
+    <div id="rm-custom-result"></div>
+  </div>`;
+}
+
+window.toggleFormEscala=(tipo)=>{
+  const el=document.getElementById("form-card-"+tipo);
+  if(!el)return;
+  el.style.display=el.style.display==="none"?"block":"none";
+};
+window.trocarAbaSede=(aba)=>{
+  window._sedeAba=aba;
+  const canEdit=true;
+  const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
+  ["presenca","limpeza","bar","churrasco","reunioes"].forEach(a=>{
+    const btn=document.getElementById("sede-tab-"+a);
+    if(!btn)return;
+    btn.style.background=a===aba?"var(--orange)":"var(--bg3)";
+    btn.style.color=a===aba?"#fff":"var(--muted)";
+    btn.style.border=a===aba?"none":"1px solid var(--border)";
+  });
+  const el=document.getElementById("sede-conteudo");
+  if(!el)return;
+  if(aba==="presenca")el.innerHTML=htmlSedePresenca(canEdit,isAdminOrDir);
+  else if(aba==="limpeza")el.innerHTML=htmlSedeLimpeza(canEdit,isAdminOrDir);
+  else if(aba==="reunioes"){el.innerHTML=htmlReunioes();setTimeout(carregarReunioes,50);}
+  else if(aba==="eventosSede"){el.innerHTML=htmlEventosSede();setTimeout(carregarEventosSede,50);}
+  else{window._barAba=aba;el.innerHTML=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
+  if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
+  else if(aba!=="reunioes"&&aba!=="eventosSede")setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();if(UP&&(UP.isAdmin||UP.isBarman))carregarCaixaBarRapido();},50);
+};
+window.confirmarSede=async(data,resposta,tipo)=>{
+  const tp=tipo||"presenca";
+  const docId=CU.uid+"_"+tp+"_"+data;
+  try{
+    await setDoc(doc(db,"sede_confirmacoes",docId),{membroId:CU.uid,apelido:UP.apelido,data,resposta,tipo:tp,updatedAt:serverTimestamp()});
+    CONF_SEDE[tp+"_"+data]=resposta;
+    showToast(resposta==="sim"?(tp==="limpeza"?"🧹 Confirmado para limpeza!":"⛪ Presença confirmada!"):"❌ Ausência registrada.");
+    registrarLog("sede_confirmada",`${resposta==="sim"?"confirmou":"recusou"} ${tp==="limpeza"?"limpeza":"presença na sede"}`,fmtDate(data));
+    render();
+    setTimeout(carregarSedeInfo,200);
+  }catch{showToast("Erro ao confirmar.",true);}
+};
+window.atualizarHistorico=async(tipo)=>{
+  const el=document.getElementById("hist-conteudo-"+tipo);
+  if(!el)return;
+  const aberto=window["_hist_"+tipo];
+  el.style.display=aberto?"block":"none";
+  if(!aberto)return;
+  el.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    if(tipo==="presenca"||tipo==="limpeza"){
+      // Últimas 8 sextas (presenca) ou quartas (limpeza)
+      const datas=[];
+      const hoje=new Date();
+      let d=new Date(hoje);
+      const divoSemana=tipo==="limpeza"?3:5;
+      const diasAtras=(hoje.getDay()>=divoSemana)?hoje.getDay()-divoSemana:7-(divoSemana-hoje.getDay());
+      d.setDate(d.getDate()-diasAtras);
+      for(let i=0;i<8;i++){datas.push(d.toISOString().slice(0,10));d.setDate(d.getDate()-7);}
+      const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","in",datas),where("tipo","==",tipo)));
+      const porData={};
+      snap.docs.forEach(doc=>{const r=doc.data();if(!porData[r.data])porData[r.data]={sim:[],nao:[]};porData[r.data][r.resposta].push(r.apelido);});
+      const html=datas.filter(s=>porData[s]).map(s=>{
+        const v=porData[s].sim||[],n=porData[s].nao||[];
+        return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <div style="font-size:13px;font-weight:600">${fmtDate(s)}</div>
+            <div style="font-size:11px;color:var(--muted)">✅ ${v.length} · ❌ ${n.length}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px">
+            ${v.map(a=>`<span class="pres-badge pres-sim" style="font-size:10px;padding:2px 7px">${a}</span>`).join("")}
+            ${n.map(a=>`<span class="pres-badge pres-nao" style="font-size:10px;padding:2px 7px">${a}</span>`).join("")}
+          </div>
+        </div>`;
+      }).join("");
+      el.innerHTML=html||`<div style="font-size:12px;color:#555;padding:8px 0">Nenhum histórico.</div>`;
+    }else{
+      // Bar ou Churrasco — últimas 8 semanas
+      const col=tipo==="bar"?"escala_bar":"escala_churrasco";
+      const hoje=new Date().toISOString().slice(0,10);
+      const snap=await getDocs(query(collection(db,col),orderBy("data","desc")));
+      const docs=snap.docs.filter(d=>d.data().data<hoje).slice(0,8);
+      const html=docs.map(d=>{
+        const e=d.data();
+        const nomes=tipo==="bar"?`${e.m1} & ${e.m2}`:[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ");
+        return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600">${fmtDate(e.data)}</div>
+          <div style="font-size:12px;color:${tipo==="bar"?"var(--orange)":"var(--green)"}">${tipo==="bar"?"🍺":"🔥"} ${nomes}</div>
+          ${e.obs?`<div style="font-size:11px;color:var(--muted)">📝 ${e.obs}</div>`:""}
+        </div>`;
+      }).join("");
+      el.innerHTML=html||`<div style="font-size:12px;color:#555;padding:8px 0">Nenhum histórico.</div>`;
+    }
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+};
+window.limparSedeQua=async(data)=>{
+  if(!confirm(`Limpar confirmações de limpeza de ${fmtDate(data)}?`))return;
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",data),where("tipo","==","limpeza")));
+    for(const d of snap.docs)await deleteDoc(doc(db,"sede_confirmacoes",d.id));
+    CONF_SEDE["limpeza_"+data]="";
+    showToast("✓ Limpas!");render();setTimeout(carregarSedeInfo,200);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.salvarEscalaBar=async()=>{
+  const data=document.getElementById("bar-data")?.value;
+  const m1=document.getElementById("bar-m1")?.value;
+  const m2=document.getElementById("bar-m2")?.value;
+  const obs=document.getElementById("bar-obs")?.value.trim();
+  const err=document.getElementById("bar-err");
+  if(!data||!m1||!m2){err.textContent="Selecione a data e os dois membros.";err.style.display="block";return;}
+  if(m1===m2){err.textContent="Selecione dois membros diferentes.";err.style.display="block";return;}
+  err.style.display="none";
+  try{
+    await addDoc(collection(db,"escala_bar"),{data,m1,m2,obs:obs||"",criadoEm:serverTimestamp(),criadoPor:UP.apelido});
+    showToast("✓ Escala salva!");
+    document.getElementById("bar-obs").value="";
+    carregarEscalaLista();
+  }catch{showToast("Erro ao salvar escala.",true);}
+};
+window.excluirEscala=async(id,col)=>{
+  if(!confirm("Excluir esta escala?"))return;
+  try{await deleteDoc(doc(db,col||"escala_bar",id));showToast("Escala excluída.");carregarEscalaLista();}catch{showToast("Erro.",true);}
+};
+window.salvarEscalaChurrasco=async()=>{
+  const data=document.getElementById("chur-data")?.value;
+  const m1=document.getElementById("chur-m1")?.value;
+  const m2=document.getElementById("chur-m2")?.value;
+  const m3=document.getElementById("chur-m3")?.value;
+  const m4=document.getElementById("chur-m4")?.value;
+  const obs=document.getElementById("chur-obs")?.value.trim();
+  const err=document.getElementById("chur-err");
+  if(!data||!m1||!m2||!m3||!m4){err.textContent="Selecione a data e os 4 membros.";err.style.display="block";return;}
+  const escolhidos=[m1,m2,m3,m4];
+  if(new Set(escolhidos).size<4){err.textContent="Selecione 4 membros diferentes.";err.style.display="block";return;}
+  err.style.display="none";
+  try{
+    await addDoc(collection(db,"escala_churrasco"),{data,m1,m2,m3,m4,obs:obs||"",criadoEm:serverTimestamp(),criadoPor:UP.apelido});
+    showToast("✓ Escala do churrasco salva!");
+    document.getElementById("chur-obs").value="";
+    carregarEscalaLista();
+  }catch{showToast("Erro ao salvar.",true);}
+};
+window.toggleBarman=async(uid,apelido,atual)=>{
+  const novo=!atual;
+  if(!confirm(novo?`Dar acesso Bar para ${apelido}?`:`Remover acesso Bar de ${apelido}?`))return;
+  try{
+    await setDoc(doc(db,"usuarios",uid),{isBarman:novo},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.isBarman=novo;
+    showToast(novo?`✓ ${apelido} agora gerencia o bar`:`✓ Acesso Bar removido de ${apelido}`);render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.salvarEncontro=async(eventoId)=>{
+  const local=document.getElementById("enc-local-"+eventoId)?.value.trim();
+  const hora=document.getElementById("enc-hora-"+eventoId)?.value;
+  const resp=document.getElementById("enc-resp-"+eventoId)?.value;
+  const obs=document.getElementById("enc-obs-"+eventoId)?.value.trim();
+  if(!local){showToast("Informe o local de encontro.",true);return;}
+  try{
+    ENCONTROS[eventoId]={local,hora:hora||"",resp:resp||"",obs:obs||""};
+    await setDoc(doc(db,"config","encontros"),ENCONTROS);
+    const ev=EVENTOS.find(e=>e.id===eventoId);
+    registrarLog("encontro_salvo",`definiu ponto de encontro: ${local}`,ev?.nome||"");
+    showToast("✓ Ponto de encontro salvo!");render();
+  }catch(e){showToast("Erro ao salvar.",true);}
+};
+window.excluirEncontro=async(eventoId)=>{
+  if(!confirm("Remover ponto de encontro deste evento?"))return;
+  try{
+    delete ENCONTROS[eventoId];
+    await setDoc(doc(db,"config","encontros"),ENCONTROS);
+    showToast("✓ Ponto removido.");render();
+  }catch(e){showToast("Erro.",true);}
+};
+window.salvarPedagio=async(eventoId)=>{
+  const val=parseFloat(document.getElementById("ped-"+eventoId)?.value);
+  if(isNaN(val)||val<0){showToast("Valor inválido.",true);return;}
+  try{
+    PEDAGIOS_CUSTOM[eventoId]=val;
+    await setDoc(doc(db,"config","pedagios"),PEDAGIOS_CUSTOM);
+    showToast("✓ Pedágio atualizado!");
+  }catch(e){showToast("Erro ao salvar.",true);}
+};
+window.setTA=t=>{TA=t;render();if(t==="presenca")setTimeout(carregarPresencasAdmin,100);};
+window.setTM=t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";render();};
+window.toggleEvDet=id=>{const el=document.getElementById(id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
+window.toggleEdit=id=>{const el=document.getElementById("edit-"+id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
+function htmlUsuarios(){
+  return`<div class="card">
+    <div class="sec-title">👥 Membros cadastrados</div>
+    <div style="position:relative;margin-bottom:14px">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
+      <input type="text" id="busca-membro" placeholder="Buscar membro..." autocomplete="off" oninput="window.filtrarMembros(this.value)" style="padding-left:40px;margin-bottom:0"/>
+    </div>
+    <div id="membros-lista">
+    ${MEMBROS.map(m=>`
+      <div class="membro-item" data-apelido="${m.apelido.toLowerCase()}" style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer" onclick="window.toggleUsuario('${m.uid}')">
+          ${avatarEl(m.fotoUrl,m.apelido,36)}
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${m.apelido}</div>
+            <div style="font-size:11px;color:var(--muted)">${m.moto||"—"}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="event.stopPropagation();window.toggleDiretor('${m.uid}','${m.apelido}',${!!m.isDiretor})" style="padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;border:1px solid ${m.isDiretor?"rgba(76,175,125,.4)":"var(--border)"};background:${m.isDiretor?"rgba(76,175,125,.1)":"transparent"};color:${m.isDiretor?"var(--green)":"var(--muted)"}">
+              ${m.isDiretor?"✓ Dir":"⬆️ Dir"}
+            </button>
+            <button onclick="event.stopPropagation();window.toggleBarman('${m.uid}','${m.apelido}',${!!m.isBarman})" style="padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;border:1px solid ${m.isBarman?"rgba(232,103,10,.4)":"var(--border)"};background:${m.isBarman?"rgba(232,103,10,.1)":"transparent"};color:${m.isBarman?"var(--orange)":"var(--muted)"}">
+              ${m.isBarman?"✓ Bar":"🍺 Bar"}
+            </button>
+          </div>
+          <span style="font-size:12px;color:var(--muted);margin-left:4px">▾</span>
+        </div>
+        <div id="ue-${m.uid}" style="display:none;padding:12px;border-top:1px solid var(--border);background:var(--bg3)">
+          <label>Apelido</label>
+          <input type="text" id="ue-ap-${m.uid}" value="${m.apelido}" autocomplete="off"/>
+          <label>Moto</label>
+          <input type="text" id="ue-mo-${m.uid}" value="${m.moto||""}" placeholder="Ex: Honda CB 500" autocomplete="off"/>
+          <label>Autonomia (km/L)</label>
+          <input type="number" id="ue-au-${m.uid}" value="${m.autonomia||""}" placeholder="Ex: 18" autocomplete="off"/>
+          <label>Tanque (litros)</label>
+          <input type="number" id="ue-tk-${m.uid}" value="${m.tanque||""}" placeholder="Ex: 13.7" step="0.1" autocomplete="off"/>
+          <label>Preço gasolina (R$/L)</label>
+          <input type="number" id="ue-gs-${m.uid}" value="${m.gasolina||""}" placeholder="Ex: 6.20" step="0.01" autocomplete="off"/>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn-primary" style="flex:1" onclick="window.salvarUsuario('${m.uid}')">Salvar</button>
+            <button onclick="window.trocarFoto('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📷 Foto</button>
+            <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">🗑️</button>
+          </div>
+          <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
+          <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
+            <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
+            <div style="margin-top:10px">
+              <textarea id="ficha-obs-${m.uid}" placeholder="Anotação, ocorrência, informação..." style="width:100%;min-height:70px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <label style="text-transform:none;letter-spacing:0;font-size:12px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);margin:0;flex-shrink:0" for="ficha-arq-${m.uid}">📎 Anexar</label>
+                <input type="file" id="ficha-arq-${m.uid}" accept="image/*,.pdf,.doc,.docx" style="display:none;margin:0" onchange="window.fichaArquivoPreview('${m.uid}',this)"/>
+                <span id="ficha-arq-nome-${m.uid}" style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+              </div>
+              <button class="btn-primary" onclick="window.salvarFichaObs('${m.uid}','${m.apelido}')">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join("")}
+    </div>
+  </div>`;
+}
+
+window.filtrarMembros=(texto)=>{
+  const q=texto.toLowerCase().trim();
+  document.querySelectorAll(".membro-item").forEach(el=>{
+    const apelido=el.dataset.apelido||"";
+    el.style.display=(!q||apelido.includes(q))?"block":"none";
+  });
+};
+window.toggleUsuario=uid=>{const el=document.getElementById("ue-"+uid);if(el)el.style.display=el.style.display==="block"?"none":"block";};
+window.toggleTipo=()=>{
+  const t=document.getElementById("km-tipo")?.value;
+  document.getElementById("km-evento-wrap").style.display=t==="rota"?"block":"none";
+  document.getElementById("km-desc-wrap").style.display=t==="extra"?"block":"none";
+  const d=document.getElementById("km-data");if(d)d.value="";
+};
+window.preencherEvento=()=>{
+  const sel=document.getElementById("km-evento");
+  const opt=sel?.options[sel.selectedIndex];
+  const d=document.getElementById("km-data");
+  if(opt?.value&&d)d.value=opt.dataset.data||"";
+};
+window.previewFoto=input=>{
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{const p=document.getElementById("foto-preview");if(p)p.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;};
+  r.readAsDataURL(file);
+};
+window.trocarLogo=()=>{
+  const input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;showToast("Enviando logo...");
+    try{
+      const url=await uploadFoto(file);
+      localStorage.setItem("mutantes_logo",url);
+      await setDoc(doc(db,"config","logo"),{url,updatedAt:serverTimestamp()});
+      atualizarIconePWA(url);
+      if(UP)UP.logoUrl=url;showToast("✓ Logo atualizada!");render();
+    }catch{showToast("Erro ao enviar logo.",true);}
+  };input.click();
+};
+window.trocarFoto=async(uid,apelido)=>{
+  const input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;showToast("Enviando foto...");
+    try{
+      const url=await uploadFoto(file);
+      await setDoc(doc(db,"usuarios",uid),{fotoUrl:url},{merge:true});
+      const m=MEMBROS.find(m=>m.uid===uid);if(m)m.fotoUrl=url;
+      if(CU&&CU.uid===uid)UP.fotoUrl=url;
+      showToast("✓ Foto atualizada!");render();
+    }catch{showToast("Erro ao enviar foto.",true);}
+  };input.click();
+};
+window.confirmarPresenca=async(eventoId,resposta)=>{
+  const ev=EVENTOS.find(e=>e.id===eventoId);
+  try{
+    await setDoc(doc(db,"presencas",CU.uid+"_"+eventoId),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta,updatedAt:serverTimestamp()});
+    await addDoc(collection(db,"notificacoes"),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta,lida:false,createdAt:serverTimestamp()});
+    CONF[eventoId]=resposta;
+    showToast(resposta==="sim"?"✅ Presença confirmada!":"❌ Ausência registrada.");render();
+    // Push para o admin
+    const adminTokens=await getTokenAdmin();
+    const emoji=resposta==="sim"?"✅":"❌";
+    dispararPush(emoji+" Confirmação de presença",`${UP.apelido} ${resposta==="sim"?"confirmou":"recusou"} presença em ${ev.nome}`,adminTokens);
+    registrarLog("presenca_confirmada",`${resposta==="sim"?"confirmou":"recusou"} presença`,ev.nome);
+  }catch{showToast("Erro ao confirmar.",true);}
+};
+window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
+  const ev=EVENTOS.find(e=>e.id===eventoId);
+  if(!ev)return;
+  const btnId="btn-comp-"+membroId+"-"+eventoId;
+  const btn=document.getElementById(btnId);
+  if(btn){btn.disabled=true;btn.textContent="Lançando...";}
+  let km=ev.dist>0?ev.dist*2:parseFloat(prompt("Distância total ida+volta (km) do evento "+ev.nome+":"));
+  if(!km||isNaN(km)||km<=0){if(btn){btn.disabled=false;btn.textContent="🏁 Compareceu";}return;}
+  const m=MEMBROS.find(m=>m.uid===membroId);
+  try{
+    const regRef=await addDoc(collection(db,"registros"),{membroId,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId,createdAt:serverTimestamp()});
+    const nt=(m?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    if(m)m.totalKm=nt;
+    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
+    showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
+    await carregarPresencasAdmin();
+    // Push para o membro
+    const mToken=m?.fcmToken;
+    if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken]);
+    registrarLog("compareceu",`registrou comparecimento de ${apelido} — ${toInt(km)} km`,ev.nome);
+  }catch(e){
+    showToast("Erro ao lançar km.",true);
+    const btnEl=document.getElementById(btnId);
+    if(btnEl){btnEl.disabled=false;btnEl.textContent="🏁 Compareceu";}
+  }
+};
+window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
+  if(!confirm("Excluir lançamento de "+toInt(km)+" km de "+apelido+"?"))return;
+  const m=MEMBROS.find(m=>m.uid===membroId);
+  try{
+    if(registroId)await deleteDoc(doc(db,"registros",registroId));
+    const nt=Math.max(0,(m?.totalKm||0)-km);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    if(m)m.totalKm=nt;
+    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{compareceu:false,registroId:null,kmLancado:0},{merge:true});
+    showToast("✓ Lançamento excluído.");
+    await carregarPresencasAdmin();
+  }catch(e){showToast("Erro ao excluir.",true);}
+};
+window.editarComparecimento=async(membroId,apelido,eventoId,registroId,kmAtual)=>{
+  const novoKm=parseFloat(prompt("Novo valor de km para "+apelido+":",kmAtual));
+  if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
+  const m=MEMBROS.find(m=>m.uid===membroId);
+  try{
+    if(registroId)await setDoc(doc(db,"registros",registroId),{km:novoKm},{merge:true});
+    const diff=novoKm-kmAtual;
+    const nt=Math.max(0,(m?.totalKm||0)+diff);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    if(m)m.totalKm=nt;
+    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{kmLancado:novoKm},{merge:true});
+    showToast("✓ Km atualizado para "+toInt(novoKm)+"!");
+    await carregarPresencasAdmin();
+  }catch(e){showToast("Erro ao editar.",true);}
+};
+window.limparDadosTeste=async()=>{
+  if(!confirm("Limpar TODOS os dados de teste?\n\nIsso vai apagar:\n• Notificações\n• Presenças em eventos\n• Confirmações de sede\n• Registros de km de teste\n• Log de ações"))return;
+  showToast("Limpando...");
+  try{
+    const [notifSnap,presSnap,sedeSnap,logSnap]=await Promise.all([
+      getDocs(collection(db,"notificacoes")),
+      getDocs(collection(db,"presencas")),
+      getDocs(collection(db,"sede_confirmacoes")),
+      getDocs(collection(db,"audit_log")),
+    ]);
+    for(const d of notifSnap.docs)await deleteDoc(doc(db,"notificacoes",d.id));
+    for(const d of presSnap.docs)await deleteDoc(doc(db,"presencas",d.id));
+    for(const d of sedeSnap.docs)await deleteDoc(doc(db,"sede_confirmacoes",d.id));
+    for(const d of logSnap.docs)await deleteDoc(doc(db,"audit_log",d.id));
+    // Zera km de todos que tiveram registros de teste
+    const regSnap=await getDocs(collection(db,"registros"));
+    for(const d of regSnap.docs){
+      const r=d.data();
+      const m=MEMBROS.find(m=>m.uid===r.membroId);
+      if(m){const nt=Math.max(0,(m.totalKm||0)-r.km);await setDoc(doc(db,"usuarios",r.membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}
+      await deleteDoc(doc(db,"registros",d.id));
+    }
+    CONF_SEDE={};
+    await carregarRegistros();
+    showToast("✓ Tudo limpo!");render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.toggleFicha=async(uid)=>{
+  const el=document.getElementById("ficha-"+uid);
+  if(!el)return;
+  const isOpen=el.style.display==="block";
+  el.style.display=isOpen?"none":"block";
+  if(!isOpen)await carregarFicha(uid);
+};
+async function carregarFicha(uid){
+  const el=document.getElementById("ficha-conteudo-"+uid);
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"fichas"),where("membroId","==",uid)));
+    const docs=[...snap.docs].sort((a,b)=>(b.data().criadoEm?.seconds||0)-(a.data().criadoEm?.seconds||0));    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555;padding:6px 0">Nenhuma anotação ainda.</div>`;return;}
+    el.innerHTML=docs.map(d=>{
+      const r=d.data();
+      const ts=r.criadoEm?.toDate?r.criadoEm.toDate():new Date();
+      const hora=ts.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+      return`<div style="padding:10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div style="font-size:11px;color:var(--muted)">${hora} · ${r.autorApelido||""}</div>
+          <button onclick="window.excluirFichaObs('${d.id}','${uid}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;padding:0">✕</button>
+        </div>
+        ${r.obs?`<div style="font-size:13px;white-space:pre-wrap">${r.obs}</div>`:""}
+        ${r.anexoUrl?`<div style="margin-top:8px">
+          ${r.anexoTipo&&r.anexoTipo.startsWith("image")?
+            `<img src="${r.anexoUrl}" style="max-width:100%;border-radius:6px;cursor:pointer" onclick="window.open('${r.anexoUrl}','_blank')"/>`:
+            `<a href="${r.anexoUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;color:var(--orange);font-size:12px;text-decoration:none;padding:6px 10px;border:1px solid rgba(232,103,10,.3);border-radius:6px;background:rgba(232,103,10,.05)">📎 ${r.anexoNome||"Anexo"}</a>`}
+        </div>`:""}
+      </div>`;
+    }).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+window.fichaArquivoPreview=(uid,input)=>{
+  const f=input.files[0];
+  const nome=document.getElementById("ficha-arq-nome-"+uid);
+  if(nome)nome.textContent=f?f.name:"";
+};
+window.salvarFichaObs=async(uid,apelido)=>{
+  const obs=document.getElementById("ficha-obs-"+uid)?.value.trim();
+  const input=document.getElementById("ficha-arq-"+uid);
+  const f=input?.files[0];
+  if(!obs&&!f){showToast("Escreva algo ou anexe um arquivo.",true);return;}
+  try{
+    let anexoUrl="",anexoNome="",anexoTipo="";
+    if(f){
+      showToast("Enviando anexo...");
+      anexoUrl=await uploadFoto(f);
+      anexoNome=f.name;
+      anexoTipo=f.type;
+    }
+    await addDoc(collection(db,"fichas"),{
+      membroId:uid,membroApelido:apelido,
+      obs,anexoUrl,anexoNome,anexoTipo,
+      autorId:CU.uid,autorApelido:UP.apelido,
+      criadoEm:serverTimestamp()
+    });
+    const obsEl=document.getElementById("ficha-obs-"+uid);
+    if(obsEl)obsEl.value="";
+    if(input)input.value="";
+    const nome=document.getElementById("ficha-arq-nome-"+uid);
+    if(nome)nome.textContent="";
+    showToast("✓ Salvo!");
+    await carregarFicha(uid);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.excluirFichaObs=async(id,uid)=>{
+  if(!confirm("Excluir esta anotação?"))return;
+  try{await deleteDoc(doc(db,"fichas",id));await carregarFicha(uid);showToast("Excluído.");}catch{showToast("Erro.",true);}
+};
+window.toggleCriarVotacaoPainel=()=>{
+  const el=document.getElementById("criar-votacao-painel");
+  if(el)el.style.display=el.style.display==="none"?"block":"none";
+};
+window.criarVotacaoPainel=async()=>{
+  const p=document.getElementById("vot-pergunta-p")?.value.trim();
+  const o1=document.getElementById("vot-op1-p")?.value.trim();
+  const o2=document.getElementById("vot-op2-p")?.value.trim();
+  const o3=document.getElementById("vot-op3-p")?.value.trim();
+  const o4=document.getElementById("vot-op4-p")?.value.trim();
+  if(!p||!o1||!o2){showToast("Preencha a pergunta e pelo menos 2 opções.",true);return;}
+  const opcoes=[o1,o2,...(o3?[o3]:[]),...(o4?[o4]:[])];
+  try{
+    await addDoc(collection(db,"votacoes"),{pergunta:p,opcoes,votos:{},encerrada:false,criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    ["vot-pergunta-p","vot-op1-p","vot-op2-p","vot-op3-p","vot-op4-p"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const form=document.getElementById("criar-votacao-painel");
+    if(form)form.style.display="none";
+    showToast("✓ Enquete publicada!");
+    carregarPainelResumo();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.compartilharApp=()=>{
+  const url="https://muyanepetters-alt.github.io/mutantefy";
+  const txt=`🏍️ *Mutantes MC Itajaí — App*%0AControle de km, sede, escalas e eventos do clube.%0A👇 Acesse aqui:%0A${url}`;
+  window.open("https://wa.me/?text="+txt,"_blank");
+};
+window.criarVotacao=async()=>{
+  const p=document.getElementById("vot-pergunta")?.value.trim();
+  const o1=document.getElementById("vot-op1")?.value.trim();
+  const o2=document.getElementById("vot-op2")?.value.trim();
+  const o3=document.getElementById("vot-op3")?.value.trim();
+  const o4=document.getElementById("vot-op4")?.value.trim();
+  const err=document.getElementById("vot-err");
+  if(!p||!o1||!o2){err.textContent="Preencha a pergunta e pelo menos 2 opções.";err.style.display="block";return;}
+  err.style.display="none";
+  const opcoes=[o1,o2,...(o3?[o3]:[]),...(o4?[o4]:[])];
+  try{
+    await addDoc(collection(db,"votacoes"),{pergunta:p,opcoes,votos:{},encerrada:false,criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    ["vot-pergunta","vot-op1","vot-op2","vot-op3","vot-op4"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    showToast("✓ Enquete publicada!");carregarVotacoes();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.encerrarVotacao=async(id)=>{
+  try{
+    const snap=await getDoc(doc(db,"votacoes",id));
+    if(snap.data()?.encerrada){
+      if(!confirm("Excluir esta enquete?"))return;
+      await deleteDoc(doc(db,"votacoes",id));showToast("Excluída.");
+    }else{
+      await setDoc(doc(db,"votacoes",id),{encerrada:true},{merge:true});showToast("Enquete encerrada.");
+    }
+    carregarVotacoes();
+  }catch{showToast("Erro.",true);}
+};
+window.votar=async(votacaoId,opcao)=>{
+  try{
+    await setDoc(doc(db,"votacoes",votacaoId),{[`votos.${CU.uid}`]:opcao},{merge:true});
+    showToast("✓ Voto registrado!");render();
+  }catch{showToast("Erro ao votar.",true);}
+};
+window.toggleDiretor=async(uid,apelido,atual)=>{
+  const novo=!atual;
+  if(!confirm((novo?`Dar acesso Adm para ${apelido}?`:`Remover acesso Adm de ${apelido}?`)))return;
+  try{
+    await setDoc(doc(db,"usuarios",uid),{isDiretor:novo},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.isDiretor=novo;
+    showToast(novo?`✓ ${apelido} agora tem acesso Adm`:`✓ Acesso Adm removido de ${apelido}`);render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.calcAdminEvento=()=>{
+  const mSel=document.getElementById("r-membro");
+  const eSel=document.getElementById("r-evento");
+  const res=document.getElementById("r-result");
+  if(!res||!mSel?.value||!eSel?.value){if(res)res.innerHTML="";return;}
+  const mOpt=mSel.options[mSel.selectedIndex];
+  const eOpt=eSel.options[eSel.selectedIndex];
+  const auto=parseFloat(mOpt.dataset.auto),tanque=parseFloat(mOpt.dataset.tanque);
+  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">⚙️ Integrante sem configuração de moto.</div>`;return;}
+  res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(parseFloat(eOpt.dataset.dist),auto,tanque,eOpt.dataset.estado,parseFloat(eOpt.dataset.ped)||null),eOpt.dataset.dest,eOpt.dataset.pedinfo)}</div>`;
+};
+window.calcAdminCustom=()=>{
+  const mSel=document.getElementById("rc-membro");
+  const dist=parseFloat(document.getElementById("rc-dist")?.value);
+  const dest=document.getElementById("rc-dest")?.value||"destino";
+  const res=document.getElementById("rc-result");
+  if(!mSel?.value||!dist||!res)return;
+  const mOpt=mSel.options[mSel.selectedIndex];
+  const auto=parseFloat(mOpt.dataset.auto),tanque=parseFloat(mOpt.dataset.tanque);
+  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">⚙️ Integrante sem configuração de moto.</div>`;return;}
+  res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,auto,tanque,"SC"),dest)}</div>`;
+};
+window.calcMembroEvento=()=>{
+  const sel=document.getElementById("rm-evento");
+  const res=document.getElementById("rm-result");
+  if(!res||!sel?.value){if(res)res.innerHTML="";return;}
+  const opt=sel.options[sel.selectedIndex];
+  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">⚙️ Configure sua moto na aba Perfil.</div>`;return;}
+  res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(parseFloat(opt.dataset.dist),parseFloat(UP.autonomia),parseFloat(UP.tanque),opt.dataset.estado,parseFloat(opt.dataset.ped)||null),opt.dataset.dest,opt.dataset.pedinfo)}</div>`;
+};
+window.calcMembroCustom=()=>{
+  const dist=parseFloat(document.getElementById("rm-dist")?.value);
+  const dest=document.getElementById("rm-dest")?.value||"destino";
+  const res=document.getElementById("rm-custom-result");
+  if(!dist||!res)return;
+  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">⚙️ Configure sua moto na aba Perfil.</div>`;return;}
+  res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,parseFloat(UP.autonomia),parseFloat(UP.tanque),"SC"),dest)}</div>`;
+};
+window.salvarMoto=async()=>{
+  const autonomia=parseFloat(document.getElementById("m-autonomia")?.value);
+  const tanque=parseFloat(document.getElementById("m-tanque")?.value);
+  const gasolina=parseFloat(document.getElementById("m-gasolina")?.value);
+  if(!autonomia||!tanque||!gasolina){showToast("Preencha todos os campos.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",CU.uid),{autonomia,tanque,gasolina},{merge:true});
+    UP.autonomia=autonomia;UP.tanque=tanque;UP.gasolina=gasolina;
+    showToast("✓ Configurações salvas!");render();
+  }catch{showToast("Erro ao salvar.",true);}
+};
+window.fazerLogin=async()=>{
+  const apelido=document.getElementById("l-apelido")?.value.trim();
+  const senha=document.getElementById("l-senha")?.value;
+  const err=document.getElementById("l-err");
+  const btn=document.getElementById("l-btn");
+  if(!apelido||!senha)return;
+  btn.disabled=true;btn.textContent="Entrando...";err.style.display="none";
+  try{
+    if(apelido.toLowerCase()==="admin"){await signInWithEmailAndPassword(auth,"admin@mutantesmc.com",senha);return;}
+    const snap=await getDocs(query(collection(db,"usuarios"),where("apelido","==",apelido)));
+    if(snap.empty){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
+    await signInWithEmailAndPassword(auth,snap.docs[0].data().email,senha);
+  }catch{err.textContent="Apelido ou senha incorretos.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
+};
+window.fazerLogout=async()=>{await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
+window.cadastrarEmLote=async()=>{
+  const btn=document.getElementById("lote-btn");
+  const prog=document.getElementById("lote-progress");
+  const bar=document.getElementById("lote-bar");
+  const status=document.getElementById("lote-status");
+  const result=document.getElementById("lote-result");
+  const adminPass=prompt("Confirme sua senha admin:");
+  if(!adminPass)return;
+  btn.disabled=true;prog.style.display="block";result.innerHTML="";
+  const adminEmail=CU.email;
+  const ok=[],erros=[];
+  for(let i=0;i<LOTE.length;i++){
+    const u=LOTE[i];
+    status.textContent="Cadastrando "+u.apelido+"... ("+(i+1)+"/"+LOTE.length+")";
+    bar.style.width=Math.round((i/LOTE.length)*100)+"%";
+    try{
+      const snap=await getDocs(query(collection(db,"usuarios"),where("apelido","==",u.apelido)));
+      if(!snap.empty){ok.push(u.apelido+" (já existe)");continue;}
+      const cred=await createUserWithEmailAndPassword(auth,u.email,u.senha);
+      await setDoc(doc(db,"usuarios",cred.user.uid),{apelido:u.apelido,email:u.email,moto:"",isAdmin:false,totalKm:0,fotoUrl:"",createdAt:serverTimestamp()});
+      await signInWithEmailAndPassword(auth,adminEmail,adminPass);
+      ok.push(u.apelido);
+    }catch(e){
+      erros.push(u.apelido+" ("+e.code+")");
+      try{await signInWithEmailAndPassword(auth,adminEmail,adminPass);}catch{}
+    }
+  }
+  bar.style.width="100%";
+  status.textContent="Concluído! ✓";
+  result.innerHTML=`<div class="msg-ok">✅ `+ok.length+` cadastrados: `+ok.join(", ")+`</div>`+(erros.length>0?`<div class="msg-err" style="margin-top:8px">❌ Erros: `+erros.join(", ")+`</div>`:"");
+  await carregarMembros();render();
+  btn.disabled=false;
+};
+window.cadastrarMembro=async()=>{
+  const apelido=document.getElementById("n-apelido")?.value.trim();
+  const email=document.getElementById("n-email")?.value.trim();
+  const senha=document.getElementById("n-senha")?.value;
+  const moto=document.getElementById("n-moto")?.value.trim();
+  const err=document.getElementById("n-err");
+  const btn=document.getElementById("n-btn");
+  if(!apelido||!email||!senha||senha.length<6){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  btn.disabled=true;btn.textContent="Cadastrando...";err.style.display="none";
+  const adminEmail=CU.email;
+  const adminPass=prompt("Confirme sua senha admin:");
+  if(!adminPass){btn.disabled=false;btn.textContent="Cadastrar integrante";return;}
+  try{
+    let fotoUrl="";
+    const fi=document.getElementById("n-foto");
+    if(fi?.files[0]){btn.textContent="Enviando foto...";fotoUrl=await uploadFoto(fi.files[0]);}
+    const cred=await createUserWithEmailAndPassword(auth,email,senha);
+    await setDoc(doc(db,"usuarios",cred.user.uid),{apelido,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,createdAt:serverTimestamp()});
+    await signInWithEmailAndPassword(auth,adminEmail,adminPass);
+    await carregarMembros();
+    showToast("✓ "+apelido+" cadastrado!");TA="home";
+    registrarLog("membro_cadastrado",`cadastrou novo membro`,apelido);
+    render();
+  }catch(e){err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Cadastrar integrante";}
+};
+window.salvarUsuario=async uid=>{
+  const apelido=document.getElementById("ue-ap-"+uid)?.value.trim();
+  const moto=document.getElementById("ue-mo-"+uid)?.value.trim();
+  const autonomia=parseFloat(document.getElementById("ue-au-"+uid)?.value)||null;
+  const tanque=parseFloat(document.getElementById("ue-tk-"+uid)?.value)||null;
+  const gasolina=parseFloat(document.getElementById("ue-gs-"+uid)?.value)||null;
+  if(!apelido)return;
+  try{
+    const dados={apelido,moto:moto||""};
+    if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
+    await setDoc(doc(db,"usuarios",uid),dados,{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)Object.assign(m,dados);
+    showToast("✓ Dados atualizados!");document.getElementById("ue-"+uid).style.display="none";render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.lancarKm=async()=>{
+  const membroId=document.getElementById("km-membro")?.value;
+  const tipo=document.getElementById("km-tipo")?.value;
+  const data=document.getElementById("km-data")?.value;
+  const km=parseFloat(document.getElementById("km-valor")?.value);
+  const err=document.getElementById("km-err");
+  const btn=document.getElementById("km-btn");
+  let desc="",eventoId=null;
+  if(tipo==="rota"){
+    const sel=document.getElementById("km-evento");
+    const opt=sel?.options[sel.selectedIndex];
+    if(!opt?.value){err.textContent="Selecione um evento.";err.style.display="block";return;}
+    desc=opt.dataset.nome||"";eventoId=parseInt(opt.value);
+  }else{
+    desc=document.getElementById("km-desc")?.value.trim();
+    if(!desc){err.textContent="Informe a descrição.";err.style.display="block";return;}
+  }
+  if(!membroId||!data||!km){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  btn.disabled=true;btn.textContent="Lançando...";err.style.display="none";
+  const m=MEMBROS.find(m=>m.uid===membroId);
+  try{
+    await addDoc(collection(db,"registros"),{membroId,apelido:m?.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
+    const nt=(m?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    if(m)m.totalKm=nt;
+    await carregarRegistros();
+    showToast("✓ "+toInt(km)+" km lançado!");
+    ["km-membro","km-evento","km-data","km-valor"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const kd=document.getElementById("km-desc");if(kd)kd.value="";
+    btn.disabled=false;btn.textContent="Lançar km";render();
+    // Push para o membro
+    const mToken=m?.fcmToken;
+    if(mToken)dispararPush("🏍️ Km lançado!",`${toInt(km)} km registrados para você — ${desc}`,[mToken]);
+    registrarLog("km_lancado",`lançou ${toInt(km)} km para ${m?.apelido||""}`,desc);
+  }catch(e){err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Lançar km";}
+};
+window.salvarEdicao=async(id,membroId,kmAntigo)=>{
+  const desc=document.getElementById("ed-desc-"+id)?.value.trim();
+  const data=document.getElementById("ed-data-"+id)?.value;
+  const km=parseFloat(document.getElementById("ed-km-"+id)?.value);
+  if(!desc||!data||!km)return;
+  try{
+    await setDoc(doc(db,"registros",id),{desc,data,km},{merge:true});
+    const diff=km-kmAntigo;
+    if(diff!==0){const m=MEMBROS.find(m=>m.uid===membroId);if(m){const nt=Math.max(0,(m.totalKm||0)+diff);await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}}
+    await carregarRegistros();showToast("✓ Atualizado!");
+    registrarLog("km_editado",`editou lançamento para ${toInt(km)} km`,"");
+    render();
+  }catch{showToast("Erro ao salvar.",true);}
+};
+window.excluirKm=async(id,membroId,km)=>{
+  if(!confirm("Excluir este lançamento?"))return;
+  try{
+    await deleteDoc(doc(db,"registros",id));
+    const m=MEMBROS.find(m=>m.uid===membroId);
+    if(m){const nt=Math.max(0,(m.totalKm||0)-km);await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}
+    await carregarRegistros();showToast("Lançamento excluído");
+    registrarLog("km_excluido",`excluiu lançamento de ${toInt(km)} km`,m?.apelido||"");
+    render();
+  }catch{showToast("Erro ao excluir",true);}
+};
+window.excluirMembro=async(uid,apelido)=>{
+  if(!confirm("Excluir "+apelido+"?"))return;
+  try{
+    const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",uid)));
+    for(const d of snap.docs)await deleteDoc(doc(db,"registros",d.id));
+    await deleteDoc(doc(db,"usuarios",uid));
+    MEMBROS=MEMBROS.filter(m=>m.uid!==uid);
+    showToast("✓ "+apelido+" removido.");
+    registrarLog("membro_excluido",`excluiu o membro`,apelido);
+    render();
+  }catch{showToast("Erro ao excluir.",true);}
+};
+window.verDetalhes=async(uid,apelido)=>{
+  const el=document.getElementById("det-"+uid);
+  if(!el)return;
+  if(el.style.display==="block"){el.style.display="none";return;}
+  el.style.display="block";
+  el.innerHTML=`<div style="font-size:12px;color:#888"><span class="spin">⟳</span> Carregando...</div>`;
+  try{
+    const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",uid),orderBy("createdAt","desc")));
+    const regs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(regs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum registro ainda.</div>`;return;}
+    el.innerHTML=`<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:8px">${apelido} — ${regs.length} saída${regs.length>1?"s":""}</div>`+
+      regs.map(r=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:13px">${r.desc||"—"}</div><div style="font-size:11px;color:#666">${fmtDate(r.data)}</div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--orange)">${toInt(r.km)} km</div>
+      </div>`).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro: ${e.message}</div>`;}
+};
+window.trocarSenha=async()=>{
+  const atual=document.getElementById("p-atual")?.value;
+  const nova=document.getElementById("p-nova")?.value;
+  const conf=document.getElementById("p-conf")?.value;
+  const err=document.getElementById("p-err");
+  const ok=document.getElementById("p-ok");
+  err.style.display="none";ok.style.display="none";
+  if(!atual||!nova||!conf){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  if(nova.length<6){err.textContent="Mínimo 6 caracteres.";err.style.display="block";return;}
+  if(nova!==conf){err.textContent="As senhas não coincidem.";err.style.display="block";return;}
+  try{
+    const cred=EmailAuthProvider.credential(CU.email,atual);
+    await reauthenticateWithCredential(CU,cred);
+    await updatePassword(CU,nova);
+    ok.textContent="✓ Senha alterada!";ok.style.display="block";
+    ["p-atual","p-nova","p-conf"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  }catch(e){
+    err.textContent=e.code&&(e.code.includes("wrong-password")||e.code.includes("invalid-credential"))?"Senha atual incorreta.":"Erro: "+e.message;
+    err.style.display="block";
+  }
+};
+async function carregarMembros(){
+  const snap=await getDocs(collection(db,"usuarios"));
+  MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({uid:d.id,...d.data()}));
+}
+async function carregarRegistros(){
+  if(!CU)return;
+  if(UP&&UP.isAdmin){
+    const snap=await getDocs(query(collection(db,"registros"),orderBy("createdAt","desc")));
+    REGS=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }else{
+    const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",CU.uid),orderBy("createdAt","desc")));
+    REGS=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }
+}
+async function carregarConfirmacoes(){
+  if(!CU||!UP)return;
+  try{
+    const snap=await getDocs(query(collection(db,"presencas"),where("membroId","==",CU.uid)));
+    CONF={};snap.docs.forEach(d=>{CONF[d.data().eventoId]=d.data().resposta;});
+  }catch{}
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("membroId","==",CU.uid)));
+    CONF_SEDE={};
+    snap.docs.forEach(d=>{
+      const r=d.data();
+      const tp=r.tipo||"presenca";
+      CONF_SEDE[tp+"_"+r.data]=r.resposta;
+      if(!r.tipo)CONF_SEDE[r.data]=r.resposta; // backward compat
+    });
+  }catch{}
+}
+async function carregarPresencasAdmin(){
+  const wrap=document.getElementById("presenca-wrap");
+  if(!wrap)return;
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const futuros=EVENTOS.filter(e=>e.data>=hoje);
+    let html="";
+    for(const ev of futuros){
+      const pSnap=await getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)));
+      const presencas=pSnap.docs.map(d=>d.data());
+      const vao=presencas.filter(p=>p.resposta==="sim");
+      const naoVao=presencas.filter(p=>p.resposta==="nao");
+      const semResp=MEMBROS.length-presencas.length;
+      html+=`<div class="card" style="margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${ev.nome}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${fmtDate(ev.data)} · ${ev.destino}</div>
+        <div id="pres-${ev.id}">
+          ${presencas.length===0?`<span style="font-size:12px;color:#555">Sem respostas ainda.</span>`:`
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+            ${vao.map(p=>`<span class="pres-badge pres-sim" style="display:flex;align-items:center;gap:4px">✅ ${p.apelido}
+              ${p.compareceu
+                ?`<span style="font-size:10px;color:var(--green)">${toInt(p.kmLancado||0)}km</span>
+                   <button onclick="window.excluirComparecimento('${p.membroId}','${p.apelido}',${ev.id},'${p.registroId||""}',${p.kmLancado||0})" style="font-size:9px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`
+                :`<button id="btn-comp-${p.membroId}-${ev.id}" onclick="window.registrarComparecimento('${p.membroId}','${p.apelido}',${ev.id})" style="font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-weight:600">🏁 Comp.</button>`}
+            </span>`).join("")}
+            ${naoVao.map(p=>`<span class="pres-badge pres-nao">❌ ${p.apelido}</span>`).join("")}
+          </div>
+          <div style="font-size:10px;color:var(--muted)">✅ ${vao.length} · ❌ ${naoVao.length} · ⏳ ${semResp} sem resposta</div>`}
+        </div>
+      </div>`;
+    }
+    wrap.innerHTML=html||`<div style="font-size:13px;color:#555">Nenhum evento futuro.</div>`;
+  }catch(e){console.error(e);wrap.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+      
+onAuthStateChanged(auth,async user=>{
+  CU=user;TA="home";TM="painel";CONF={};
+  if(!user){UP=null;REGS=[];MEMBROS=[];render();return;}
+  document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
+  try{
+    const snap=await getDoc(doc(db,"usuarios",user.uid));
+    UP=snap.exists()?{uid:user.uid,...snap.data()}:{uid:user.uid,apelido:"Admin",isAdmin:true};
+    if(!snap.exists())await setDoc(doc(db,"usuarios",user.uid),{apelido:"Admin",email:user.email,isAdmin:true,totalKm:0});
+    const logoSnap=await getDoc(doc(db,"config","logo"));
+    if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman)await carregarMembros();
+    await carregarRegistros();
+    await carregarConfirmacoes();
+    await carregarPedagiosCustom();
+    await carregarEncontros();
+    registrarTokenPush();
+  }catch(e){console.error(e);}
+  render();
+});
+</script>
+</body>
+</html>
