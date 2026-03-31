@@ -292,13 +292,15 @@ function evCardMembro(ev){
   const evData=new Date(ev.data+"T00:00:00");
   const diasFalt=Math.round((evData-hoje)/(1000*60*60*24));
   const diasLabel=diasFalt===0?"🔴 Hoje!":diasFalt===1?"🟠 Amanhã":diasFalt>0?`🕐 ${diasFalt} dias`:"";
+  const climaId="clima-ev-"+ev.id;
+  if(diasFalt>=0&&diasFalt<=7){setTimeout(()=>buscarClima(ev.destino,climaId,ev.data),200);}
   return`<div class="${cls}" onclick="window.toggleEvDet('evd${ev.id}')">
     <div style="display:flex;align-items:flex-start;gap:10px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${icon} ${ev.nome}</div>
         <div style="font-size:11px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>
         ${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}
-        ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
+        ${diasFalt>=0&&diasFalt<=7?`<div id="${climaId}" style="font-size:11px;color:var(--muted);margin-top:3px">🌤️ Buscando previsão...</div>`:""}        ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
@@ -540,9 +542,9 @@ function renderDiretor(el){
   const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
   const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid):REGS;
   const clubeLabel=UP.isAdmin?"⚙️ Admin":"🏆 Clube";
-  const roleBadge=UP.isAdmin
-    ?`<span class="badge badge-admin" style="font-size:9px;vertical-align:middle;margin-left:4px">ADMIN</span>`
-    :`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3);padding:2px 6px;border-radius:20px">ADM</span>`;
+  const roleBadge=UP.nivel
+    ?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`
+    :UP.isAdmin?`<span class="badge badge-admin" style="font-size:9px;vertical-align:middle;margin-left:4px">ADMIN</span>`:"";
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
@@ -557,7 +559,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"],["clube","🎯","Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -691,6 +693,11 @@ function renderDiretor(el){
         </div>
       </div>
       <div class="sec-title">🏍️ Garagem</div>
+        <div style="margin-bottom:12px">
+          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
+          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
+          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
+        </div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -724,10 +731,16 @@ function renderDiretor(el){
           <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
+        <div style="margin-top:14px">
+          <div class="sec-title">🏅 Conquistas</div>
+          <div>${htmlConquistas(UP,REGS)}</div>
+        </div>
       </div>`:""}
+    ${TM==="contatos"?htmlContatos():""}
     ${TM==="clube"?htmlClubeCorpo():""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
+    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -1090,7 +1103,7 @@ function renderBarman(el){
       <div class="header-flames"></div>
       ${avatarEl(UP.fotoUrl,UP.apelido,42)}
       <div class="header-info">
-        <h2>🏍️ ${UP.apelido} <span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">BAR</span></h2>
+        <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">BAR</span>`}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
       </div>
@@ -1099,7 +1112,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1195,6 +1208,7 @@ function renderBarman(el){
       </div>`:""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
+    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -1241,6 +1255,11 @@ function renderBarman(el){
         </div>
       </div>
       <div class="sec-title">🏍️ Garagem</div>
+        <div style="margin-bottom:12px">
+          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
+          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
+          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
+        </div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -1293,7 +1312,7 @@ function renderMembro(el){
       <div class="header-flames"></div>
       ${avatarEl(UP.fotoUrl,UP.apelido,42)}
       <div class="header-info">
-        <h2>🏍️ ${UP.apelido}</h2>
+        <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
       </div>
@@ -1302,7 +1321,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"]])}
+    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["contatos","📞","Contatos"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1436,6 +1455,11 @@ function renderMembro(el){
         </div>
       </div>
       <div class="sec-title">🏍️ Garagem</div>
+        <div style="margin-bottom:12px">
+          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
+          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
+          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
+        </div>
         <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
         <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
         <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
@@ -1472,6 +1496,7 @@ function renderMembro(el){
       </div>`:""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
+    ${TM==="contatos"?htmlContatos():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
     ${TM==="rotas_club"?htmlRotasSugeridas():""}
@@ -2019,10 +2044,113 @@ window.salvarGaragem=async()=>{
   }catch{showToast("Erro ao salvar.",true);}
 };
 
+window.uploadFotoMoto=async(input)=>{
+  const file=input.files[0];if(!file)return;
+  showToast("Enviando foto...");
+  try{
+    const url=await uploadFoto(file);
+    await setDoc(doc(db,"usuarios",CU.uid),{fotoMoto:url},{merge:true});
+    UP.fotoMoto=url;showToast("✓ Foto da moto salva!");render();
+  }catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// CONQUISTAS
+// ═══════════════════════════════════════════════════
+function calcConquistas(membro,regs){
+  const km=membro.totalKm||0;
+  const saidas=regs?regs.filter(r=>r.membroId===membro.uid).length:0;
+  const badges=[];
+  if(saidas>=1)badges.push({ic:"🏁",nome:"Primeira Saída",desc:"Participou da primeira saída"});
+  if(km>=500)badges.push({ic:"🛣️",nome:"500 km",desc:"500 km rodados"});
+  if(km>=1000)badges.push({ic:"🔥",nome:"1.000 km",desc:"1.000 km rodados"});
+  if(km>=2500)badges.push({ic:"⚡",nome:"2.500 km",desc:"2.500 km rodados"});
+  if(km>=META)badges.push({ic:"🏆",nome:"Meta Atingida",desc:`${toInt(META)} km — meta anual`});
+  if(saidas>=5)badges.push({ic:"🤝",nome:"Membro Ativo",desc:"5 saídas no ano"});
+  if(saidas>=10)badges.push({ic:"🦅",nome:"Veterano",desc:"10 saídas no ano"});
+  if(membro.isDiretor||membro.isAdmin)badges.push({ic:"👑",nome:"Liderança",desc:"Membro da diretoria"});
+  return badges;
+}
+
+function htmlConquistas(membro,regs){
+  const badges=calcConquistas(membro,regs);
+  if(badges.length===0)return`<div style="font-size:12px;color:#555">Nenhuma conquista ainda — comece a rodar!</div>`;
+  return badges.map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:26px">${b.ic}</span>
+    <div><div style="font-size:13px;font-weight:700">${b.nome}</div><div style="font-size:11px;color:var(--muted)">${b.desc}</div></div>
+  </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════
+// LISTA DE CONTATOS
+// ═══════════════════════════════════════════════════
+function htmlContatos(){
+  return`<div class="card">
+    <div class="sec-title">📞 Contatos do clube</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Visível apenas para membros</div>
+    ${MEMBROS.map(m=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        ${avatarEl(m.fotoUrl,m.apelido,36)}
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${m.apelido}</div>
+          <div style="font-size:11px;color:var(--muted)">${m.nivel||"Membro"}</div>
+        </div>
+        ${m.telefone?`<a href="tel:${m.telefone}" style="padding:7px 12px;border-radius:8px;background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3);font-size:12px;font-weight:600;text-decoration:none">📞</a>
+         <a href="https://wa.me/55${m.telefone.replace(/\D/g,'')}" target="_blank" style="padding:7px 12px;border-radius:8px;background:rgba(37,211,102,.15);color:#25d366;border:1px solid rgba(37,211,102,.3);font-size:12px;font-weight:600;text-decoration:none">💬</a>`
+        :`<span style="font-size:11px;color:#444">Sem contato</span>`}
+      </div>`).join("")}
+    ${UP&&UP.isAdmin?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+      <div class="sec-title">📱 Meu telefone</div>
+      <input type="tel" id="meu-telefone" placeholder="Ex: 47999998888" value="${UP.telefone||""}" autocomplete="off"/>
+      <button class="btn-primary" onclick="window.salvarTelefone()">Salvar</button>
+    </div>`:""}
+  </div>`;
+}
+
+window.salvarTelefone=async()=>{
+  const tel=document.getElementById("meu-telefone")?.value.replace(/\D/g,"");
+  if(!tel){showToast("Informe o telefone.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",CU.uid),{telefone:tel},{merge:true});
+    UP.telefone=tel;showToast("✓ Telefone salvo!");
+  }catch{showToast("Erro.",true);}
+};
+
 // ═══════════════════════════════════════════════════
 // ANIVERSÁRIOS
 // ═══════════════════════════════════════════════════
-window.salvarNivel=async()=>{
+// ═══════════════════════════════════════════════════
+// PREVISÃO DO TEMPO — Open-Meteo (gratuita, sem chave)
+// ═══════════════════════════════════════════════════
+const _climaCache={};
+async function buscarClima(cidade,elId,dataEvento){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(_climaCache[cidade]){el.innerHTML=_climaCache[cidade];return;}
+  try{
+    // Geocoding
+    const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.split(" - ")[0])}&count=1&language=pt&format=json`);
+    const gd=await geo.json();
+    if(!gd.results||!gd.results[0]){el.innerHTML="";return;}
+    const {latitude:lat,longitude:lon}=gd.results[0];
+    // Previsão
+    const data=dataEvento||new Date().toISOString().slice(0,10);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&start_date=${data}&end_date=${data}`);
+    const d=await r.json();
+    if(!d.daily||!d.daily.weathercode){el.innerHTML="";return;}
+    const wc=d.daily.weathercode[0];
+    const tmax=Math.round(d.daily.temperature_2m_max[0]);
+    const tmin=Math.round(d.daily.temperature_2m_min[0]);
+    const chuva=d.daily.precipitation_probability_max[0]||0;
+    const wcIc=wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
+    const wcDesc=wc===0?"Céu limpo":wc<=3?"Parcialmente nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
+    const html=`${wcIc} ${wcDesc} · ${tmin}°–${tmax}°C · 🌧️ ${chuva}%`;
+    _climaCache[cidade]=html;
+    if(el)el.innerHTML=html;
+  }catch{if(el)el.innerHTML="";}
+}
+
+window.salvarCargo=async()=>{
   const cargo=document.getElementById("m-cargo")?.value;
   if(!cargo){showToast("Selecione um nível.",true);return;}
   try{
@@ -2900,6 +3028,13 @@ function htmlUsuarios(){
         <div id="ue-${m.uid}" style="display:none;padding:12px;border-top:1px solid var(--border);background:var(--bg3)">
           <label>Apelido</label>
           <input type="text" id="ue-ap-${m.uid}" value="${m.apelido}" autocomplete="off"/>
+          <label>Telefone / WhatsApp</label>
+          <input type="tel" id="ue-tel-${m.uid}" value="${m.telefone||""}" placeholder="Ex: 47999998888" autocomplete="off"/>
+          <label>Nível no clube</label>
+          <select id="ue-nv-${m.uid}">
+            <option value="">Selecione...</option>
+            <option value="Diretor Regional">${m.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor">${m.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor">${m.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo">${m.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior">${m.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP">${m.nivel==="PP"?"selected":""}>🔶 PP</option>
+          </select>
           <label>Moto</label>
           <input type="text" id="ue-mo-${m.uid}" value="${m.moto||""}" placeholder="Ex: Honda CB 500" autocomplete="off"/>
           <label>Autonomia (km/L)</label>
@@ -3428,12 +3563,14 @@ window.cadastrarMembro=async()=>{
 window.salvarUsuario=async uid=>{
   const apelido=document.getElementById("ue-ap-"+uid)?.value.trim();
   const moto=document.getElementById("ue-mo-"+uid)?.value.trim();
+  const nivel=document.getElementById("ue-nv-"+uid)?.value||"";
   const autonomia=parseFloat(document.getElementById("ue-au-"+uid)?.value)||null;
   const tanque=parseFloat(document.getElementById("ue-tk-"+uid)?.value)||null;
   const gasolina=parseFloat(document.getElementById("ue-gs-"+uid)?.value)||null;
   if(!apelido)return;
   try{
-    const dados={apelido,moto:moto||""};
+    const tel=document.getElementById("ue-tel-"+uid)?.value.replace(/\D/g,"")||"";
+    const dados={apelido,moto:moto||"",nivel:nivel||"",telefone:tel};
     if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
     await setDoc(doc(db,"usuarios",uid),dados,{merge:true});
     const m=MEMBROS.find(m=>m.uid===uid);if(m)Object.assign(m,dados);
