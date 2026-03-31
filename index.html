@@ -127,7 +127,7 @@ select option{background:var(--bg2);color:var(--white)}
 <div class="toast" id="toast"><div id="toast-msg"></div><div class="toast-bar" id="toast-bar" style="background:var(--green)"></div></div>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,query,where,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
@@ -403,6 +403,13 @@ function renderLogin(el){
       <label>Apelido</label><input type="text" id="l-apelido" placeholder="Seu apelido no clube" autocomplete="off"/>
       <label>Senha</label><input type="password" id="l-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')window.fazerLogin()"/>
       <button class="btn-primary" onclick="window.fazerLogin()" id="l-btn">Entrar</button>
+      <div id="esqueci-wrap" style="display:none;margin-top:12px;padding:12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Informe seu e-mail cadastrado:</div>
+        <input type="email" id="esqueci-email" placeholder="seu@email.com" autocomplete="off" style="margin-bottom:8px"/>
+        <button class="btn-primary" onclick="window.enviarReset()">Enviar link de redefinição</button>
+        <div id="esqueci-ok" style="display:none;font-size:12px;color:var(--green);margin-top:8px;text-align:center">✅ Link enviado! Verifique seu e-mail.</div>
+      </div>
+      <button onclick="window.toggleEsqueci()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:12px;margin-top:10px;cursor:pointer;font-family:inherit;padding:6px">Esqueci minha senha</button>
     </div>
   </div>`;
   // Sempre busca logo atualizada do Firebase (ignora cache)
@@ -661,6 +668,7 @@ function renderDiretor(el){
           <div style="flex:1">
             <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
             <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
               ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
@@ -703,6 +711,14 @@ function renderDiretor(el){
         </div>
         <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
         <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎖️ Nível no clube</label>
+          <select id="m-cargo" style="margin-bottom:8px">
+            <option value="">Selecione seu nível...</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+          </select>
+          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
+        </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
           <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
@@ -1202,6 +1218,7 @@ function renderBarman(el){
           <div style="flex:1">
             <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
             <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
               ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
@@ -1244,6 +1261,14 @@ function renderBarman(el){
         </div>
         <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
         <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎖️ Nível no clube</label>
+          <select id="m-cargo" style="margin-bottom:8px">
+            <option value="">Selecione seu nível...</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+          </select>
+          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
+        </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
           <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
@@ -1388,6 +1413,7 @@ function renderMembro(el){
           <div style="flex:1">
             <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
             <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
               ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
@@ -1430,6 +1456,14 @@ function renderMembro(el){
         </div>
         <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
         <div style="font-size:13px;color:#666">${CU.email}</div>
+        <div style="margin-top:14px">
+          <label>🎖️ Nível no clube</label>
+          <select id="m-cargo" style="margin-bottom:8px">
+            <option value="">Selecione seu nível...</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+          </select>
+          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
+        </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
           <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
@@ -1787,6 +1821,7 @@ function htmlRelatorio(){
       </div>
     </div>`:""}
     <div class="sec-title">📈 Ranking completo</div>
+    <button onclick="window.exportarRankingCSV()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px">📥 Exportar ranking (.CSV)</button>
     ${MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).map((m,i)=>{
       const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
       const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
@@ -1987,6 +2022,15 @@ window.salvarGaragem=async()=>{
 // ═══════════════════════════════════════════════════
 // ANIVERSÁRIOS
 // ═══════════════════════════════════════════════════
+window.salvarNivel=async()=>{
+  const cargo=document.getElementById("m-cargo")?.value;
+  if(!cargo){showToast("Selecione um nível.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",CU.uid),{nivel},{merge:true});
+    UP.nivel=cargo;showToast("✓ Nível salvo!");render();
+  }catch{showToast("Erro.",true);}
+};
+
 window.salvarNascimento=async()=>{
   const nasc=document.getElementById("m-nascimento")?.value;
   if(!nasc){showToast("Selecione a data.",true);return;}
@@ -2076,6 +2120,7 @@ async function carregarMensalidades(){
     snap.docs.forEach(d=>{const r=d.data();const k=r.membroId+"_"+r.mes;pagtos[k]={id:d.id,...r};});
     const mesLabel=(m)=>{const [y,mo]=m.split("-");const nomes=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];return`${nomes[parseInt(mo)]}/${y.slice(2)}`;};
     wrap.innerHTML=`<div class="card">
+      <button onclick="window.exportarMensalidadesCSV()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px">📥 Exportar mensalidades (.CSV)</button>
       <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;margin-bottom:14px">
         ${meses.map(m=>`<button onclick="window._mesAtual='${m}';carregarMensalidades()" style="flex-shrink:0;padding:6px 14px;border-radius:20px;border:${(window._mesAtual||mesAtual)===m?"none":"1px solid var(--border)"};background:${(window._mesAtual||mesAtual)===m?"var(--orange)":"var(--bg3)"};color:${(window._mesAtual||mesAtual)===m?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${mesLabel(m)}</button>`).join("")}
       </div>
@@ -2840,7 +2885,7 @@ function htmlUsuarios(){
               <div style="font-size:13px;font-weight:600">${m.apelido}</div>
               <div id="status-${m.uid}" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0"></div>
             </div>
-            <div style="font-size:11px;color:var(--muted)">${m.moto||"—"}</div>
+            <div style="font-size:11px;color:var(--muted)">${m.moto||"—"}${m.cargo?` · <span style="color:var(--orange);font-weight:600">${m.cargo}</span>`:""}</div>
           </div>
           <div style="display:flex;gap:6px">
             <button onclick="event.stopPropagation();window.toggleDiretor('${m.uid}','${m.apelido}',${!!m.isDiretor})" style="padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;border:1px solid ${m.isDiretor?"rgba(76,175,125,.4)":"var(--border)"};background:${m.isDiretor?"rgba(76,175,125,.1)":"transparent"};color:${m.isDiretor?"var(--green)":"var(--muted)"}">
@@ -2887,6 +2932,74 @@ function htmlUsuarios(){
     </div>
   </div>`;
 }
+
+window.toggleEsqueci=()=>{
+  const wrap=document.getElementById("esqueci-wrap");
+  if(wrap)wrap.style.display=wrap.style.display==="none"?"block":"none";
+};
+
+window.enviarReset=async()=>{
+  const email=document.getElementById("esqueci-email")?.value.trim();
+  const ok=document.getElementById("esqueci-ok");
+  if(!email){showToast("Informe o e-mail.",true);return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    if(ok)ok.style.display="block";
+    showToast("✅ Link enviado para "+email);
+  }catch(e){
+    showToast(e.code==="auth/user-not-found"?"E-mail não encontrado.":"Erro ao enviar.",true);
+  }
+};
+
+// ═══════════════════════════════════════════════════
+// EXPORTAR DADOS
+// ═══════════════════════════════════════════════════
+window.exportarRankingCSV=()=>{
+  const sorted=[...MEMBROS].filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const linhas=[["Posição","Apelido","Km Rodados","% da Meta","Meta Atingida"]];
+  sorted.forEach((m,i)=>{
+    const pct=Math.round(((m.totalKm||0)/META)*100);
+    linhas.push([i+1,m.apelido,m.totalKm||0,pct+"%",pct>=100?"Sim":"Não"]);
+  });
+  const csv=linhas.map(l=>l.join(";")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="ranking_mutantes_"+new Date().getFullYear()+".csv";a.click();
+  URL.revokeObjectURL(url);
+  showToast("✅ Ranking exportado!");
+};
+
+window.exportarMensalidadesCSV=async()=>{
+  try{
+    const hoje=new Date();
+    const meses=[];
+    for(let i=0;i<6;i++){
+      const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+      meses.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+    }
+    const snap=await getDocs(collection(db,"mensalidades"));
+    const pagtos={};
+    snap.docs.forEach(d=>{const r=d.data();pagtos[r.membroId+"_"+r.mes]={pago:r.pago,data:r.data||""};});
+    const header=["Membro",...meses.reverse()];
+    const linhas=[header];
+    MEMBROS.forEach(m=>{
+      const linha=[m.apelido];
+      meses.forEach(mes=>{
+        const p=pagtos[m.uid+"_"+mes];
+        linha.push(p?.pago?"Pago"+(p.data?" ("+p.data+")":""):"Pendente");
+      });
+      linhas.push(linha);
+    });
+    const csv=linhas.map(l=>l.join(";")).join("\n");
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="mensalidades_mutantes_"+new Date().getFullYear()+".csv";a.click();
+    URL.revokeObjectURL(url);
+    showToast("✅ Mensalidades exportadas!");
+  }catch{showToast("Erro ao exportar.",true);}
+};
 
 window.filtrarMembros=(texto)=>{
   const q=texto.toLowerCase().trim();
