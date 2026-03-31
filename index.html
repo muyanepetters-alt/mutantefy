@@ -544,7 +544,7 @@ function renderDiretor(el){
   const clubeLabel=UP.isAdmin?"⚙️ Admin":"🏆 Clube";
   const roleBadge=UP.nivel
     ?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`
-    :UP.isAdmin?`<span class="badge badge-admin" style="font-size:9px;vertical-align:middle;margin-left:4px">ADMIN</span>`:"";
+    :"";
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
@@ -673,8 +673,6 @@ function renderDiretor(el){
             ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
-              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
               ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
             </div>
           </div>
@@ -1101,7 +1099,7 @@ function renderBarman(el){
       <div class="header-flames"></div>
       ${avatarEl(UP.fotoUrl,UP.apelido,42)}
       <div class="header-info">
-        <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">BAR</span>`}</h2>
+        <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
       </div>
@@ -1232,8 +1230,6 @@ function renderBarman(el){
             ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
-              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
               ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
             </div>
           </div>
@@ -1432,8 +1428,6 @@ function renderMembro(el){
             ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
               ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${UP.isDiretor?`<span class="badge" style="background:rgba(76,175,125,.2);color:var(--green);border:1px solid rgba(76,175,125,.4)">DIRETOR</span>`:""}
-              ${UP.isBarman?`<span class="badge" style="background:rgba(100,100,255,.2);color:#8888ff;border:1px solid rgba(100,100,255,.4)">BARMAN</span>`:""}
               ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
             </div>
           </div>
