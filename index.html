@@ -581,6 +581,13 @@ function renderDiretor(el){
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
       </div>
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
+          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+        </div>
+        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
+      </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
         <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
@@ -1130,6 +1137,13 @@ function renderBarman(el){
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
       </div>
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
+          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+        </div>
+        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
+      </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
         <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
@@ -1335,6 +1349,13 @@ function renderMembro(el){
           </div>
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
+          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+        </div>
+        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
         <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
@@ -2113,6 +2134,42 @@ window.salvarTelefone=async()=>{
 // PREVISÃO DO TEMPO — Open-Meteo (gratuita, sem chave)
 // ═══════════════════════════════════════════════════
 const _climaCache={};
+window.atualizarClimaInicio=async()=>{
+  const el=document.getElementById("clima-inicio");
+  if(!el)return;
+  el.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    // Itajaí, SC — coordenadas fixas
+    const lat=-26.9078,lon=-48.6619;
+    const hoje=new Date().toISOString().slice(0,10);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=1`);
+    const d=await r.json();
+    const wc=d.current.weathercode;
+    const temp=Math.round(d.current.temperature_2m);
+    const umid=d.current.relativehumidity_2m;
+    const vento=Math.round(d.current.windspeed_10m);
+    const tmax=Math.round(d.daily.temperature_2m_max[0]);
+    const tmin=Math.round(d.daily.temperature_2m_min[0]);
+    const chuva=d.daily.precipitation_probability_max[0]||0;
+    const wcIc=wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
+    const wcDesc=wc===0?"Céu limpo":wc<=3?"Parcialmente nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="font-size:36px">${wcIc}</span>
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--white)">${temp}°C</div>
+          <div style="font-size:12px;color:var(--muted)">${wcDesc}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:12px;color:var(--muted)">↑${tmax}° ↓${tmin}°</div>
+          <div style="font-size:11px;color:var(--muted)">💧${umid}% · 💨${vento}km/h</div>
+          <div style="font-size:11px;color:${chuva>50?"var(--orange)":"var(--muted)"}">🌧️ ${chuva}% chuva</div>
+        </div>
+      </div>`;
+  }catch{
+    if(el)el.innerHTML=`<span style="font-size:12px;color:#555">Clima indisponível</span>`;
+  }
+};
 async function buscarClima(cidade,elId,dataEvento){
   const el=document.getElementById(elId);
   if(!el)return;
@@ -2517,6 +2574,8 @@ window.excluirReuniao=async(reuniaoId)=>{
 };
 
 async function carregarPainelResumo(){
+  // Clima de Itajaí
+  window.atualizarClimaInicio();
   // Últimas saídas
   const elSaidas=document.getElementById("painel-ultimas-saidas");
   if(elSaidas){
