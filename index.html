@@ -360,12 +360,12 @@ carregarLogoPublica();
 function renderLogin(el){
   const saved=localStorage.getItem("mutantes_logo");
   el.innerHTML=`<div class="login-wrap">
-    <div style="margin-bottom:20px;position:relative;cursor:default" id="login-logo-wrap">
+    <div style="margin-bottom:24px;position:relative;cursor:default" id="login-logo-wrap">
       ${saved
-        ?`<img src="${saved}" style="width:140px;height:140px;object-fit:cover;border:3px solid var(--orange);border-radius:50%;display:block"/>`
-        :`<div style="width:140px;height:140px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111">${LOGO_LG}</div>`}
+        ?`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)"><img src="${saved}" id="login-logo-img" style="width:100%;height:100%;object-fit:contain;display:block"/></div>`
+        :`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)">${LOGO_LG}</div>`}
     </div>
-    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center">MUTANTES MC ITAJAÍ</h1>
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center;letter-spacing:1px">MUTANTES MC ITAJAÍ</h1>
     <p style="font-size:13px;color:#666;margin-bottom:32px;text-align:center">Km Tracker</p>
     <div style="width:100%;max-width:340px">
       <div id="l-err" class="msg-err" style="display:none"></div>
@@ -374,6 +374,15 @@ function renderLogin(el){
       <button class="btn-primary" onclick="window.fazerLogin()" id="l-btn">Entrar</button>
     </div>
   </div>`;
+  // Sempre busca logo atualizada do Firebase (ignora cache)
+  getDoc(doc(db,"config","logo")).then(snap=>{
+    if(snap.exists()){
+      const url=snap.data().url;
+      localStorage.setItem("mutantes_logo",url);
+      const img=document.getElementById("login-logo-img");
+      if(img)img.src=url;
+    }
+  }).catch(()=>{});
 }
 
 function htmlCadastrar(){
@@ -794,7 +803,7 @@ function htmlEscalaGerenciar(tipo){window._barAba=tipo;
       <select id="${isBar?"bar":"chur"}-m1"><option value="">Selecione...</option>${opts}</select>
       <label>Membro 2</label>
       <select id="${isBar?"bar":"chur"}-m2"><option value="">Selecione...</option>${opts}</select>
-      ${!isBar?`<label>Membro 3</label><select id="chur-m3"><option value="">Selecione...</option>${opts}</select><label>Membro 4</label><select id="chur-m4"><option value="">Selecione...</option>${opts}</select>`:""}
+      ${!isBar?`<label>Membro 3</label><select id="chur-m3"><option value="">Selecione...</option>${opts}</select><label>Membro 4</label><select id="chur-m4"><option value="">Selecione...</option>${opts}</select><label>Membro 5 (opcional)</label><select id="chur-m5"><option value="">Selecione...</option>${opts}</select>`:""}
       <label>Observação (opcional)</label>
       <input type="text" id="${isBar?"bar":"chur"}-obs" placeholder="Ex: ${isBar?"trazer gelo":"trazer carvão"}" autocomplete="off"/>
       <div id="${isBar?"bar":"chur"}-err" class="msg-err" style="display:none"></div>
@@ -832,7 +841,7 @@ async function carregarBarVisualizacao(){
       if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Não definida</div>`;
       }else{
         const e=snap.docs[0].data();
-        el.innerHTML=`<div style="font-size:13px;font-weight:600">${[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ")}</div>${e.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${e.obs}</div>`:""}`;
+        el.innerHTML=`<div style="font-size:13px;font-weight:600">${[e.m1,e.m2,e.m3,e.m4,e.m5].filter(Boolean).join(" · ")}</div>${e.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${e.obs}</div>`:""}`;
       }
     }
   }catch{}
@@ -938,7 +947,7 @@ async function carregarSedeInfo(){
           </div>`:""}
           ${chur?`<div style="flex:1;min-width:110px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid rgba(76,175,125,.2)">
             <div style="font-size:10px;font-weight:600;color:var(--green);margin-bottom:3px">🔥 CHURRASCO</div>
-            <div style="font-size:12px;font-weight:600">${[chur.m1,chur.m2,chur.m3,chur.m4].filter(Boolean).join(" · ")}</div>
+            <div style="font-size:12px;font-weight:600">${[chur.m1,chur.m2,chur.m3,chur.m4,chur.m5].filter(Boolean).join(" · ")}</div>
             ${chur.obs?`<div style="font-size:10px;color:var(--muted)">📝 ${chur.obs}</div>`:""}
           </div>`:""}
         </div>`;
@@ -960,7 +969,7 @@ async function carregarEscalaLista(){
     el.innerHTML=docs.length===0?`<span style="font-size:12px;color:#555">Nenhuma escala cadastrada.</span>`:
       docs.map(e=>{
         const nomes=abaBar==="churrasco"
-          ?[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ")
+          ?[e.m1,e.m2,e.m3,e.m4,e.m5].filter(Boolean).join(" · ")
           :`${e.m1} & ${e.m2}`;
         return`<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1">
@@ -1910,7 +1919,7 @@ async function carregarPainelResumo(){
           </div>
           <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid rgba(76,175,125,.2)">
             <div style="font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🔥 Churrasco · Sex ${fmtDate(dataSex).slice(0,5)}</div>
-            ${chur?`<div style="font-size:12px;font-weight:700">${[chur.m1,chur.m2,chur.m3,chur.m4].filter(Boolean).join(" · ")}</div>${chur.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${chur.obs}</div>`:""}`:`<div style="font-size:12px;color:#555">Não definido</div>`}
+            ${chur?`<div style="font-size:12px;font-weight:700">${[chur.m1,chur.m2,chur.m3,chur.m4,chur.m5].filter(Boolean).join(" · ")}</div>${chur.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px">📝 ${chur.obs}</div>`:""}`:`<div style="font-size:12px;color:#555">Não definido</div>`}
           </div>
         </div>`;
     }catch(e){console.error(e);}
@@ -2057,6 +2066,8 @@ window.trocarAbaBar=(aba)=>{
       <select id="chur-m3"><option value="">Selecione...</option>${opts}</select>
       <label>Membro 4</label>
       <select id="chur-m4"><option value="">Selecione...</option>${opts}</select>
+      <label>Membro 5 (opcional)</label>
+      <select id="chur-m5"><option value="">Selecione...</option>${opts}</select>
       <label>Observação (opcional)</label>
       <input type="text" id="chur-obs" placeholder="Ex: trazer carvão" autocomplete="off"/>
       <div id="chur-err" class="msg-err" style="display:none"></div>
@@ -2200,7 +2211,7 @@ window.atualizarHistorico=async(tipo)=>{
       const docs=snap.docs.filter(d=>d.data().data<hoje).slice(0,8);
       const html=docs.map(d=>{
         const e=d.data();
-        const nomes=tipo==="bar"?`${e.m1} & ${e.m2}`:[e.m1,e.m2,e.m3,e.m4].filter(Boolean).join(" · ");
+        const nomes=tipo==="bar"?`${e.m1} & ${e.m2}`:[e.m1,e.m2,e.m3,e.m4,e.m5].filter(Boolean).join(" · ");
         return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
           <div style="font-size:13px;font-weight:600">${fmtDate(e.data)}</div>
           <div style="font-size:12px;color:${tipo==="bar"?"var(--orange)":"var(--green)"}">${tipo==="bar"?"🍺":"🔥"} ${nomes}</div>
@@ -2246,14 +2257,15 @@ window.salvarEscalaChurrasco=async()=>{
   const m2=document.getElementById("chur-m2")?.value;
   const m3=document.getElementById("chur-m3")?.value;
   const m4=document.getElementById("chur-m4")?.value;
+  const m5=document.getElementById("chur-m5")?.value||"";
   const obs=document.getElementById("chur-obs")?.value.trim();
   const err=document.getElementById("chur-err");
   if(!data||!m1||!m2||!m3||!m4){err.textContent="Selecione a data e os 4 membros.";err.style.display="block";return;}
-  const escolhidos=[m1,m2,m3,m4];
-  if(new Set(escolhidos).size<4){err.textContent="Selecione 4 membros diferentes.";err.style.display="block";return;}
+  const escolhidos=[m1,m2,m3,m4,...(m5?[m5]:[])].filter(Boolean);
+  if(new Set(escolhidos).size<escolhidos.length){err.textContent="Selecione membros diferentes.";err.style.display="block";return;}
   err.style.display="none";
   try{
-    await addDoc(collection(db,"escala_churrasco"),{data,m1,m2,m3,m4,obs:obs||"",criadoEm:serverTimestamp(),criadoPor:UP.apelido});
+    await addDoc(collection(db,"escala_churrasco"),{data,m1,m2,m3,m4,m5:m5||"",obs:obs||"",criadoEm:serverTimestamp(),criadoPor:UP.apelido});
     showToast("✓ Escala do churrasco salva!");
     document.getElementById("chur-obs").value="";
     carregarEscalaLista();
