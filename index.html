@@ -345,6 +345,86 @@ function showToast(msg,err=false){
   t._to=setTimeout(()=>t.classList.remove("show"),2500);
 }
 
+// ── CROPPER DE FOTO ──────────────────────────────────────────────────
+function abrirCropper(file, onCrop){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    // Criar modal
+    const modal=document.createElement("div");
+    modal.id="cropper-modal";
+    modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px";
+    modal.innerHTML=`
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px">✂️ Ajuste a foto</div>
+      <div id="crop-wrap" style="position:relative;width:280px;height:280px;overflow:hidden;border-radius:50%;border:3px solid var(--orange);cursor:move;user-select:none;touch-action:none">
+        <img id="crop-img" src="${e.target.result}" style="position:absolute;transform-origin:center;max-width:none"/>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <span style="font-size:12px;color:#888">🔍</span>
+        <input type="range" id="crop-zoom" min="0.5" max="3" step="0.05" value="1" style="width:160px;accent-color:var(--orange)"/>
+        <span style="font-size:12px;color:#888">🔎</span>
+      </div>
+      <div style="font-size:11px;color:#555;margin-top:6px;margin-bottom:14px">Arraste para reposicionar</div>
+      <div style="display:flex;gap:10px">
+        <button id="crop-cancel" style="padding:11px 22px;border-radius:10px;border:1px solid #444;background:transparent;color:#888;font-size:14px;cursor:pointer;font-family:inherit">Cancelar</button>
+        <button id="crop-ok" style="padding:11px 28px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✓ Usar foto</button>
+      </div>`;
+    document.body.appendChild(modal);
+
+    const img=document.getElementById("crop-img");
+    const zoom=document.getElementById("crop-zoom");
+    let ox=0,oy=0,dx=0,dy=0,z=1,dragging=false,startX,startY;
+
+    const applyTransform=()=>{img.style.transform=`translate(${ox}px,${oy}px) scale(${z})`;};
+
+    // Mouse
+    img.addEventListener("mousedown",ev=>{dragging=true;startX=ev.clientX-ox;startY=ev.clientY-oy;});
+    document.addEventListener("mousemove",ev=>{if(!dragging)return;ox=ev.clientX-startX;oy=ev.clientY-startY;applyTransform();});
+    document.addEventListener("mouseup",()=>dragging=false);
+
+    // Touch
+    img.addEventListener("touchstart",ev=>{const t=ev.touches[0];dragging=true;startX=t.clientX-ox;startY=t.clientY-oy;},{passive:true});
+    document.addEventListener("touchmove",ev=>{if(!dragging)return;const t=ev.touches[0];ox=t.clientX-startX;oy=t.clientY-startY;applyTransform();},{passive:true});
+    document.addEventListener("touchend",()=>dragging=false);
+
+    zoom.addEventListener("input",()=>{z=parseFloat(zoom.value);applyTransform();});
+
+    img.onload=()=>{
+      const nat=img.naturalWidth,naH=img.naturalHeight;
+      const fit=Math.max(280/nat,280/naH);
+      z=fit;zoom.value=fit;zoom.min=fit*0.5;
+      ox=0;oy=0;applyTransform();
+    };
+
+    document.getElementById("crop-cancel").onclick=()=>modal.remove();
+    document.getElementById("crop-ok").onclick=()=>{
+      const canvas=document.createElement("canvas");
+      canvas.width=400;canvas.height=400;
+      const ctx=canvas.getContext("2d");
+      ctx.beginPath();ctx.arc(200,200,200,0,Math.PI*2);ctx.clip();
+      const iw=img.naturalWidth,ih=img.naturalHeight;
+      const s=z;
+      const cx=140-ox,cy=140-oy; // centro do crop no espaço da imagem
+      ctx.drawImage(img,cx/s-iw/2+iw/2,cy/s-ih/2+ih/2,iw/s,ih/s,-200,-200,400,400);
+      // Hmm, vamos usar abordagem mais simples
+      const wrap=document.getElementById("crop-wrap");
+      const wRect=wrap.getBoundingClientRect();
+      // Offscreen canvas correto
+      const c2=document.createElement("canvas");c2.width=400;c2.height=400;
+      const ctx2=c2.getContext("2d");
+      ctx2.beginPath();ctx2.arc(200,200,200,0,Math.PI*2);ctx2.clip();
+      const scaleX=iw/(280/z),scaleY=ih/(280/z);
+      const srcX=(140-ox)/z - iw/2*(1-1) + (iw-280/z)/2;
+      const srcY=(140-oy)/z - ih/2*(1-1) + (ih-280/z)/2;
+      ctx2.drawImage(img, srcX*(iw/(iw)), srcY*(ih/ih), 280/z, 280/z, 0,0,400,400);
+      c2.toBlob(blob=>{
+        modal.remove();
+        onCrop(new File([blob],"foto.jpg",{type:"image/jpeg"}));
+      },"image/jpeg",0.9);
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
 async function uploadFoto(file){
   const fd=new FormData();
   fd.append("file",file);fd.append("upload_preset",PRESET);fd.append("folder","mutantes-mc");
@@ -352,6 +432,16 @@ async function uploadFoto(file){
   const d=await r.json();
   if(!d.secure_url)throw new Error("Falha no upload");
   return d.secure_url;
+}
+
+async function uploadFotoComCrop(file, onDone){
+  abrirCropper(file, async croppedFile=>{
+    showToast("Enviando foto...");
+    try{
+      const url=await uploadFoto(croppedFile);
+      onDone(url);
+    }catch{showToast("Erro ao enviar foto.",true);}
+  });
 }
 
 function render(){
@@ -2057,12 +2147,10 @@ window.salvarGaragem=async()=>{
 
 window.uploadFotoMoto=async(input)=>{
   const file=input.files[0];if(!file)return;
-  showToast("Enviando foto...");
-  try{
-    const url=await uploadFoto(file);
+  uploadFotoComCrop(file,async url=>{
     await setDoc(doc(db,"usuarios",CU.uid),{fotoMoto:url},{merge:true});
     UP.fotoMoto=url;showToast("✓ Foto da moto salva!");render();
-  }catch{showToast("Erro.",true);}
+  });
 };
 
 // ═══════════════════════════════════════════════════
@@ -2134,38 +2222,67 @@ window.salvarTelefone=async()=>{
 // PREVISÃO DO TEMPO — Open-Meteo (gratuita, sem chave)
 // ═══════════════════════════════════════════════════
 const _climaCache={};
-window.atualizarClimaInicio=async()=>{
+window.atualizarClimaInicio=async(view)=>{
   const el=document.getElementById("clima-inicio");
   if(!el)return;
+  window._climaView=view||window._climaView||"hoje";
   el.innerHTML=`<span class="spin">⟳</span>`;
   try{
-    // Itajaí, SC — coordenadas fixas
     const lat=-26.9078,lon=-48.6619;
-    const hoje=new Date().toISOString().slice(0,10);
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=1`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&forecast_days=7`);
     const d=await r.json();
-    const wc=d.current.weathercode;
-    const temp=Math.round(d.current.temperature_2m);
-    const umid=d.current.relativehumidity_2m;
-    const vento=Math.round(d.current.windspeed_10m);
-    const tmax=Math.round(d.daily.temperature_2m_max[0]);
-    const tmin=Math.round(d.daily.temperature_2m_min[0]);
-    const chuva=d.daily.precipitation_probability_max[0]||0;
-    const wcIc=wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
-    const wcDesc=wc===0?"Céu limpo":wc<=3?"Parcialmente nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
-    el.innerHTML=`
-      <div style="display:flex;align-items:center;gap:14px">
-        <span style="font-size:36px">${wcIc}</span>
-        <div>
-          <div style="font-size:22px;font-weight:700;color:var(--white)">${temp}°C</div>
-          <div style="font-size:12px;color:var(--muted)">${wcDesc}</div>
-        </div>
+    const wcIc=wc=>wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
+    const wcDesc=wc=>wc===0?"Céu limpo":wc<=3?"Parc. nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
+    const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+    const hojeHtml=()=>{
+      const wc=d.current.weathercode;
+      const temp=Math.round(d.current.temperature_2m);
+      const umid=d.current.relativehumidity_2m;
+      const vento=Math.round(d.current.windspeed_10m);
+      const tmax=Math.round(d.daily.temperature_2m_max[0]);
+      const tmin=Math.round(d.daily.temperature_2m_min[0]);
+      const chuva=d.daily.precipitation_probability_max[0]||0;
+      return`<div style="display:flex;align-items:center;gap:14px;padding:4px 0">
+        <span style="font-size:36px">${wcIc(wc)}</span>
+        <div><div style="font-size:22px;font-weight:700;color:var(--white)">${temp}°C</div>
+        <div style="font-size:12px;color:var(--muted)">${wcDesc(wc)}</div></div>
         <div style="margin-left:auto;text-align:right">
           <div style="font-size:12px;color:var(--muted)">↑${tmax}° ↓${tmin}°</div>
           <div style="font-size:11px;color:var(--muted)">💧${umid}% · 💨${vento}km/h</div>
-          <div style="font-size:11px;color:${chuva>50?"var(--orange)":"var(--muted)"}">🌧️ ${chuva}% chuva</div>
-        </div>
-      </div>`;
+          <div style="font-size:11px;color:${chuva>50?"var(--orange)":"var(--muted)"}">🌧️ ${chuva}%</div>
+        </div></div>`;
+    };
+
+    const semanaHtml=()=>{
+      const hoje=new Date();
+      return d.daily.weathercode.map((wc,i)=>{
+        const data=new Date(d.daily.time[i]+"T00:00:00");
+        const label=i===0?"Hoje":i===1?"Amanhã":dias[data.getDay()];
+        const tmax=Math.round(d.daily.temperature_2m_max[i]);
+        const tmin=Math.round(d.daily.temperature_2m_min[i]);
+        const chuva=d.daily.precipitation_probability_max[i]||0;
+        return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:600;color:${i===0?"var(--orange)":"var(--muted)"};width:52px">${label}</div>
+          <span style="font-size:20px">${wcIc(wc)}</span>
+          <div style="font-size:11px;color:var(--muted);flex:1">${wcDesc(wc)}</div>
+          <div style="text-align:right;font-size:11px">
+            <span style="color:var(--white);font-weight:600">${tmax}°</span>
+            <span style="color:var(--muted)"> / ${tmin}°</span>
+            ${chuva>20?`<div style="color:${chuva>60?"var(--orange)":"var(--muted)"}">🌧️${chuva}%</div>`:""}
+          </div>
+        </div>`;
+      }).join("");
+    };
+
+    const v=window._climaView;
+    el.innerHTML=`
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button onclick="window.atualizarClimaInicio('hoje')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="hoje"?"none":"1px solid var(--border)"};background:${v==="hoje"?"var(--orange)":"var(--bg3)"};color:${v==="hoje"?"#fff":"var(--muted)"}">Hoje</button>
+        <button onclick="window.atualizarClimaInicio('semana')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="semana"?"none":"1px solid var(--border)"};background:${v==="semana"?"var(--orange)":"var(--bg3)"};color:${v==="semana"?"#fff":"var(--muted)"}">7 dias</button>
+        <button onclick="window.atualizarClimaInicio(window._climaView)" style="padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--bg3);color:var(--muted)">↻</button>
+      </div>
+      ${v==="hoje"?hojeHtml():semanaHtml()}`;
   }catch{
     if(el)el.innerHTML=`<span style="font-size:12px;color:#555">Clima indisponível</span>`;
   }
@@ -3243,14 +3360,13 @@ window.trocarLogo=()=>{
 window.trocarFoto=async(uid,apelido)=>{
   const input=document.createElement("input");input.type="file";input.accept="image/*";
   input.onchange=async()=>{
-    const file=input.files[0];if(!file)return;showToast("Enviando foto...");
-    try{
-      const url=await uploadFoto(file);
+    const file=input.files[0];if(!file)return;
+    uploadFotoComCrop(file,async url=>{
       await setDoc(doc(db,"usuarios",uid),{fotoUrl:url},{merge:true});
       const m=MEMBROS.find(m=>m.uid===uid);if(m)m.fotoUrl=url;
       if(CU&&CU.uid===uid)UP.fotoUrl=url;
       showToast("✓ Foto atualizada!");render();
-    }catch{showToast("Erro ao enviar foto.",true);}
+    });
   };input.click();
 };
 window.confirmarPresenca=async(eventoId,resposta)=>{
