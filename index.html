@@ -114,6 +114,8 @@ select option{background:var(--bg2);color:var(--white)}
 .pres-nao{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
 .lote-card{background:var(--bg2);border:2px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:12px}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
 <body>
 <div id="splash" class="splash">
@@ -293,7 +295,7 @@ function evCardMembro(ev){
   const diasFalt=Math.round((evData-hoje)/(1000*60*60*24));
   const diasLabel=diasFalt===0?"🔴 Hoje!":diasFalt===1?"🟠 Amanhã":diasFalt>0?`🕐 ${diasFalt} dias`:"";
   const climaId="clima-ev-"+ev.id;
-  if(diasFalt>=0&&diasFalt<=7){setTimeout(()=>buscarClima(ev.destino,climaId,ev.data),200);}
+  if(diasFalt>=0&&diasFalt<=7){setTimeout(()=>buscarClimaEvento(ev.destino,climaId,ev.data),200);}
   return`<div class="${cls}" onclick="window.toggleEvDet('evd${ev.id}')">
     <div style="display:flex;align-items:flex-start;gap:10px">
       <div style="flex:1">
@@ -345,81 +347,38 @@ function showToast(msg,err=false){
   t._to=setTimeout(()=>t.classList.remove("show"),2500);
 }
 
-// ── CROPPER DE FOTO ──────────────────────────────────────────────────
+// ── CROPPER DE FOTO (Cropper.js) ─────────────────────────────────────
 function abrirCropper(file, onCrop){
   const reader=new FileReader();
   reader.onload=e=>{
-    // Criar modal
     const modal=document.createElement("div");
-    modal.id="cropper-modal";
-    modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px";
+    modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:14px";
     modal.innerHTML=`
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px">✂️ Ajuste a foto</div>
-      <div id="crop-wrap" style="position:relative;width:280px;height:280px;overflow:hidden;border-radius:50%;border:3px solid var(--orange);cursor:move;user-select:none;touch-action:none">
-        <img id="crop-img" src="${e.target.result}" style="position:absolute;transform-origin:center;max-width:none"/>
+      <div style="font-size:14px;font-weight:700;color:#fff">✂️ Ajuste a foto</div>
+      <div style="width:min(85vw,320px);height:min(85vw,320px);background:#111">
+        <img id="cropperjs-img" src="${e.target.result}" style="max-width:100%;display:block"/>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <span style="font-size:12px;color:#888">🔍</span>
-        <input type="range" id="crop-zoom" min="0.5" max="3" step="0.05" value="1" style="width:160px;accent-color:var(--orange)"/>
-        <span style="font-size:12px;color:#888">🔎</span>
-      </div>
-      <div style="font-size:11px;color:#555;margin-top:6px;margin-bottom:14px">Arraste para reposicionar</div>
+      <div style="font-size:11px;color:#666">Pinça para zoom · Arraste para reposicionar</div>
       <div style="display:flex;gap:10px">
-        <button id="crop-cancel" style="padding:11px 22px;border-radius:10px;border:1px solid #444;background:transparent;color:#888;font-size:14px;cursor:pointer;font-family:inherit">Cancelar</button>
-        <button id="crop-ok" style="padding:11px 28px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✓ Usar foto</button>
+        <button id="crop-cancel" style="padding:12px 24px;border-radius:12px;border:1px solid #444;background:transparent;color:#aaa;font-size:14px;cursor:pointer;font-family:inherit">Cancelar</button>
+        <button id="crop-ok" style="padding:12px 28px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✓ Usar foto</button>
       </div>`;
     document.body.appendChild(modal);
-
-    const img=document.getElementById("crop-img");
-    const zoom=document.getElementById("crop-zoom");
-    let ox=0,oy=0,dx=0,dy=0,z=1,dragging=false,startX,startY;
-
-    const applyTransform=()=>{img.style.transform=`translate(${ox}px,${oy}px) scale(${z})`;};
-
-    // Mouse
-    img.addEventListener("mousedown",ev=>{dragging=true;startX=ev.clientX-ox;startY=ev.clientY-oy;});
-    document.addEventListener("mousemove",ev=>{if(!dragging)return;ox=ev.clientX-startX;oy=ev.clientY-startY;applyTransform();});
-    document.addEventListener("mouseup",()=>dragging=false);
-
-    // Touch
-    img.addEventListener("touchstart",ev=>{const t=ev.touches[0];dragging=true;startX=t.clientX-ox;startY=t.clientY-oy;},{passive:true});
-    document.addEventListener("touchmove",ev=>{if(!dragging)return;const t=ev.touches[0];ox=t.clientX-startX;oy=t.clientY-startY;applyTransform();},{passive:true});
-    document.addEventListener("touchend",()=>dragging=false);
-
-    zoom.addEventListener("input",()=>{z=parseFloat(zoom.value);applyTransform();});
-
-    img.onload=()=>{
-      const nat=img.naturalWidth,naH=img.naturalHeight;
-      const fit=Math.max(280/nat,280/naH);
-      z=fit;zoom.value=fit;zoom.min=fit*0.5;
-      ox=0;oy=0;applyTransform();
-    };
-
-    document.getElementById("crop-cancel").onclick=()=>modal.remove();
+    const img=document.getElementById("cropperjs-img");
+    const cropper=new Cropper(img,{
+      aspectRatio:1,viewMode:1,dragMode:"move",
+      autoCropArea:1,restore:false,guides:false,
+      center:false,highlight:false,cropBoxMovable:false,
+      cropBoxResizable:false,toggleDragModeOnDblclick:false,
+      background:false,
+    });
+    document.getElementById("crop-cancel").onclick=()=>{cropper.destroy();modal.remove();};
     document.getElementById("crop-ok").onclick=()=>{
-      const canvas=document.createElement("canvas");
-      canvas.width=400;canvas.height=400;
-      const ctx=canvas.getContext("2d");
-      ctx.beginPath();ctx.arc(200,200,200,0,Math.PI*2);ctx.clip();
-      const iw=img.naturalWidth,ih=img.naturalHeight;
-      const s=z;
-      const cx=140-ox,cy=140-oy; // centro do crop no espaço da imagem
-      ctx.drawImage(img,cx/s-iw/2+iw/2,cy/s-ih/2+ih/2,iw/s,ih/s,-200,-200,400,400);
-      // Hmm, vamos usar abordagem mais simples
-      const wrap=document.getElementById("crop-wrap");
-      const wRect=wrap.getBoundingClientRect();
-      // Offscreen canvas correto
-      const c2=document.createElement("canvas");c2.width=400;c2.height=400;
-      const ctx2=c2.getContext("2d");
-      ctx2.beginPath();ctx2.arc(200,200,200,0,Math.PI*2);ctx2.clip();
-      const scaleX=iw/(280/z),scaleY=ih/(280/z);
-      const srcX=(140-ox)/z - iw/2*(1-1) + (iw-280/z)/2;
-      const srcY=(140-oy)/z - ih/2*(1-1) + (ih-280/z)/2;
-      ctx2.drawImage(img, srcX*(iw/(iw)), srcY*(ih/ih), 280/z, 280/z, 0,0,400,400);
-      c2.toBlob(blob=>{
-        modal.remove();
+      const canvas=cropper.getCroppedCanvas({width:400,height:400,imageSmoothingQuality:"high"});
+      canvas.toBlob(blob=>{
+        cropper.destroy();modal.remove();
         onCrop(new File([blob],"foto.jpg",{type:"image/jpeg"}));
-      },"image/jpeg",0.9);
+      },"image/jpeg",0.92);
     };
   };
   reader.readAsDataURL(file);
@@ -2222,6 +2181,45 @@ window.salvarTelefone=async()=>{
 // PREVISÃO DO TEMPO — Open-Meteo (gratuita, sem chave)
 // ═══════════════════════════════════════════════════
 const _climaCache={};
+async function buscarClimaEvento(cidade,elId,dataEvento){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const cacheKey=cidade+"_"+dataEvento;
+  if(_climaCache[cacheKey]){el.innerHTML=_climaCache[cacheKey];return;}
+  try{
+    const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.split(" - ")[0])}&count=1&language=pt&format=json`);
+    const gd=await geo.json();
+    if(!gd.results||!gd.results[0]){el.innerHTML="";return;}
+    const {latitude:lat,longitude:lon}=gd.results[0];
+    // Pegar 7 dias a partir da data do evento
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&start_date=${dataEvento}&forecast_days=7`);
+    const d=await r.json();
+    if(!d.daily)return;
+    const wcIc=wc=>wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
+    const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+    const hoje=new Date().toISOString().slice(0,10);
+    const html=`<div style="margin-top:8px;background:var(--bg3);border-radius:10px;padding:8px;border:1px solid rgba(232,103,10,.2)">
+      <div style="font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🌤️ Previsão — ${cidade.split(" - ")[0]}</div>
+      ${d.daily.weathercode.map((wc,i)=>{
+        const data=d.daily.time[i];
+        const diaSem=dias[new Date(data+"T00:00:00").getDay()];
+        const isEvento=i===0;
+        const tmax=Math.round(d.daily.temperature_2m_max[i]);
+        const tmin=Math.round(d.daily.temperature_2m_min[i]);
+        const chuva=d.daily.precipitation_probability_max[i]||0;
+        return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${i<d.daily.weathercode.length-1?"border-bottom:1px solid var(--border)":""}">
+          <span style="font-size:10px;font-weight:${isEvento?"700":"400"};color:${isEvento?"var(--orange)":"var(--muted)"};width:32px">${diaSem}</span>
+          <span style="font-size:16px">${wcIc(wc)}</span>
+          <span style="font-size:11px;color:var(--white);font-weight:${isEvento?"700":"400"};flex:1">${tmax}°<span style="color:var(--muted)">/${tmin}°</span></span>
+          ${chuva>20?`<span style="font-size:10px;color:${chuva>60?"var(--orange)":"var(--muted)"}">🌧️${chuva}%</span>`:""}
+          ${isEvento?`<span style="font-size:9px;background:rgba(232,103,10,.2);color:var(--orange);padding:1px 5px;border-radius:6px">Evento</span>`:""}
+        </div>`;
+      }).join("")}
+    </div>`;
+    _climaCache[cacheKey]=html;
+    if(el)el.outerHTML=html;
+  }catch{if(el)el.innerHTML="";}
+}
 window.atualizarClimaInicio=async(view)=>{
   const el=document.getElementById("clima-inicio");
   if(!el)return;
