@@ -11,24 +11,186 @@
 <link id="apple-touch-icon" rel="apple-touch-icon" href=""/>
 <link id="pwa-manifest" rel="manifest" href=""/>
 <title>MUTANTES MC ITAJAÍ — Km Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Cinzel:wght@400;600;700&family=IM+Fell+English&display=swap" rel="stylesheet"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;--orange:#e8670a;--white:#f0f0f0;--muted:#888;--danger:#e05252;--green:#4caf7d}
-body.western{--bg:#1a0e07;--bg2:#231508;--bg3:#2e1c0d;--border:#5a3a1a;--orange:#c8972a;--white:#e8d5a3;--muted:#9a7a50;--danger:#c0392b;--green:#6b8f3e;--western-texture:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E")}
-body.western .app{background:var(--bg);background-image:var(--western-texture)}
-body.western .card{border-color:#5a3a1a;border-width:2px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(200,151,42,.08)}
-body.western .btn-primary{background:linear-gradient(135deg,#8b5e1a,#c8972a);box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,100,.2);letter-spacing:.5px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-body.western .bnav{background:#1a0e07;border-top:2px solid #5a3a1a;box-shadow:0 -2px 10px rgba(0,0,0,.5)}
-body.western .bnav-item.nav-active{background:rgba(200,151,42,.15)}
-body.western .header{background:linear-gradient(180deg,#2e1c0d,#1a0e07);border-bottom:2px solid #5a3a1a}
-body.western input,body.western select{background:var(--bg3);border-color:#5a3a1a;color:var(--white)}
-body.western .prog-fill{background:linear-gradient(90deg,#8b5e1a,#c8972a) !important}
-body.western .sec-title{color:#9a7a50;letter-spacing:.8px}
-body.western .badge{border-width:1px;border-style:solid}
-body.western *{font-variant-numeric:tabular-nums}
+
+/* ══════════════════════════════════════════
+   TEMA WESTERN — Full Red Dead Style
+══════════════════════════════════════════ */
+body.western{
+  --bg:#120b04;--bg2:#1c1008;--bg3:#27150a;--border:#6b4420;
+  --orange:#c8972a;--white:#e8d4a0;--muted:#9a7545;--danger:#b83030;--green:#7a9040;
+  font-family:'IM Fell English',serif !important;
+}
+
+/* Textura de papel envelhecido no fundo */
+body.western .app{
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(180,100,20,.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(150,80,10,.03) 0%, transparent 50%);
+}
+
+/* Fonte western em títulos e labels */
+body.western h1,body.western h2,body.western .sec-title,
+body.western .header-info h2,body.western .splash-title{
+  font-family:'Rye',cursive !important;
+  letter-spacing:1px;
+  text-shadow:1px 1px 3px rgba(0,0,0,.7);
+}
+
+body.western label,body.western .metric-label,body.western .bnav-label{
+  font-family:'Cinzel',serif !important;
+  font-size:10px !important;
+  letter-spacing:.8px;
+}
+
+/* Cards com borda ornamentada e textura de couro */
+body.western .card{
+  background:linear-gradient(135deg,#1c1008 0%,#231408 50%,#1c1008 100%);
+  border:2px solid #6b4420;
+  border-radius:6px;
+  box-shadow:
+    0 0 0 1px rgba(200,151,42,.15),
+    0 4px 12px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(200,151,42,.1),
+    inset 0 -1px 0 rgba(0,0,0,.3);
+  position:relative;
+}
+
+/* Cantos ornamentados nos cards */
+body.western .card::before,body.western .card::after{
+  content:"✦";
+  position:absolute;
+  font-size:10px;
+  color:#6b4420;
+  line-height:1;
+}
+body.western .card::before{top:4px;left:6px;}
+body.western .card::after{top:4px;right:6px;}
+
+/* Header estilo cartaz */
+body.western .header{
+  background:linear-gradient(180deg,#27150a 0%,#1c1008 100%);
+  border-bottom:3px solid #6b4420;
+  box-shadow:0 2px 0 rgba(200,151,42,.2),0 4px 12px rgba(0,0,0,.5);
+}
+
+/* Navbar — madeira escura */
+body.western .bnav{
+  background:linear-gradient(180deg,#1c1008,#140c05);
+  border-top:3px solid #6b4420;
+  box-shadow:0 -2px 0 rgba(200,151,42,.15),0 -4px 12px rgba(0,0,0,.4);
+  padding:4px 6px;
+}
+body.western .bnav-item.nav-active{
+  background:rgba(200,151,42,.15);
+  border-radius:8px;
+}
+body.western .bnav-item.nav-active .bnav-label{
+  color:#c8972a !important;
+  font-family:'Cinzel',serif !important;
+}
+
+/* Botão primário — estilo lacre/carimbo */
+body.western .btn-primary{
+  background:linear-gradient(135deg,#7a4a10,#c8972a,#7a4a10);
+  background-size:200% 100%;
+  border:2px solid #8b5e1a;
+  border-radius:6px;
+  box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,100,.25),inset 0 -1px 0 rgba(0,0,0,.3);
+  font-family:'Cinzel',serif !important;
+  font-weight:700 !important;
+  letter-spacing:1px;
+  text-shadow:0 1px 2px rgba(0,0,0,.6);
+  text-transform:uppercase;
+}
+
+/* Inputs */
+body.western input,body.western select,body.western textarea{
+  background:rgba(18,11,4,.8) !important;
+  border:1px solid #6b4420 !important;
+  border-radius:4px !important;
+  color:#e8d4a0 !important;
+  font-family:'IM Fell English',serif !important;
+}
+
+/* Barra de progresso — trilha de poeira */
+body.western .prog-bar{
+  background:rgba(107,68,32,.3);
+  border:1px solid #6b4420;
+  border-radius:2px;
+  height:8px !important;
+}
+body.western .prog-fill{
+  background:linear-gradient(90deg,#7a4a10,#c8972a,#e8b840) !important;
+  border-radius:2px;
+  box-shadow:0 0 6px rgba(200,151,42,.4);
+}
+
+/* Badges */
+body.western .badge{
+  font-family:'Cinzel',serif !important;
+  font-size:9px !important;
+  letter-spacing:.5px;
+  border:1px solid currentColor !important;
+}
+
+/* Hint box */
+body.western .hint-box{
+  background:rgba(107,68,32,.2);
+  border:1px solid #6b4420;
+  border-radius:4px;
+}
+
+/* Métricas */
+body.western .metric{
+  background:linear-gradient(135deg,#1c1008,#231408);
+  border:1px solid #6b4420;
+  border-radius:6px;
+}
+body.western .metric-value{
+  font-family:'Rye',cursive !important;
+  color:#c8972a;
+}
+
+/* Splash western */
+body.western .splash{background:var(--bg);}
+body.western .splash-title{font-family:'Rye',cursive !important;letter-spacing:3px;}
+body.western .splash-sub{font-family:'Cinzel',serif !important;letter-spacing:2px;}
+body.western .splash-dot{background:#c8972a;}
+
+/* Toast */
+body.western .toast{
+  background:#1c1008;
+  border:1px solid #6b4420;
+  font-family:'Cinzel',serif;
+}
+
+/* Sub-títulos e textos gerais */
+body.western .ev-card{
+  border:2px solid #6b4420;
+  border-radius:6px;
+  background:linear-gradient(135deg,#1c1008,#231408);
+}
+
+/* Separadores */
+body.western [style*="border-bottom:1px solid var(--border)"]{
+  border-bottom-color:#4a2e0e !important;
+}
+
+/* Login western */
+body.western .login-wrap{
+  background:radial-gradient(ellipse at 50% 30%,rgba(200,151,42,.08) 0%,transparent 70%),var(--bg);
+}
+body.western .login-wrap h1{font-family:'Rye',cursive !important;letter-spacing:3px;}
+body.western .login-wrap p{font-family:'Cinzel',serif !important;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;font-size:15px}
 .app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5)}
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
@@ -857,8 +1019,23 @@ function proxQuarta(){
   return q.toISOString().slice(0,10);
 }
 
+// Mapa de ícones western para cada TM
+const WESTERN_ICONS={
+  "painel":"🏠","sede":"⛪","eventos":"📅","rota":"🗺️",
+  "msgs":"💬","galeria":"📸","votacao_tab":"🗳️","perfil":"👤","clube":"🎯",
+  // Western overrides
+  _western:{
+    "painel":"🏡","sede":"🏚️","eventos":"📜","rota":"🗺️",
+    "msgs":"📯","galeria":"🖼️","votacao_tab":"📋","perfil":"🤠","clube":"⚔️"
+  }
+};
+
 function htmlBnav(tabs){
-  return`<nav class="bnav">${tabs.map(([t,ic,lb])=>`<button class="bnav-item${TM===t?" nav-active":""}" onclick="window.setTM('${t}')"><span class="bnav-icon">${ic}</span><span class="bnav-label">${lb}</span></button>`).join("")}</nav>`;
+  const isW=document.body.classList.contains("western");
+  return`<nav class="bnav">${tabs.map(([t,ic,lb])=>{
+    const wIc=isW?(WESTERN_ICONS._western[t]||ic):ic;
+    return`<button class="bnav-item${TM===t?" nav-active":""}" onclick="window.setTM('${t}')"><span class="bnav-icon">${wIc}</span><span class="bnav-label">${lb}</span></button>`;
+  }).join("")}</nav>`;
 }
 
 function proxSexta(){
