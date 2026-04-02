@@ -24,60 +24,78 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
 @media(min-width:768px){
-  body{background:#0a0a0a}
-  .app{max-width:100%;height:100vh;flex-direction:row;box-shadow:none;border-radius:0}
+  body{background:#111}
 
-  /* Sidebar esquerda — substitui o bnav inferior */
+  .app{
+    max-width:100%;height:100vh;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    grid-template-rows:auto 1fr;
+    grid-template-areas:
+      "sidebar header"
+      "sidebar content";
+    box-shadow:none;border-radius:0;
+    overflow:hidden;
+  }
+
+  /* Header fica no topo direito */
+  .header{
+    grid-area:header;
+    padding:14px 28px !important;
+    border-left:1px solid var(--border);
+  }
+  .header-info h2{font-size:18px !important}
+
+  /* Sidebar esquerda */
   .bnav{
+    grid-area:sidebar;
     flex-direction:column !important;
-    width:200px;min-width:200px;height:100vh;
+    height:100%;width:100%;
     border-bottom:none !important;
     border-right:1px solid var(--border) !important;
-    padding:16px 10px !important;
-    overflow-y:auto;gap:4px !important;
+    padding:20px 10px 16px !important;
+    overflow-y:auto;gap:2px !important;
     flex-shrink:0;
     justify-content:flex-start !important;
+    align-items:stretch !important;
   }
   .bnav-item{
-    flex:none !important;min-height:44px;width:100%;
+    flex:none !important;min-height:42px;width:100%;
     flex-direction:row !important;justify-content:flex-start !important;
-    gap:10px !important;padding:10px 12px !important;
-    border-radius:10px !important;
+    gap:10px !important;padding:10px 14px !important;
+    border-radius:10px !important;text-align:left;
   }
-  .bnav-icon{font-size:18px !important}
-  .bnav-label{font-size:13px !important;font-weight:500 !important}
-  .bnav-item.nav-active .bnav-label{font-size:13px !important;font-weight:700 !important}
+  .bnav-item.nav-active{background:rgba(232,103,10,.15)}
+  .bnav-icon{font-size:18px !important;width:22px;text-align:center}
+  .bnav-label{font-size:13px !important;font-weight:500 !important;display:block !important}
+  .bnav-item.nav-active .bnav-label{color:var(--orange) !important;font-weight:700 !important}
 
-  /* Área principal */
-  .body{
-    flex:1;
-    max-width:680px;
-    margin:0 auto;
-    padding:24px !important;
-  }
-
-  /* Header */
-  .header{padding:16px 24px !important}
-  .header-info h2{font-size:19px !important}
-
-  /* Cards em grid no painel */
-  .desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .desktop-grid .card{margin-bottom:0}
-
-  /* Sidebar logo no topo */
+  /* Logo do clube no topo da sidebar */
   .bnav::before{
     content:"🏍️ Mutantes MC";
     display:block;
-    font-size:12px;
-    font-weight:700;
+    font-size:11px;font-weight:700;
     color:var(--orange);
-    text-transform:uppercase;
-    letter-spacing:.8px;
-    padding:8px 12px 16px;
+    text-transform:uppercase;letter-spacing:.8px;
+    padding:0 12px 14px;
     border-bottom:1px solid var(--border);
-    margin-bottom:8px;
-    width:100%;
+    margin-bottom:10px;width:100%;
   }
+
+  /* Conteúdo principal */
+  .body{
+    grid-area:content;
+    flex:1;
+    max-width:720px;
+    width:100%;
+    margin:0 auto;
+    padding:24px 32px !important;
+    overflow-y:auto;
+  }
+
+  /* Cards em grid 2 colunas no painel */
+  .desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .desktop-grid .card{margin-bottom:0}
 }
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
 .splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
