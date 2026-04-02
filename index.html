@@ -17,6 +17,18 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;--orange:#e8670a;--white:#f0f0f0;--muted:#888;--danger:#e05252;--green:#4caf7d}
+body.western{--bg:#1a0e07;--bg2:#231508;--bg3:#2e1c0d;--border:#5a3a1a;--orange:#c8972a;--white:#e8d5a3;--muted:#9a7a50;--danger:#c0392b;--green:#6b8f3e;--western-texture:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E")}
+body.western .app{background:var(--bg);background-image:var(--western-texture)}
+body.western .card{border-color:#5a3a1a;border-width:2px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(200,151,42,.08)}
+body.western .btn-primary{background:linear-gradient(135deg,#8b5e1a,#c8972a);box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,100,.2);letter-spacing:.5px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+body.western .bnav{background:#1a0e07;border-top:2px solid #5a3a1a;box-shadow:0 -2px 10px rgba(0,0,0,.5)}
+body.western .bnav-item.nav-active{background:rgba(200,151,42,.15)}
+body.western .header{background:linear-gradient(180deg,#2e1c0d,#1a0e07);border-bottom:2px solid #5a3a1a}
+body.western input,body.western select{background:var(--bg3);border-color:#5a3a1a;color:var(--white)}
+body.western .prog-fill{background:linear-gradient(90deg,#8b5e1a,#c8972a) !important}
+body.western .sec-title{color:#9a7a50;letter-spacing:.8px}
+body.western .badge{border-width:1px;border-style:solid}
+body.western *{font-variant-numeric:tabular-nums}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;font-size:15px}
 .app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5)}
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
@@ -762,6 +774,21 @@ function renderDiretor(el){
         <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
       </div>
       <div class="card">
+        <div class="card" style="margin-bottom:14px">
+          <div class="sec-title" style="margin-bottom:12px">🎨 Tema do app</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="window.setTema('dark')" id="btn-tema-dark" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🌑</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Dark</span>
+              <span style="font-size:10px;color:var(--muted)">Padrão atual</span>
+            </button>
+            <button onclick="window.setTema('western')" id="btn-tema-western" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🤠</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Western</span>
+              <span style="font-size:10px;color:var(--muted)">Red Dead style</span>
+            </button>
+          </div>
+        </div>
         <div class="sec-title">👤 Meus dados</div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
@@ -816,6 +843,7 @@ function renderDiretor(el){
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
+  if(TM==="perfil")setTimeout(()=>window.setTema(localStorage.getItem("mutantes_tema")||"dark"),50);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1326,6 +1354,21 @@ function renderBarman(el){
         <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
       </div>
       <div class="card">
+        <div class="card" style="margin-bottom:14px">
+          <div class="sec-title" style="margin-bottom:12px">🎨 Tema do app</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="window.setTema('dark')" id="btn-tema-dark" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🌑</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Dark</span>
+              <span style="font-size:10px;color:var(--muted)">Padrão atual</span>
+            </button>
+            <button onclick="window.setTema('western')" id="btn-tema-western" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🤠</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Western</span>
+              <span style="font-size:10px;color:var(--muted)">Red Dead style</span>
+            </button>
+          </div>
+        </div>
         <div class="sec-title">👤 Meus dados</div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
@@ -1356,6 +1399,7 @@ function renderBarman(el){
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
+  if(TM==="perfil")setTimeout(()=>window.setTema(localStorage.getItem("mutantes_tema")||"dark"),50);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1531,6 +1575,21 @@ function renderMembro(el){
         <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
       </div>
       <div class="card">
+        <div class="card" style="margin-bottom:14px">
+          <div class="sec-title" style="margin-bottom:12px">🎨 Tema do app</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="window.setTema('dark')" id="btn-tema-dark" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🌑</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Dark</span>
+              <span style="font-size:10px;color:var(--muted)">Padrão atual</span>
+            </button>
+            <button onclick="window.setTema('western')" id="btn-tema-western" style="padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg3);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:24px">🤠</span>
+              <span style="font-size:12px;font-weight:700;color:var(--white)">Western</span>
+              <span style="font-size:10px;color:var(--muted)">Red Dead style</span>
+            </button>
+          </div>
+        </div>
         <div class="sec-title">👤 Meus dados</div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
@@ -1568,6 +1627,7 @@ function renderMembro(el){
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="rotas_club")setTimeout(carregarRotasSugeridas,100);
+  if(TM==="perfil")setTimeout(()=>window.setTema(localStorage.getItem("mutantes_tema")||"dark"),50);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -2311,6 +2371,21 @@ async function buscarClima(cidade,elId,dataEvento){
     if(el)el.innerHTML=html;
   }catch{if(el)el.innerHTML="";}
 }
+
+// ═══════════════════════════════════════════════════
+// TEMA — Dark / Western
+// ═══════════════════════════════════════════════════
+window.setTema=(tema)=>{
+  localStorage.setItem("mutantes_tema",tema);
+  document.body.classList.toggle("western",tema==="western");
+  // Atualizar botões
+  const btnD=document.getElementById("btn-tema-dark");
+  const btnW=document.getElementById("btn-tema-western");
+  if(btnD){btnD.style.border=tema==="dark"?"2px solid var(--orange)":"2px solid var(--border)";}
+  if(btnW){btnW.style.border=tema==="western"?"2px solid var(--orange)":"2px solid var(--border)";}
+};
+// Aplicar tema salvo ao carregar
+(()=>{const t=localStorage.getItem("mutantes_tema")||"dark";if(t==="western")document.body.classList.add("western");})();
 
 window.salvarCargo=async()=>{
   const cargo=document.getElementById("m-cargo")?.value;
