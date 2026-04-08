@@ -619,8 +619,7 @@ function htmlClubeCorpo(){
     const dirMenus=[
       {id:"membros",ic:"🏍️",lb:"Ranking de km",sub:"Meta anual"},
       {id:"cadastrar",ic:"➕",lb:"Cadastrar",sub:"Novo membro"},
-      {id:"lancar",ic:"📍",lb:"Lançar Km",sub:"Registrar saída"},
-      {id:"presenca",ic:"🎟️",lb:"Presença",sub:"Confirmações eventos"},
+      {id:"presenca",ic:"🎟️",lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
       {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
@@ -667,8 +666,18 @@ function htmlClubeCorpo(){
         }).join("")}
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
-      ${TA==="lancar"?htmlLancarKm():""}
-      ${TA==="presenca"?`<div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
+      ${TA==="presenca"?`
+        <div id="presenca-wrap"><span class="spin">⟳</span></div>
+        <div class="card" style="margin-top:10px">
+          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
+            <span>📍 Lançar km avulso</span><span id="km-avulso-ic">▼</span>
+          </button>
+          <div id="km-avulso-wrap" style="display:none;margin-top:12px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Use para saídas fora de evento. O botão "Compareceu" já lança km dos eventos automaticamente.</div>
+            ${htmlLancarKm()}
+          </div>
+        </div>`:""}
+
       ${TA==="usuarios"?htmlUsuarios():""}
       ${TA==="eventos"?`<div>${EVENTOS.length===0?'<p style="font-size:13px;color:#555">Nenhum evento cadastrado.</p>':EVENTOS.map(ev=>evCardMembro(ev)).join("")}</div>`:""}
       ${TA==="honra"?htmlPlacaHonra():""}
@@ -3424,6 +3433,14 @@ window.salvarPedagio=async(eventoId)=>{
   }catch(e){showToast("Erro ao salvar.",true);}
 };
 window.setTA=t=>{TA=t;render();if(t==="presenca")setTimeout(carregarPresencasAdmin,100);};
+window.toggleKmAvulso=()=>{
+  const wrap=document.getElementById("km-avulso-wrap");
+  const ic=document.getElementById("km-avulso-ic");
+  if(!wrap)return;
+  const open=wrap.style.display==="none";
+  wrap.style.display=open?"block":"none";
+  if(ic)ic.textContent=open?"▲":"▼";
+};
 window.setTM=t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";render();};
 window.toggleEvDet=id=>{const el=document.getElementById(id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
 window.toggleEdit=id=>{const el=document.getElementById("edit-"+id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
