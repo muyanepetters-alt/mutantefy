@@ -412,6 +412,7 @@ function evCardMembro(ev){
         ${enc.obs?`<div style="font-size:12px;color:var(--muted)">📝 ${enc.obs}</div>`:""}
       </div>`:""}
       ${calc?`<div class="rota-result">${htmlRota(calc,ev.destino,ev.pedInfo)}</div>`:`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os custos.</div>`}
+      ${ev.dist>0&&COORDS_EVENTOS[ev.id]?`<button style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(232,103,10,.4);background:rgba(232,103,10,.08);color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;margin-bottom:2px" onclick="event.stopPropagation();window.toggleMapaEvento(${ev.id})">🗺️ Ver rota no mapa</button><div id="ev-mapa-${ev.id}" style="height:240px;border-radius:8px;margin-top:6px;display:none;overflow:hidden"></div>`:""}
       <div style="display:flex;gap:8px;margin-top:4px">
         <button style="flex:1;padding:10px;border-radius:8px;border:none;background:${conf==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'sim')">✅ Vou!</button>
         <button style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'nao')">❌ Não vou</button>
@@ -3743,6 +3744,37 @@ window.calcAdminCustom=()=>{
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,auto,tanque,"SC"),dest)}</div>`;
 };
 let _mapa=null;
+const _mapas={};
+window.toggleMapaEvento=async(evId)=>{
+  const el=document.getElementById(`ev-mapa-${evId}`);
+  if(!el)return;
+  if(el.style.display!=="none"){el.style.display="none";return;}
+  el.style.display="block";
+  if(_mapas[evId]){setTimeout(()=>_mapas[evId].invalidateSize(),50);return;}
+  const coords=COORDS_EVENTOS[evId];
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!coords||!ev)return;
+  const map=L.map(el,{zoomControl:true,attributionControl:false});
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
+  _mapas[evId]=map;
+  const dot=L.divIcon({className:"",html:'<div style="width:12px;height:12px;background:#e8670a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px #000"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+  L.marker(COORD_ITAJAI,{icon:dot}).addTo(map).bindPopup("<b>Itajaí - SC</b><br>Ponto de partida");
+  L.marker(coords,{icon:dot}).addTo(map).bindPopup(`<b>${ev.nome}</b>`);
+  try{
+    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${COORD_ITAJAI[1]},${COORD_ITAJAI[0]};${coords[1]},${coords[0]}?overview=full&geometries=geojson`);
+    const d=await r.json();
+    if(d.routes?.[0]){
+      const pts=d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+      const poly=L.polyline(pts,{color:"#e8670a",weight:4,opacity:.85}).addTo(map);
+      poly.bindPopup(`<b>${ev.nome}</b>${ev.pedInfo?`<br><small style="color:#aaa">${ev.pedInfo}</small>`:""}`);
+      map.fitBounds(poly.getBounds(),{padding:[20,20]});
+    }else throw"";
+  }catch{
+    const poly=L.polyline([COORD_ITAJAI,coords],{color:"#e8670a",weight:3,dashArray:"8,5",opacity:.7}).addTo(map);
+    poly.bindPopup(`<b>${ev.nome}</b>`);
+    map.fitBounds(L.latLngBounds([COORD_ITAJAI,coords]),{padding:[30,30]});
+  }
+};
 async function atualizarMapaRota(evId,destCoords,nome,pedInfo){
   const card=document.getElementById("mapa-card");
   const el=document.getElementById("ev-mapa");
