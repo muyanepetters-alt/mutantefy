@@ -407,7 +407,7 @@ function evCardMembro(ev){
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
-        ${diasLabel?`<span style="font-size:11px;color:${diasFalt===0?"var(--danger)":diasFalt<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${diasFalt===0?"rgba(224,82,82,.15)":diasFalt<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${diasFalt===0?"rgba(224,82,82,.3)":diasFalt<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
+        ${diasFalt<0?`<span style="font-size:11px;color:#888;font-weight:700;background:var(--bg3);padding:3px 8px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>`:diasLabel?`<span style="font-size:11px;color:${diasFalt===0?"var(--danger)":diasFalt<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${diasFalt===0?"rgba(224,82,82,.15)":diasFalt<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${diasFalt===0?"rgba(224,82,82,.3)":diasFalt<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
       </div>
     </div>
     <div class="ev-det" id="evd${ev.id}">
@@ -4444,16 +4444,37 @@ async function carregarPresencasAdmin(){
       </div>`;
     });
     if(passados.length){
+      const passadosSnaps=await Promise.all(passados.map(ev=>getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)))));
       html+=`<div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
         <button onclick="window.togglePresAnteriores()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.5px;padding:4px 0;margin-bottom:6px">
           <span>📋 EVENTOS ANTERIORES (${passados.length})</span><span id="pres-ant-ic">▼</span>
         </button>
-        <div id="pres-ant-wrap" style="display:none">
-          ${passados.map(ev=>`<div style="border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;opacity:.6">
-            <div style="font-size:12px;font-weight:600;color:var(--muted)">${ev.nome}</div>
-            <div style="font-size:11px;color:#555">${fmtDate(ev.data)} · ${ev.destino}</div>
-          </div>`).join("")}
+        <div id="pres-ant-wrap" style="display:none">`;
+      passados.forEach((ev,i)=>{
+        const pDocs=passadosSnaps[i].docs.map(d=>d.data());
+        const nComp=pDocs.filter(p=>p.compareceu||p.resposta==="compareceu").length;
+        const nConf=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado")).length;
+        const nDes=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu")).length;
+        html+=`<div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+          <button onclick="window.togglePresAcc(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nome}</div>
+              <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+              ${nComp?`<span style="background:rgba(76,175,125,.2);color:var(--green);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟢${nComp}</span>`:""}
+              ${nConf?`<span style="background:rgba(245,197,24,.15);color:#f5c518;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟡${nConf}</span>`:""}
+              ${nDes?`<span style="background:rgba(224,82,82,.1);color:var(--danger);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🔴${nDes}</span>`:""}
+              <span style="font-size:10px;color:#888;font-weight:700;background:var(--bg3);padding:2px 7px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>
+              <span id="pres-acc-ic-${ev.id}" style="color:var(--muted);font-size:12px;margin-left:2px">▼</span>
+            </div>
+          </button>
+          <div id="pres-acc-body-${ev.id}" style="display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3)">
+            ${_htmlPresencaEvento(ev,pDocs)}
+          </div>
         </div>`;
+      });
+      html+=`</div>`;
     }
     wrap.innerHTML=html;
   }catch(e){console.error(e);wrap.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
