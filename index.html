@@ -611,6 +611,27 @@ function htmlCadastrar(){
 }
 
 
+function htmlEventosSplit(showHints=false){
+  const hoje=new Date().toISOString().slice(0,10);
+  const proximos=EVENTOS.filter(e=>e.data>=hoje);
+  const anteriores=EVENTOS.filter(e=>e.data<hoje).reverse();
+  return`<div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 PRÓXIMOS EVENTOS (${proximos.length})</div>
+    ${showHints&&!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+    ${proximos.length?proximos.map(ev=>evCardMembro(ev)).join(""):`<div style="font-size:13px;color:#555;padding:8px 0">Nenhum evento próximo.</div>`}
+    ${anteriores.length?`
+      <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+      <button onclick="window.toggleEventosAnteriores()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.5px;padding:0;margin-bottom:8px">
+        <span>📋 EVENTOS ANTERIORES (${anteriores.length})</span><span id="ev-ant-ic">▼</span>
+      </button>
+      <div id="ev-ant-wrap" style="display:none">${anteriores.map(ev=>evCardMembro(ev)).join("")}</div>
+    `:""}
+  </div>`;
+}
+window.toggleEventosAnteriores=()=>{
+  const w=document.getElementById("ev-ant-wrap"),ic=document.getElementById("ev-ant-ic");
+  if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
+};
 function htmlClubeCorpo(){
   const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
   const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
@@ -667,19 +688,20 @@ function htmlClubeCorpo(){
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
-        <div id="presenca-wrap"><span class="spin">⟳</span></div>
-        <div class="card" style="margin-top:10px">
-          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
-            <span>📍 Lançar km avulso</span><span id="km-avulso-ic">▼</span>
+        <div class="card" style="margin-bottom:10px">
+          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
+            <span>➕ Lançar km avulso</span><span id="km-avulso-ic">▲</span>
           </button>
-          <div id="km-avulso-wrap" style="display:none;margin-top:12px">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Use para saídas fora de evento. O botão "Compareceu" já lança km dos eventos automaticamente.</div>
+          <div id="km-avulso-wrap" style="display:block;margin-top:12px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Para saídas fora de evento. O botão "Compareceu" já lança km dos eventos.</div>
             ${htmlLancarKm()}
           </div>
-        </div>`:""}
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏁 Eventos — Presença</div>
+        <div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
 
       ${TA==="usuarios"?htmlUsuarios():""}
-      ${TA==="eventos"?`<div>${EVENTOS.length===0?'<p style="font-size:13px;color:#555">Nenhum evento cadastrado.</p>':EVENTOS.map(ev=>evCardMembro(ev)).join("")}</div>`:""}
+      ${TA==="eventos"?`<div>${htmlEventosSplit()}</div>`:""}
       ${TA==="honra"?htmlPlacaHonra():""}
       ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
       ${TA==="galeria"?htmlGaleria():""}
@@ -785,7 +807,7 @@ function renderDiretor(el){
       ${htmlAniversariosInicio()}
       <div class="card">
         <div class="sec-title">📅 Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -828,8 +850,7 @@ function renderDiretor(el){
         <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
       </div>
       <div id="ev-lista-wrap">
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+        ${htmlEventosSplit(true)}
       </div>
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
@@ -1362,7 +1383,7 @@ function renderBarman(el){
       ${htmlAniversariosInicio()}
       <div class="card">
         <div class="sec-title">📅 Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1405,8 +1426,7 @@ function renderBarman(el){
         <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
       </div>
       <div id="ev-lista-wrap">
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+        ${htmlEventosSplit(true)}
       </div>
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
@@ -1596,7 +1616,7 @@ function renderMembro(el){
       ${htmlAniversariosInicio()}
       <div class="card">
         <div class="sec-title">📅 Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="sim"?"✅":c2==="nao"?"❌":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1639,8 +1659,7 @@ function renderMembro(el){
         <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
       </div>
       <div id="ev-lista-wrap">
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-        ${EVENTOS.map(ev=>evCardMembro(ev)).join("")}
+        ${htmlEventosSplit(true)}
       </div>
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
@@ -3437,9 +3456,9 @@ window.toggleKmAvulso=()=>{
   const wrap=document.getElementById("km-avulso-wrap");
   const ic=document.getElementById("km-avulso-ic");
   if(!wrap)return;
-  const open=wrap.style.display==="none";
-  wrap.style.display=open?"block":"none";
-  if(ic)ic.textContent=open?"▲":"▼";
+  const fechando=wrap.style.display!=="none";
+  wrap.style.display=fechando?"none":"block";
+  if(ic)ic.textContent=fechando?"▼":"▲";
 };
 window.setTM=t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";render();};
 window.toggleEvDet=id=>{const el=document.getElementById(id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
@@ -4355,6 +4374,39 @@ function _presCardMembro(p,ev,status){
   </div>`;
 }
 
+function _htmlPresencaEvento(ev,pDocs){
+  const normaliza=r=>r==="sim"?"confirmado":r==="nao"?"desistiu":r||"pendente";
+  const compareceram=pDocs.filter(p=>p.compareceu||p.resposta==="compareceu");
+  const confirmados=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado"));
+  const desistiram=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu"));
+  const responderam=new Set(pDocs.map(p=>p.membroId));
+  const semResp=MEMBROS.filter(m=>!responderam.has(m.uid));
+  const secao=(titulo,cor,lista,statusFn)=>lista.length?`
+    <div style="font-size:10px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">${titulo} (${lista.length})</div>
+    ${lista.map(p=>_presCardMembro(p,ev,statusFn(p))).join("")}`:"";
+  return`${confirmados.length?`<button onclick="window.confirmarTodosPresentes(${ev.id})" style="width:100%;padding:11px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:rgba(76,175,125,.12);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:6px">🏁 Confirmar todos os confirmados (${confirmados.length})</button>`:""}
+    ${secao("🟢 Compareceram","var(--green)",compareceram,()=>"compareceu")}
+    ${secao("🟡 Confirmados","#f5c518",confirmados,p=>normaliza(p.resposta))}
+    ${secao("🔴 Desistiram","var(--danger)",desistiram,p=>normaliza(p.resposta))}
+    ${semResp.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">⚪ SEM RESPOSTA (${semResp.length})</div>${semResp.map(m=>_presCardMembro({membroId:m.uid,apelido:m.apelido,registroId:null,kmLancado:0},ev,"pendente")).join("")}`:""}
+    <div style="font-size:10px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">🟢${compareceram.length} · 🟡${confirmados.length} · 🔴${desistiram.length} · ⚪${semResp.length}</div>`;
+}
+
+window.togglePresAcc=(evId)=>{
+  document.querySelectorAll("[id^='pres-acc-body-']").forEach(el=>{if(el.id!==`pres-acc-body-${evId}`)el.style.display="none";});
+  document.querySelectorAll("[id^='pres-acc-ic-']").forEach(el=>{if(el.id!==`pres-acc-ic-${evId}`)el.textContent="▼";});
+  const body=document.getElementById(`pres-acc-body-${evId}`);
+  const ic=document.getElementById(`pres-acc-ic-${evId}`);
+  if(!body)return;
+  const open=body.style.display==="none";
+  body.style.display=open?"block":"none";
+  if(ic)ic.textContent=open?"▲":"▼";
+};
+window.togglePresAnteriores=()=>{
+  const w=document.getElementById("pres-ant-wrap"),ic=document.getElementById("pres-ant-ic");
+  if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
+};
+
 async function carregarPresencasAdmin(){
   const wrap=document.getElementById("presenca-wrap");
   if(!wrap)return;
@@ -4362,40 +4414,46 @@ async function carregarPresencasAdmin(){
   try{
     const hoje=new Date().toISOString().slice(0,10);
     const futuros=EVENTOS.filter(e=>e.data>=hoje&&e.destino!=="A confirmar");
-    if(!futuros.length){wrap.innerHTML=`<div style="font-size:13px;color:#555">Nenhum evento futuro.</div>`;return;}
+    const passados=EVENTOS.filter(e=>e.data<hoje).reverse();
+    if(!futuros.length&&!passados.length){wrap.innerHTML=`<div style="font-size:13px;color:#555">Nenhum evento.</div>`;return;}
+    // Carrega todos os futuros em paralelo
+    const snaps=await Promise.all(futuros.map(ev=>getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)))));
     let html="";
-    for(const ev of futuros){
-      const pSnap=await getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)));
-      const presMap={};
-      pSnap.docs.forEach(d=>{const r=d.data();presMap[r.membroId]=r;});
-      const normaliza=r=>r==="sim"?"confirmado":r==="nao"?"desistiu":r||"pendente";
-      const compareceram=pSnap.docs.map(d=>d.data()).filter(p=>p.compareceu||p.resposta==="compareceu");
-      const confirmados=pSnap.docs.map(d=>d.data()).filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado"));
-      const desistiram=pSnap.docs.map(d=>d.data()).filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu"));
-      const responderam=new Set(pSnap.docs.map(d=>d.data().membroId));
-      const semResp=MEMBROS.filter(m=>!responderam.has(m.uid));
-
-      const secao=(titulo,cor,lista,statusFn)=>lista.length?`
-        <div style="font-size:10px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">${titulo} (${lista.length})</div>
-        ${lista.map(p=>_presCardMembro(p,ev,statusFn(p))).join("")}`:"";
-
-      html+=`<div class="card" style="margin-bottom:12px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:2px">${ev.nome}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${fmtDate(ev.data)} · ${ev.destino}</div>
-        ${confirmados.length?`<button onclick="window.confirmarTodosPresentes(${ev.id})" style="width:100%;padding:11px;border-radius:8px;border:none;background:rgba(76,175,125,.15);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:4px;border:1px solid rgba(76,175,125,.3)">🏁 Confirmar todos os confirmados (${confirmados.length})</button>`:""}
-        ${secao("🟢 Compareceram","var(--green)",compareceram,()=>"compareceu")}
-        ${secao("🟡 Confirmados","#f5c518",confirmados,p=>normaliza(p.resposta))}
-        ${secao("🔴 Desistiram","var(--danger)",desistiram,p=>normaliza(p.resposta))}
-        ${semResp.length?`
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">⚪ SEM RESPOSTA (${semResp.length})</div>
-          ${semResp.map(m=>{
-            const fake={membroId:m.uid,apelido:m.apelido,registroId:null,kmLancado:0};
-            return _presCardMembro(fake,ev,"pendente");
-          }).join("")}`:""}
-        <div style="font-size:10px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
-          🟢 ${compareceram.length} compareceram · 🟡 ${confirmados.length} confirmados · 🔴 ${desistiram.length} desistiram · ⚪ ${semResp.length} sem resposta
+    futuros.forEach((ev,i)=>{
+      const pDocs=snaps[i].docs.map(d=>d.data());
+      const nComp=pDocs.filter(p=>p.compareceu||p.resposta==="compareceu").length;
+      const nConf=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado")).length;
+      const nDes=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu")).length;
+      const isFirst=i===0;
+      html+=`<div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <button onclick="window.togglePresAcc(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nome}</div>
+            <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+            ${nComp?`<span style="background:rgba(76,175,125,.2);color:var(--green);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟢${nComp}</span>`:""}
+            ${nConf?`<span style="background:rgba(245,197,24,.15);color:#f5c518;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟡${nConf}</span>`:""}
+            ${nDes?`<span style="background:rgba(224,82,82,.1);color:var(--danger);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🔴${nDes}</span>`:""}
+            <span id="pres-acc-ic-${ev.id}" style="color:var(--muted);font-size:12px;margin-left:2px">${isFirst?"▲":"▼"}</span>
+          </div>
+        </button>
+        <div id="pres-acc-body-${ev.id}" style="display:${isFirst?"block":"none"};padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3)">
+          ${_htmlPresencaEvento(ev,pDocs)}
         </div>
       </div>`;
+    });
+    if(passados.length){
+      html+=`<div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
+        <button onclick="window.togglePresAnteriores()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.5px;padding:4px 0;margin-bottom:6px">
+          <span>📋 EVENTOS ANTERIORES (${passados.length})</span><span id="pres-ant-ic">▼</span>
+        </button>
+        <div id="pres-ant-wrap" style="display:none">
+          ${passados.map(ev=>`<div style="border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;opacity:.6">
+            <div style="font-size:12px;font-weight:600;color:var(--muted)">${ev.nome}</div>
+            <div style="font-size:11px;color:#555">${fmtDate(ev.data)} · ${ev.destino}</div>
+          </div>`).join("")}
+        </div>`;
     }
     wrap.innerHTML=html;
   }catch(e){console.error(e);wrap.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
