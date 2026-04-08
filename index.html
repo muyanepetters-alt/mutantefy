@@ -153,8 +153,13 @@ select option{background:var(--bg2);color:var(--white)}
 .btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
 .btn-edit{padding:6px 10px;border-radius:6px;border:1px solid rgba(232,103,10,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit}
 .ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer}
-.ev-card.ev-sim{border-color:var(--green);background:rgba(76,175,125,.05)}
-.ev-card.ev-nao{border-color:var(--danger);background:rgba(224,82,82,.05)}
+.ev-card.ev-sim,.ev-card.ev-confirmado{border-color:var(--green);background:rgba(76,175,125,.05)}
+.ev-card.ev-nao,.ev-card.ev-desistiu{border-color:var(--danger);background:rgba(224,82,82,.05)}
+.ev-card.ev-compareceu{border-color:#2d6e4f;background:rgba(76,175,125,.1)}
+.pres-compareceu{background:rgba(76,175,125,.2);border:1px solid rgba(76,175,125,.5);color:var(--green)}
+.pres-desistiu{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
+.pres-pendente{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
+.pres-confirmado{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
 .hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
 .km-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
 .edit-box{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid rgba(232,103,10,.3);display:none}
@@ -210,7 +215,7 @@ select option{background:var(--bg2);color:var(--white)}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,query,where,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,query,where,orderBy,serverTimestamp,limit,startAfter}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
 const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-mc.firebaseapp.com",projectId:"mutantes-mc",storageBucket:"mutantes-mc.firebasestorage.app",messagingSenderId:"696991823272",appId:"1:696991823272:web:174f19e5178c495e2a999d"};
@@ -376,12 +381,14 @@ function htmlRota(c,dest,pedInfo,eventoId){
 }
 
 function evCardMembro(ev){
-  const conf=CONF[ev.id]||"";
+  const confRaw=CONF[ev.id]||"pendente";
+  // normaliza valores legados
+  const conf=confRaw==="sim"?"confirmado":confRaw==="nao"?"desistiu":confRaw;
   const auto=parseFloat(UP.autonomia)||0,tanque=parseFloat(UP.tanque)||0;
   const calc=auto&&tanque&&ev.dist?calcRota(ev.dist,auto,tanque,ev.estado,PEDAGIOS_CUSTOM[ev.id]??ev.ped):null;
-  const cls="ev-card"+(conf==="sim"?" ev-sim":conf==="nao"?" ev-nao":"");
-  const icon=conf==="sim"?"✅":conf==="nao"?"❌":"📅";
-  const badge=conf==="sim"?`<span class="badge badge-gr">Vou!</span>`:conf==="nao"?`<span class="badge pres-nao">Não vou</span>`:`<span class="badge" style="background:var(--bg3);color:#888;border:1px solid var(--border)">Pendente</span>`;
+  const cls="ev-card"+(conf==="confirmado"?" ev-confirmado":conf==="desistiu"?" ev-desistiu":conf==="compareceu"?" ev-compareceu":"");
+  const icon=conf==="confirmado"?"✅":conf==="desistiu"?"❌":conf==="compareceu"?"🏁":"📅";
+  const badge=conf==="confirmado"?`<span class="badge badge-gr">✅ Vou!</span>`:conf==="desistiu"?`<span class="badge pres-nao">❌ Não vou</span>`:conf==="compareceu"?`<span class="badge pres-compareceu">🏁 Compareceu</span>`:`<span class="badge pres-pendente">Pendente</span>`;
   const enc=ENCONTROS[ev.id];
   // Dias faltando
   const hoje=new Date();hoje.setHours(0,0,0,0);
@@ -413,10 +420,24 @@ function evCardMembro(ev){
       </div>`:""}
       ${calc?`<div class="rota-result">${htmlRota(calc,ev.destino,ev.pedInfo)}</div>`:`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os custos.</div>`}
       ${ev.dist>0&&COORDS_EVENTOS[ev.id]?`<button style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(232,103,10,.4);background:rgba(232,103,10,.08);color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;margin-bottom:2px" onclick="event.stopPropagation();window.toggleMapaEvento(${ev.id})">🗺️ Ver rota no mapa</button><div id="ev-mapa-${ev.id}" style="height:240px;border-radius:8px;margin-top:6px;display:none;overflow:hidden"></div>`:""}
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button style="flex:1;padding:10px;border-radius:8px;border:none;background:${conf==="sim"?"#2a6e3f":"var(--orange)"};color:#fff;font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'sim')">✅ Vou!</button>
-        <button style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'nao')">❌ Não vou</button>
-      </div>
+      ${conf==="pendente"?`
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button style="flex:1;padding:14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'confirmado')">✅ Vou nessa!</button>
+          <button style="padding:14px 16px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">❌ Não vou</button>
+        </div>`
+      :conf==="confirmado"?`
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:stretch">
+          <div style="flex:1;padding:13px 14px;background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.35);border-radius:10px;font-size:13px;font-weight:700;color:var(--green)">✅ Você confirmou presença!</div>
+          <button style="padding:12px 14px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">🔴 Desistir</button>
+        </div>`
+      :conf==="desistiu"?`
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:stretch">
+          <div style="flex:1;padding:13px 14px;background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.35);border-radius:10px;font-size:13px;font-weight:700;color:var(--danger)">🔴 Você desistiu</div>
+          <button style="padding:12px 14px;border-radius:10px;border:1px solid var(--orange);background:transparent;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'confirmado')">↩️ Voltar atrás</button>
+        </div>`
+      :conf==="compareceu"?`
+        <div style="margin-top:10px;padding:13px 14px;background:rgba(76,175,125,.15);border:1px solid rgba(76,175,125,.45);border-radius:10px;font-size:13px;font-weight:700;color:var(--green);text-align:center">🏁 Presença confirmada!${ev.dist>0?` +${toInt(ev.dist*2)} km`:""}</div>`
+      :""}
     </div>
   </div>`;
 }
@@ -2202,21 +2223,70 @@ function htmlGaleria(){
   </div>`;
 }
 
+const GALERIA_POR_PAG=30;
+let _galeriaCursor=null,_galeriaFiltro=null;
+
+function _fotoHtml(f){
+  return`<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer" onclick="window.open('${f.url}','_blank')">
+    <img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>
+    ${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}
+  </div>`;
+}
+
+function _galeriaBtnMais(){
+  const wrap=document.createElement("div");
+  wrap.style.cssText="grid-column:1/-1;text-align:center;padding:10px 0";
+  wrap.innerHTML=`<button id="galeria-mais-btn" onclick="window.carregarMaisGaleria()" style="padding:8px 22px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Carregar mais</button>`;
+  return wrap;
+}
+
+function _galeriaQuery(cursor){
+  const base=[collection(db,"galeria"),orderBy("criadoEm","desc")];
+  if(_galeriaFiltro&&_galeriaFiltro!=="geral")base.splice(1,0,where("eventoId","==",_galeriaFiltro));
+  if(cursor)base.push(startAfter(cursor));
+  base.push(limit(GALERIA_POR_PAG));
+  return query(...base);
+}
+
 async function carregarGaleria(eventoId){
+  _galeriaFiltro=eventoId||null;
+  _galeriaCursor=null;
   const el=document.getElementById("galeria-grid");
   if(!el)return;
   el.innerHTML=`<span class="spin">⟳</span>`;
   try{
-    const snap=await getDocs(query(collection(db,"galeria"),orderBy("criadoEm","desc")));
-    const fotos=snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(f=>!eventoId||(eventoId==="geral"?(!f.eventoId||f.eventoId==="geral"):f.eventoId===eventoId));
+    const snap=await getDocs(_galeriaQuery(null));
+    let fotos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(_galeriaFiltro==="geral")fotos=fotos.filter(f=>!f.eventoId||f.eventoId==="geral");
+    _galeriaCursor=snap.docs.length===GALERIA_POR_PAG?snap.docs[snap.docs.length-1]:null;
     if(fotos.length===0){el.innerHTML=`<div style="grid-column:1/-1;font-size:12px;color:#555;padding:10px 0">Nenhuma foto ainda. Seja o primeiro a postar!</div>`;return;}
-    el.innerHTML=fotos.map(f=>`<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer" onclick="window.open('${f.url}','_blank')">
-      <img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>
-      ${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}
-    </div>`).join("");
+    el.innerHTML=fotos.map(_fotoHtml).join("");
+    if(_galeriaCursor)el.appendChild(_galeriaBtnMais());
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
 }
+
+window.carregarMaisGaleria=async()=>{
+  if(!_galeriaCursor)return;
+  const el=document.getElementById("galeria-grid");
+  const btn=document.getElementById("galeria-mais-btn");
+  if(!el||!btn)return;
+  btn.textContent="Carregando...";btn.disabled=true;
+  try{
+    const snap=await getDocs(_galeriaQuery(_galeriaCursor));
+    let fotos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(_galeriaFiltro==="geral")fotos=fotos.filter(f=>!f.eventoId||f.eventoId==="geral");
+    _galeriaCursor=snap.docs.length===GALERIA_POR_PAG?snap.docs[snap.docs.length-1]:null;
+    btn.parentElement.remove();
+    fotos.forEach(f=>{
+      const div=document.createElement("div");
+      div.style.cssText="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer";
+      div.onclick=()=>window.open(f.url,"_blank");
+      div.innerHTML=`<img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}`;
+      el.appendChild(div);
+    });
+    if(_galeriaCursor)el.appendChild(_galeriaBtnMais());
+  }catch{btn.textContent="Carregar mais";btn.disabled=false;}
+};
 
 window.filtrarGaleria=()=>{
   const val=document.getElementById("galeria-filtro-evento")?.value;
@@ -3564,18 +3634,18 @@ window.trocarFoto=async(uid,apelido)=>{
     });
   };input.click();
 };
-window.confirmarPresenca=async(eventoId,resposta)=>{
+window.confirmarPresenca=async(eventoId,status)=>{
   const ev=EVENTOS.find(e=>e.id===eventoId);
   try{
-    await setDoc(doc(db,"presencas",CU.uid+"_"+eventoId),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta,updatedAt:serverTimestamp()});
-    await addDoc(collection(db,"notificacoes"),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta,lida:false,createdAt:serverTimestamp()});
-    CONF[eventoId]=resposta;
-    showToast(resposta==="sim"?"✅ Presença confirmada!":"❌ Ausência registrada.");render();
-    // Push para o admin
+    await setDoc(doc(db,"presencas",CU.uid+"_"+eventoId),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta:status,updatedAt:serverTimestamp()});
+    await addDoc(collection(db,"notificacoes"),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta:status,lida:false,createdAt:serverTimestamp()});
+    CONF[eventoId]=status;
+    const msgs={confirmado:"✅ Presença confirmada!",desistiu:"🔴 Ausência registrada."};
+    showToast(msgs[status]||"✓ Atualizado.");render();
     const adminTokens=await getTokenAdmin();
-    const emoji=resposta==="sim"?"✅":"❌";
-    dispararPush(emoji+" Confirmação de presença",`${UP.apelido} ${resposta==="sim"?"confirmou":"recusou"} presença em ${ev.nome}`,adminTokens);
-    registrarLog("presenca_confirmada",`${resposta==="sim"?"confirmou":"recusou"} presença`,ev.nome);
+    const emoji=status==="confirmado"?"✅":"🔴";
+    dispararPush(emoji+" Confirmação de presença",`${UP.apelido} ${status==="confirmado"?"confirmou":"desistiu de"} ${ev.nome}`,adminTokens);
+    registrarLog("presenca_confirmada",`${status==="confirmado"?"confirmou":"desistiu de"} presença`,ev.nome);
   }catch{showToast("Erro ao confirmar.",true);}
 };
 window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
@@ -3592,7 +3662,7 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
     const nt=(m?.totalKm||0)+km;
     await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
-    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
+    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
     showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
     await carregarPresencasAdmin();
     // Push para o membro
@@ -3613,7 +3683,7 @@ window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
     const nt=Math.max(0,(m?.totalKm||0)-km);
     await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
-    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{compareceu:false,registroId:null,kmLancado:0},{merge:true});
+    await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"confirmado",compareceu:false,registroId:null,kmLancado:0},{merge:true});
     showToast("✓ Lançamento excluído.");
     await carregarPresencasAdmin();
   }catch(e){showToast("Erro ao excluir.",true);}
@@ -4227,7 +4297,11 @@ async function carregarConfirmacoes(){
   if(!CU||!UP)return;
   try{
     const snap=await getDocs(query(collection(db,"presencas"),where("membroId","==",CU.uid)));
-    CONF={};snap.docs.forEach(d=>{CONF[d.data().eventoId]=d.data().resposta;});
+    CONF={};snap.docs.forEach(d=>{
+      const r=d.data().resposta;
+      // normaliza legados: "sim"→"confirmado", "nao"→"desistiu"
+      CONF[d.data().eventoId]=r==="sim"?"confirmado":r==="nao"?"desistiu":r||"pendente";
+    });
   }catch{}
   try{
     const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("membroId","==",CU.uid)));
@@ -4240,40 +4314,86 @@ async function carregarConfirmacoes(){
     });
   }catch{}
 }
+function _presCardMembro(p,ev,status){
+  const m=MEMBROS.find(m=>m.uid===p.membroId)||{apelido:p.apelido||"?",fotoUrl:null};
+  const statusCfg={
+    compareceu:{cls:"pres-compareceu",label:`🏁 Compareceu · ${toInt(p.kmLancado||0)} km`},
+    confirmado:{cls:"pres-confirmado",label:"🟡 Confirmado"},
+    sim:{cls:"pres-confirmado",label:"🟡 Confirmado"},
+    desistiu:{cls:"pres-desistiu",label:"🔴 Desistiu"},
+    nao:{cls:"pres-desistiu",label:"🔴 Desistiu"},
+    pendente:{cls:"pres-pendente",label:"⚪ Sem resposta"},
+  };
+  const cfg=statusCfg[status]||statusCfg.pendente;
+  const acoes=status==="compareceu"
+    ?`<button onclick="window.excluirComparecimento('${p.membroId}','${m.apelido}',${ev.id},'${p.registroId||""}',${p.kmLancado||0})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✕ Desfazer</button>`
+    :`<button id="btn-comp-${p.membroId}-${ev.id}" onclick="window.registrarComparecimento('${p.membroId}','${m.apelido}',${ev.id})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✓ Compareceu</button>`;
+  return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+    ${avatarEl(m.fotoUrl,m.apelido,36)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.apelido}</div>
+      <span class="pres-badge ${cfg.cls}" style="font-size:10px;padding:2px 8px;margin:0">${cfg.label}</span>
+    </div>
+    ${acoes}
+  </div>`;
+}
+
 async function carregarPresencasAdmin(){
   const wrap=document.getElementById("presenca-wrap");
   if(!wrap)return;
+  wrap.innerHTML=`<span class="spin">⟳</span>`;
   try{
     const hoje=new Date().toISOString().slice(0,10);
-    const futuros=EVENTOS.filter(e=>e.data>=hoje);
+    const futuros=EVENTOS.filter(e=>e.data>=hoje&&e.destino!=="A confirmar");
+    if(!futuros.length){wrap.innerHTML=`<div style="font-size:13px;color:#555">Nenhum evento futuro.</div>`;return;}
     let html="";
     for(const ev of futuros){
       const pSnap=await getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)));
-      const presencas=pSnap.docs.map(d=>d.data());
-      const vao=presencas.filter(p=>p.resposta==="sim");
-      const naoVao=presencas.filter(p=>p.resposta==="nao");
-      const semResp=MEMBROS.length-presencas.length;
-      html+=`<div class="card" style="margin-bottom:10px">
-        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${ev.nome}</div>
+      const presMap={};
+      pSnap.docs.forEach(d=>{const r=d.data();presMap[r.membroId]=r;});
+      const normaliza=r=>r==="sim"?"confirmado":r==="nao"?"desistiu":r||"pendente";
+      const compareceram=pSnap.docs.map(d=>d.data()).filter(p=>p.compareceu||p.resposta==="compareceu");
+      const confirmados=pSnap.docs.map(d=>d.data()).filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado"));
+      const desistiram=pSnap.docs.map(d=>d.data()).filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu"));
+      const responderam=new Set(pSnap.docs.map(d=>d.data().membroId));
+      const semResp=MEMBROS.filter(m=>!responderam.has(m.uid));
+
+      const secao=(titulo,cor,lista,statusFn)=>lista.length?`
+        <div style="font-size:10px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">${titulo} (${lista.length})</div>
+        ${lista.map(p=>_presCardMembro(p,ev,statusFn(p))).join("")}`:"";
+
+      html+=`<div class="card" style="margin-bottom:12px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:2px">${ev.nome}</div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${fmtDate(ev.data)} · ${ev.destino}</div>
-        <div id="pres-${ev.id}">
-          ${presencas.length===0?`<span style="font-size:12px;color:#555">Sem respostas ainda.</span>`:`
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
-            ${vao.map(p=>`<span class="pres-badge pres-sim" style="display:flex;align-items:center;gap:4px">✅ ${p.apelido}
-              ${p.compareceu
-                ?`<span style="font-size:10px;color:var(--green)">${toInt(p.kmLancado||0)}km</span>
-                   <button onclick="window.excluirComparecimento('${p.membroId}','${p.apelido}',${ev.id},'${p.registroId||""}',${p.kmLancado||0})" style="font-size:9px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`
-                :`<button id="btn-comp-${p.membroId}-${ev.id}" onclick="window.registrarComparecimento('${p.membroId}','${p.apelido}',${ev.id})" style="font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-weight:600">🏁 Comp.</button>`}
-            </span>`).join("")}
-            ${naoVao.map(p=>`<span class="pres-badge pres-nao">❌ ${p.apelido}</span>`).join("")}
-          </div>
-          <div style="font-size:10px;color:var(--muted)">✅ ${vao.length} · ❌ ${naoVao.length} · ⏳ ${semResp} sem resposta</div>`}
+        ${confirmados.length?`<button onclick="window.confirmarTodosPresentes(${ev.id})" style="width:100%;padding:11px;border-radius:8px;border:none;background:rgba(76,175,125,.15);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:4px;border:1px solid rgba(76,175,125,.3)">🏁 Confirmar todos os confirmados (${confirmados.length})</button>`:""}
+        ${secao("🟢 Compareceram","var(--green)",compareceram,()=>"compareceu")}
+        ${secao("🟡 Confirmados","#f5c518",confirmados,p=>normaliza(p.resposta))}
+        ${secao("🔴 Desistiram","var(--danger)",desistiram,p=>normaliza(p.resposta))}
+        ${semResp.length?`
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">⚪ SEM RESPOSTA (${semResp.length})</div>
+          ${semResp.map(m=>{
+            const fake={membroId:m.uid,apelido:m.apelido,registroId:null,kmLancado:0};
+            return _presCardMembro(fake,ev,"pendente");
+          }).join("")}`:""}
+        <div style="font-size:10px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+          🟢 ${compareceram.length} compareceram · 🟡 ${confirmados.length} confirmados · 🔴 ${desistiram.length} desistiram · ⚪ ${semResp.length} sem resposta
         </div>
       </div>`;
     }
-    wrap.innerHTML=html||`<div style="font-size:13px;color:#555">Nenhum evento futuro.</div>`;
+    wrap.innerHTML=html;
   }catch(e){console.error(e);wrap.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
 }
+
+window.confirmarTodosPresentes=async(eventoId)=>{
+  const ev=EVENTOS.find(e=>e.id===eventoId);
+  if(!confirm(`Confirmar presença de todos os confirmados em "${ev.nome}"?`))return;
+  showToast("Confirmando...");
+  const pSnap=await getDocs(query(collection(db,"presencas"),where("eventoId","==",eventoId)));
+  const confirmados=pSnap.docs.map(d=>d.data()).filter(p=>!p.compareceu&&(p.resposta==="sim"||p.resposta==="confirmado"));
+  for(const p of confirmados){
+    await window.registrarComparecimento(p.membroId,p.apelido,eventoId);
+  }
+};
       
 onAuthStateChanged(auth,async user=>{
   // Mostrar splash com logo
