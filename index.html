@@ -194,6 +194,8 @@ select option{background:var(--bg2);color:var(--white)}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id="splash" class="splash">
@@ -296,6 +298,20 @@ const EVENTOS=[
   {id:11,data:"2026-12-12",nome:"Festa Final de Ano – Indaial",destino:"Indaial - SC",sm:false,dist:71,estado:"SC",ped:5,pedInfo:"BR-470 ~1 praça"},
 ];
 
+const COORD_ITAJAI=[-26.9078,-48.6619];
+const COORDS_EVENTOS={
+  1:[-29.7572,-57.0882], // Uruguaiana RS
+  2:[-28.8166,-52.5079], // Soledade RS
+  3:[-26.1333,-51.2333], // Porto Vitória PR
+  4:[-27.6344,-52.2734], // Erechim RS
+  5:[-27.6574,-49.0083], // Rancho Queimado SC
+  6:[-28.4679,-49.0148], // Tubarão SC
+  7:[-16.6868,-49.2648], // Goiânia GO
+  8:null,                // A confirmar
+  9:[-27.8159,-50.3258], // Lages SC
+  10:[-27.8159,-50.3258],// Lages SC
+  11:[-26.8978,-49.2375],// Indaial SC
+};
 let PRECOS_GAS={SC:6.20,RS:6.15,PR:6.18,GO:6.25};
 let PEDAGIOS_CUSTOM={}; // overrides do admin salvos no Firestore
 
@@ -781,6 +797,10 @@ function renderDiretor(el){
           ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
         </select>
         <div id="rm-result"></div>
+      </div>
+      <div id="mapa-card" class="card" style="display:none;padding:0;overflow:hidden">
+        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">🗺️ Rota no mapa</div>
+        <div id="ev-mapa" style="height:260px;width:100%"></div>
       </div>
       <div class="card">
         <div class="sec-title">⚙️ Rota personalizada</div>
@@ -1341,6 +1361,10 @@ function renderBarman(el){
         </select>
         <div id="rm-result"></div>
       </div>
+      <div id="mapa-card" class="card" style="display:none;padding:0;overflow:hidden">
+        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">🗺️ Rota no mapa</div>
+        <div id="ev-mapa" style="height:260px;width:100%"></div>
+      </div>
       <div class="card">
         <div class="sec-title">⚙️ Rota personalizada</div>
         <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
@@ -1556,6 +1580,10 @@ function renderMembro(el){
           ${EVENTOS.filter(e=>e.dist>0).map(e=>`<option value="${e.id}" data-dist="${e.dist}" data-dest="${e.destino}" data-estado="${e.estado}" data-ped="${PEDAGIOS_CUSTOM[e.id]??e.ped}" data-pedinfo="${e.pedInfo||""}">${e.nome} · ${toInt(e.dist*2)} km</option>`).join("")}
         </select>
         <div id="rm-result"></div>
+      </div>
+      <div id="mapa-card" class="card" style="display:none;padding:0;overflow:hidden">
+        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">🗺️ Rota no mapa</div>
+        <div id="ev-mapa" style="height:260px;width:100%"></div>
       </div>
       <div class="card">
         <div class="sec-title">⚙️ Rota personalizada</div>
@@ -3053,6 +3081,10 @@ function htmlRotaAdmin(){
     </select>
     <div id="rm-result"></div>
   </div>
+  <div id="mapa-card" class="card" style="display:none;padding:0;overflow:hidden">
+    <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">🗺️ Rota no mapa</div>
+    <div id="ev-mapa" style="height:260px;width:100%"></div>
+  </div>
   <div class="card">
     <div class="sec-title">⚙️ Rota personalizada</div>
     <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
@@ -3710,13 +3742,50 @@ window.calcAdminCustom=()=>{
   if(!auto||!tanque){res.innerHTML=`<div class="hint-box">⚙️ Integrante sem configuração de moto.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,auto,tanque,"SC"),dest)}</div>`;
 };
+let _mapa=null;
+async function atualizarMapaRota(evId,destCoords,nome,pedInfo){
+  const card=document.getElementById("mapa-card");
+  const el=document.getElementById("ev-mapa");
+  if(!card||!el||!destCoords){if(card)card.style.display="none";return;}
+  card.style.display="block";
+  if(_mapa&&!document.body.contains(_mapa.getContainer())){_mapa.remove();_mapa=null;}
+  if(!_mapa){
+    _mapa=L.map(el,{zoomControl:true,attributionControl:false});
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(_mapa);
+  } else {
+    _mapa.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.Polyline)_mapa.removeLayer(l);});
+    setTimeout(()=>_mapa.invalidateSize(),100);
+  }
+  const dot=L.divIcon({className:"",html:'<div style="width:12px;height:12px;background:#e8670a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px #000"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+  L.marker(COORD_ITAJAI,{icon:dot}).addTo(_mapa).bindPopup("<b>Itajaí - SC</b><br>Ponto de partida");
+  L.marker(destCoords,{icon:dot}).addTo(_mapa).bindPopup(`<b>${nome}</b>`);
+  try{
+    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${COORD_ITAJAI[1]},${COORD_ITAJAI[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson`);
+    const d=await r.json();
+    if(d.routes?.[0]){
+      const pts=d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+      const poly=L.polyline(pts,{color:"#e8670a",weight:4,opacity:.85}).addTo(_mapa);
+      poly.bindPopup(`<b>${nome}</b>${pedInfo?`<br><small style="color:#aaa">${pedInfo}</small>`:""}`);
+      _mapa.fitBounds(poly.getBounds(),{padding:[20,20]});
+    }else throw"sem rota";
+  }catch{
+    const poly=L.polyline([COORD_ITAJAI,destCoords],{color:"#e8670a",weight:3,dashArray:"8,5",opacity:.7}).addTo(_mapa);
+    poly.bindPopup(`<b>${nome}</b>${pedInfo?`<br><small style="color:#aaa">${pedInfo}</small>`:""}`);
+    _mapa.fitBounds(L.latLngBounds([COORD_ITAJAI,destCoords]),{padding:[30,30]});
+  }
+}
 window.calcMembroEvento=()=>{
   const sel=document.getElementById("rm-evento");
   const res=document.getElementById("rm-result");
-  if(!res||!sel?.value){if(res)res.innerHTML="";return;}
+  const card=document.getElementById("mapa-card");
+  if(!res||!sel?.value){if(res)res.innerHTML="";if(card)card.style.display="none";return;}
   const opt=sel.options[sel.selectedIndex];
   if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">⚙️ Configure sua moto na aba Perfil.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(parseFloat(opt.dataset.dist),parseFloat(UP.autonomia),parseFloat(UP.tanque),opt.dataset.estado,parseFloat(opt.dataset.ped)||null),opt.dataset.dest,opt.dataset.pedinfo)}</div>`;
+  const evId=parseInt(sel.value);
+  const coords=COORDS_EVENTOS[evId];
+  const nome=opt.text.split(" · ")[0];
+  atualizarMapaRota(evId,coords,nome,opt.dataset.pedinfo);
 };
 window.calcMembroCustom=()=>{
   const dist=parseFloat(document.getElementById("rm-dist")?.value);
