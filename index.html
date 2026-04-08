@@ -728,8 +728,22 @@ function renderDiretor(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
-          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
+              <option value="Itajaí,SC">📍 Itajaí, SC</option>
+              <option value="Tubarão,SC">Tubarão, SC</option>
+              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
+              <option value="Lages,SC">Lages, SC</option>
+              <option value="Indaial,SC">Indaial, SC</option>
+              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
+              <option value="Erechim,RS">Erechim, RS</option>
+              <option value="Soledade,RS">Soledade, RS</option>
+              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
+              <option value="Goiânia,GO">Goiânia, GO</option>
+            </select>
+            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          </div>
         </div>
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
@@ -878,7 +892,7 @@ function renderDiretor(el){
           <label>🎖️ Nível no clube</label>
           <select id="m-cargo" style="margin-bottom:8px">
             <option value="">Selecione seu nível...</option>
-            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Escudo" ${UP.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
           </select>
           <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
         </div>
@@ -1291,8 +1305,22 @@ function renderBarman(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
-          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
+              <option value="Itajaí,SC">📍 Itajaí, SC</option>
+              <option value="Tubarão,SC">Tubarão, SC</option>
+              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
+              <option value="Lages,SC">Lages, SC</option>
+              <option value="Indaial,SC">Indaial, SC</option>
+              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
+              <option value="Erechim,RS">Erechim, RS</option>
+              <option value="Soledade,RS">Soledade, RS</option>
+              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
+              <option value="Goiânia,GO">Goiânia, GO</option>
+            </select>
+            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          </div>
         </div>
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
@@ -1449,7 +1477,7 @@ function renderBarman(el){
           <label>🎖️ Nível no clube</label>
           <select id="m-cargo" style="margin-bottom:8px">
             <option value="">Selecione seu nível...</option>
-            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Escudo" ${UP.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
           </select>
           <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
         </div>
@@ -1511,8 +1539,22 @@ function renderMembro(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima — Itajaí, SC</div>
-          <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
+              <option value="Itajaí,SC">📍 Itajaí, SC</option>
+              <option value="Tubarão,SC">Tubarão, SC</option>
+              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
+              <option value="Lages,SC">Lages, SC</option>
+              <option value="Indaial,SC">Indaial, SC</option>
+              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
+              <option value="Erechim,RS">Erechim, RS</option>
+              <option value="Soledade,RS">Soledade, RS</option>
+              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
+              <option value="Goiânia,GO">Goiânia, GO</option>
+            </select>
+            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
+          </div>
         </div>
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
@@ -1661,7 +1703,7 @@ function renderMembro(el){
           <label>🎖️ Nível no clube</label>
           <select id="m-cargo" style="margin-bottom:8px">
             <option value="">Selecione seu nível...</option>
-            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
+            <option value="Diretor Regional" ${UP.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${UP.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${UP.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo" ${UP.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior" ${UP.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Escudo" ${UP.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="PP" ${UP.nivel==="PP"?"selected":""}>🔶 PP</option>
           </select>
           <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
         </div>
@@ -2189,9 +2231,20 @@ window.uploadFotosGaleria=async(input)=>{
   try{
     for(const file of files){
       const url=await uploadFoto(file);
-      await addDoc(collection(db,"galeria"),{url,eventoId:eventoId||"geral",autorId:CU.uid,autorApelido:UP.apelido,criadoEm:serverTimestamp()});
+      const ref=await addDoc(collection(db,"galeria"),{url,eventoId:eventoId||"geral",autorId:CU.uid,autorApelido:UP.apelido,criadoEm:serverTimestamp()});
+      // Adiciona foto imediatamente no grid sem esperar re-fetch do Firestore
+      const grid=document.getElementById("galeria-grid");
+      if(grid){
+        const vazio=grid.querySelector("div[style*='Nenhuma foto']");
+        if(vazio)grid.innerHTML="";
+        const div=document.createElement("div");
+        div.style.cssText="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer";
+        div.onclick=()=>window.open(url,"_blank");
+        div.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/><button onclick="event.stopPropagation();window.excluirFotoGaleria('${ref.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`;
+        grid.insertBefore(div,grid.firstChild);
+      }
     }
-    showToast("✓ Fotos enviadas!");input.value="";carregarGaleria(eventoId||null);
+    showToast("✓ Fotos enviadas!");input.value="";
   }catch{showToast("Erro ao enviar.",true);}
 };
 
@@ -2336,13 +2389,36 @@ async function buscarClimaEvento(cidade,elId,dataEvento){
     if(el)el.outerHTML=html;
   }catch{if(el)el.innerHTML="";}
 }
+const CIDADES_CLIMA={
+  "Itajaí,SC":[-26.9078,-48.6619],
+  "Tubarão,SC":[-28.4679,-49.0148],
+  "Rancho Queimado,SC":[-27.6574,-49.0083],
+  "Lages,SC":[-27.8159,-50.3258],
+  "Indaial,SC":[-26.8978,-49.2375],
+  "Porto Vitória,PR":[-26.1333,-51.2333],
+  "Erechim,RS":[-27.6344,-52.2734],
+  "Soledade,RS":[-28.8166,-52.5079],
+  "Uruguaiana,RS":[-29.7572,-57.0882],
+  "Goiânia,GO":[-16.6868,-49.2648],
+};
+window.mudarCidadeClima=()=>{
+  const sel=document.getElementById("clima-cidade-sel");
+  if(sel)window._climaCidade=sel.value;
+  window.atualizarClimaInicio(window._climaView);
+};
 window.atualizarClimaInicio=async(view)=>{
   const el=document.getElementById("clima-inicio");
   if(!el)return;
   window._climaView=view||window._climaView||"hoje";
+  // Sync select visual se não estiver no dom ainda
+  const sel=document.getElementById("clima-cidade-sel");
+  const cidadeKey=window._climaCidade||(sel?.value)||"Itajaí,SC";
+  if(sel&&sel.value!==cidadeKey)sel.value=cidadeKey;
+  const cidadeLabel=cidadeKey.replace(",",", ");
   el.innerHTML=`<span class="spin">⟳</span>`;
   try{
-    const lat=-26.9078,lon=-48.6619;
+    const coords=CIDADES_CLIMA[cidadeKey]||[-26.9078,-48.6619];
+    const [lat,lon]=coords;
     const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&forecast_days=7`);
     const d=await r.json();
     const wcIc=wc=>wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
@@ -2391,6 +2467,7 @@ window.atualizarClimaInicio=async(view)=>{
 
     const v=window._climaView;
     el.innerHTML=`
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">📍 ${cidadeLabel}</div>
       <div style="display:flex;gap:6px;margin-bottom:10px">
         <button onclick="window.atualizarClimaInicio('hoje')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="hoje"?"none":"1px solid var(--border)"};background:${v==="hoje"?"var(--orange)":"var(--bg3)"};color:${v==="hoje"?"#fff":"var(--muted)"}">Hoje</button>
         <button onclick="window.atualizarClimaInicio('semana')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="semana"?"none":"1px solid var(--border)"};background:${v==="semana"?"var(--orange)":"var(--bg3)"};color:${v==="semana"?"#fff":"var(--muted)"}">7 dias</button>
@@ -3317,7 +3394,7 @@ function htmlUsuarios(){
           <label>Nível no clube</label>
           <select id="ue-nv-${m.uid}">
             <option value="">Selecione...</option>
-            <option value="Diretor Regional">${m.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor">${m.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor">${m.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo">${m.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior">${m.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="PP">${m.nivel==="PP"?"selected":""}>🔶 PP</option>
+            <option value="Diretor Regional">${m.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor">${m.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor">${m.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Meio Escudo">${m.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="Meio Escudo Maior">${m.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Escudo">${m.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="PP">${m.nivel==="PP"?"selected":""}>🔶 PP</option>
           </select>
           <label>Moto</label>
           <input type="text" id="ue-mo-${m.uid}" value="${m.moto||""}" placeholder="Ex: Honda CB 500" autocomplete="off"/>
@@ -3745,6 +3822,72 @@ window.calcAdminCustom=()=>{
 };
 let _mapa=null;
 const _mapas={};
+
+async function _montarMapa(map,orig,dest,nome,pedInfo){
+  const dot=L.divIcon({className:"",html:'<div style="width:13px;height:13px;background:#e8670a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px #000"></div>',iconSize:[13,13],iconAnchor:[6,6]});
+  L.marker(orig,{icon:dot,zIndexOffset:1000}).addTo(map).bindPopup("<b>🏁 Itajaí, SC</b><br><small>Ponto de partida</small>");
+  L.marker(dest,{icon:dot,zIndexOffset:1000}).addTo(map).bindPopup(`<b>🏁 ${nome}</b><br><small>Destino</small>`);
+
+  let distKm=0,duracaoMin=0,bounds=null;
+  try{
+    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${orig[1]},${orig[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`);
+    const d=await r.json();
+    if(d.routes?.[0]){
+      distKm=Math.round(d.routes[0].distance/1000);
+      duracaoMin=Math.round(d.routes[0].duration/60);
+      const pts=d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+      const poly=L.polyline(pts,{color:"#e8670a",weight:4,opacity:.85}).addTo(map);
+      poly.bindPopup(`<b>${nome}</b>${pedInfo?`<br><small style="color:#bbb">${pedInfo}</small>`:""}`);
+      bounds=poly.getBounds();
+      map.fitBounds(bounds,{padding:[20,20]});
+    }else throw"";
+  }catch{
+    const poly=L.polyline([orig,dest],{color:"#e8670a",weight:3,dashArray:"8,5",opacity:.7}).addTo(map);
+    poly.bindPopup(`<b>${nome}</b>`);
+    bounds=L.latLngBounds([orig,dest]);
+    map.fitBounds(bounds,{padding:[30,30]});
+  }
+
+  // Painel de info
+  const h=Math.floor(duracaoMin/60),m=duracaoMin%60;
+  const tempoStr=duracaoMin>0?(h>0?`${h}h${m>0?m+"min":""}`:`${m}min`):"—";
+  const distStr=distKm>0?`${distKm.toLocaleString("pt-BR")} km ida`:"—";
+  const uid="pi"+Date.now();
+  const infoCtrl=L.control({position:"bottomleft"});
+  infoCtrl.onAdd=()=>{
+    const div=L.DomUtil.create("div");
+    div.style.cssText="background:rgba(10,10,10,.93);border:1px solid #333;border-radius:8px;padding:8px 10px;font-size:11px;color:#eee;line-height:1.7;pointer-events:none;max-width:170px;box-shadow:0 2px 8px rgba(0,0,0,.5)";
+    div.innerHTML=`<div style="font-weight:700;color:#e8670a;margin-bottom:3px">${nome.split("–")[0].trim()}</div>
+      <div>🛣️ ${distStr}</div>
+      <div>⏱️ ~${tempoStr} de viagem</div>
+      ${pedInfo?`<div style="color:#aaa;font-size:10px;margin-top:3px;line-height:1.5">🚏 ${pedInfo}</div>`:""}
+      <div id="${uid}" style="color:#4caf7d;margin-top:4px">⛽ Buscando postos...</div>`;
+    return div;
+  };
+  infoCtrl.addTo(map);
+
+  // Postos de gasolina via Overpass (não bloqueia o mapa)
+  if(bounds){
+    const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
+    const postoIcon=L.divIcon({className:"",html:'<div style="background:#0f1f0f;border:1.5px solid #4caf7d;border-radius:5px;padding:1px 4px;font-size:12px;box-shadow:0 2px 5px rgba(0,0,0,.7);line-height:1.3">⛽</div>',iconSize:[24,20],iconAnchor:[12,10]});
+    fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(`[out:json][timeout:20];node["amenity"="fuel"](${sw.lat},${sw.lng},${ne.lat},${ne.lng});out body 30;`)}`)
+      .then(r=>r.json())
+      .then(pd=>{
+        const postos=pd.elements||[];
+        postos.forEach(node=>{
+          const n=node.tags?.name||node.tags?.brand||"Posto";
+          const brand=node.tags?.brand||"";
+          const fuel=node.tags?.fuel||"";
+          L.marker([node.lat,node.lon],{icon:postoIcon}).addTo(map)
+            .bindPopup(`<b>⛽ ${n}</b>${brand&&brand!==n?`<br><small>${brand}</small>`:""}${fuel?`<br><small style="color:#aaa">${fuel}</small>`:""}`);
+        });
+        const el=document.getElementById(uid);
+        if(el)el.textContent=postos.length>0?`⛽ ${postos.length} postos na área`:"⛽ Nenhum posto mapeado";
+      })
+      .catch(()=>{const el=document.getElementById(uid);if(el)el.textContent="";});
+  }
+}
+
 window.toggleMapaEvento=async(evId)=>{
   const el=document.getElementById(`ev-mapa-${evId}`);
   if(!el)return;
@@ -3757,53 +3900,25 @@ window.toggleMapaEvento=async(evId)=>{
   const map=L.map(el,{zoomControl:true,attributionControl:false});
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
   _mapas[evId]=map;
-  const dot=L.divIcon({className:"",html:'<div style="width:12px;height:12px;background:#e8670a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px #000"></div>',iconSize:[12,12],iconAnchor:[6,6]});
-  L.marker(COORD_ITAJAI,{icon:dot}).addTo(map).bindPopup("<b>Itajaí - SC</b><br>Ponto de partida");
-  L.marker(coords,{icon:dot}).addTo(map).bindPopup(`<b>${ev.nome}</b>`);
-  try{
-    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${COORD_ITAJAI[1]},${COORD_ITAJAI[0]};${coords[1]},${coords[0]}?overview=full&geometries=geojson`);
-    const d=await r.json();
-    if(d.routes?.[0]){
-      const pts=d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
-      const poly=L.polyline(pts,{color:"#e8670a",weight:4,opacity:.85}).addTo(map);
-      poly.bindPopup(`<b>${ev.nome}</b>${ev.pedInfo?`<br><small style="color:#aaa">${ev.pedInfo}</small>`:""}`);
-      map.fitBounds(poly.getBounds(),{padding:[20,20]});
-    }else throw"";
-  }catch{
-    const poly=L.polyline([COORD_ITAJAI,coords],{color:"#e8670a",weight:3,dashArray:"8,5",opacity:.7}).addTo(map);
-    poly.bindPopup(`<b>${ev.nome}</b>`);
-    map.fitBounds(L.latLngBounds([COORD_ITAJAI,coords]),{padding:[30,30]});
-  }
+  await _montarMapa(map,COORD_ITAJAI,coords,ev.nome,ev.pedInfo);
 };
+
 async function atualizarMapaRota(evId,destCoords,nome,pedInfo){
   const card=document.getElementById("mapa-card");
   const el=document.getElementById("ev-mapa");
   if(!card||!el||!destCoords){if(card)card.style.display="none";return;}
   card.style.display="block";
-  if(_mapa&&!document.body.contains(_mapa.getContainer())){_mapa.remove();_mapa=null;}
+  // Recriar mapa se saiu do DOM ou trocou de evento
+  if(_mapa&&(!document.body.contains(_mapa.getContainer())||_mapa._evId!==evId)){
+    _mapa.remove();_mapa=null;
+  }
   if(!_mapa){
     _mapa=L.map(el,{zoomControl:true,attributionControl:false});
+    _mapa._evId=evId;
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(_mapa);
-  } else {
-    _mapa.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.Polyline)_mapa.removeLayer(l);});
-    setTimeout(()=>_mapa.invalidateSize(),100);
-  }
-  const dot=L.divIcon({className:"",html:'<div style="width:12px;height:12px;background:#e8670a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px #000"></div>',iconSize:[12,12],iconAnchor:[6,6]});
-  L.marker(COORD_ITAJAI,{icon:dot}).addTo(_mapa).bindPopup("<b>Itajaí - SC</b><br>Ponto de partida");
-  L.marker(destCoords,{icon:dot}).addTo(_mapa).bindPopup(`<b>${nome}</b>`);
-  try{
-    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${COORD_ITAJAI[1]},${COORD_ITAJAI[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson`);
-    const d=await r.json();
-    if(d.routes?.[0]){
-      const pts=d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
-      const poly=L.polyline(pts,{color:"#e8670a",weight:4,opacity:.85}).addTo(_mapa);
-      poly.bindPopup(`<b>${nome}</b>${pedInfo?`<br><small style="color:#aaa">${pedInfo}</small>`:""}`);
-      _mapa.fitBounds(poly.getBounds(),{padding:[20,20]});
-    }else throw"sem rota";
-  }catch{
-    const poly=L.polyline([COORD_ITAJAI,destCoords],{color:"#e8670a",weight:3,dashArray:"8,5",opacity:.7}).addTo(_mapa);
-    poly.bindPopup(`<b>${nome}</b>${pedInfo?`<br><small style="color:#aaa">${pedInfo}</small>`:""}`);
-    _mapa.fitBounds(L.latLngBounds([COORD_ITAJAI,destCoords]),{padding:[30,30]});
+    await _montarMapa(_mapa,COORD_ITAJAI,destCoords,nome,pedInfo);
+  }else{
+    setTimeout(()=>_mapa.invalidateSize(),50);
   }
 }
 window.calcMembroEvento=()=>{
@@ -4117,16 +4232,18 @@ onAuthStateChanged(auth,async user=>{
   if(!user){UP=null;REGS=[];MEMBROS=[];render();setTimeout(esconderSplash,600);return;}
   document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
   try{
-    const snap=await getDoc(doc(db,"usuarios",user.uid));
+    // Fase 1: perfil + logo em paralelo
+    const [snap,logoSnap]=await Promise.all([
+      getDoc(doc(db,"usuarios",user.uid)),
+      getDoc(doc(db,"config","logo"))
+    ]);
     UP=snap.exists()?{uid:user.uid,...snap.data()}:{uid:user.uid,apelido:"Admin",isAdmin:true};
     if(!snap.exists())await setDoc(doc(db,"usuarios",user.uid),{apelido:"Admin",email:user.email,isAdmin:true,totalKm:0});
-    const logoSnap=await getDoc(doc(db,"config","logo"));
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman)await carregarMembros();
-    await carregarRegistros();
-    await carregarConfirmacoes();
-    await carregarPedagiosCustom();
-    await carregarEncontros();
+    // Fase 2: todo o resto em paralelo
+    const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman)tarefas.push(carregarMembros());
+    await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
   render();
