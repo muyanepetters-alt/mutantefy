@@ -19,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--border:rgba(255,255,255,.09);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#f0f0f0;--muted:#767676;--danger:#e05252;--green:#4caf7d;--shadow-card:0 4px 24px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.04);--transition:180ms ease}
+:root{--bg:#0d0d0d;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#f0f0f0;--muted:#767676;--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
 
 
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:radial-gradient(ellipse at 15% 55%,rgba(232,103,10,.07) 0%,transparent 50%),radial-gradient(ellipse at 85% 15%,rgba(232,103,10,.05) 0%,transparent 45%),var(--bg);color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
-.app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03)}
+.app{max-width:480px;margin:0 auto;background:linear-gradient(160deg,#110e0b 0%,#0d0d0d 55%,#0a0a0a 100%);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03)}
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
 @media(min-width:768px){
@@ -186,7 +186,7 @@ label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-t
 input,select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;font-size:15px;font-family:inherit;color:var(--white);background:var(--bg3);margin-bottom:14px;transition:border-color .2s,box-shadow .2s}
 input:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,103,10,.14)}
 input::placeholder{color:#444}
-select option{background:var(--bg2);color:var(--white)}
+select option{background:#161616;color:var(--white)}
 .btn{padding:9px 16px;border-radius:50px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white);transition:border-color var(--transition),background var(--transition)}
 .btn-primary{width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,#e8670a,#ff8c2a);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(232,103,10,.36);transition:transform var(--transition),box-shadow var(--transition)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
@@ -617,10 +617,11 @@ carregarLogoPublica();
 function renderLogin(el){
   const saved=localStorage.getItem("mutantes_logo");
   el.innerHTML=`<div class="login-wrap">
-    <div style="margin-bottom:24px;position:relative;cursor:default" id="login-logo-wrap">
+    <div style="margin-bottom:24px;position:relative;cursor:${UP?.isAdmin?'pointer':'default'};display:inline-block" id="login-logo-wrap" ${UP?.isAdmin?'onclick="window.trocarLogoLogin()"':''}>
       ${saved
         ?`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4);padding:12px"><img src="${saved}" id="login-logo-img" style="width:100%;height:100%;object-fit:contain;display:block"/></div>`
         :`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)">${LOGO_LG}</div>`}
+      ${UP?.isAdmin?`<div style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.55);border:2px solid rgba(0,0,0,.4)">✏️</div>`:''}
     </div>
     <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center;letter-spacing:1px">MUTANTES MC ITAJAÍ</h1>
     <p style="font-size:13px;color:#666;margin-bottom:32px;text-align:center">Km Tracker</p>
@@ -3703,6 +3704,56 @@ window.previewFoto=input=>{
   const r=new FileReader();
   r.onload=e=>{const p=document.getElementById("foto-preview");if(p)p.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;};
   r.readAsDataURL(file);
+};
+window.trocarLogoLogin=()=>{
+  const input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=()=>{
+    const file=input.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const modal=document.createElement("div");
+      modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:14px";
+      modal.innerHTML=`
+        <div style="font-size:14px;font-weight:700;color:#fff">✂️ Recortar logo</div>
+        <div style="width:min(85vw,340px);height:min(60vw,240px);background:#111">
+          <img id="cropperjs-logo-img" src="${e.target.result}" style="max-width:100%;display:block"/>
+        </div>
+        <div style="font-size:11px;color:#666">Arraste · Pinça para zoom · Proporção livre</div>
+        <div style="display:flex;gap:10px">
+          <button id="crop-logo-cancel" style="padding:12px 24px;border-radius:12px;border:1px solid #444;background:transparent;color:#aaa;font-size:14px;cursor:pointer;font-family:inherit">Cancelar</button>
+          <button id="crop-logo-ok" style="padding:12px 28px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✓ Usar logo</button>
+        </div>`;
+      document.body.appendChild(modal);
+      const imgEl=document.getElementById("cropperjs-logo-img");
+      const cropper=new Cropper(imgEl,{
+        aspectRatio:NaN,viewMode:1,dragMode:"move",
+        autoCropArea:.9,restore:false,guides:true,
+        center:true,highlight:false,cropBoxMovable:true,
+        cropBoxResizable:true,toggleDragModeOnDblclick:false,
+        background:false,
+      });
+      document.getElementById("crop-logo-cancel").onclick=()=>{cropper.destroy();modal.remove();};
+      document.getElementById("crop-logo-ok").onclick=()=>{
+        const canvas=cropper.getCroppedCanvas({imageSmoothingQuality:"high"});
+        canvas.toBlob(async blob=>{
+          cropper.destroy();modal.remove();
+          showToast("Enviando logo...");
+          try{
+            const url=await uploadFoto(new File([blob],"logo.png",{type:"image/png"}));
+            localStorage.setItem("mutantes_logo",url);
+            atualizarIconePWA(url);
+            const imgUpd=document.getElementById("login-logo-img");
+            if(imgUpd)imgUpd.src=url;
+            await setDoc(doc(db,"config","logo"),{url,updatedAt:serverTimestamp()});
+            if(UP)UP.logoUrl=url;
+            showToast("✓ Logo atualizada!");
+          }catch{showToast("Erro ao enviar logo.",true);}
+        },"image/png");
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
 };
 window.trocarLogo=()=>{
   const input=document.createElement("input");input.type="file";input.accept="image/*";
