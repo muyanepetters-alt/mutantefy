@@ -504,6 +504,7 @@ function evCardMembro(ev){
 }
 
 let CU=null,UP=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
+let _presAba="eventos";
 
 async function carregarEncontros(){
   try{
@@ -750,30 +751,34 @@ function htmlClubeCorpo(){
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
-        <div class="card" style="margin-bottom:10px">
-          <div class="sec-title">📋 Lançamento em massa</div>
-          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
-          <select id="massa-evento" onchange="window.selecionarEventoMassa(parseInt(this.value)||0)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
-            <option value="">Selecione um evento...</option>
-            ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
-          </select>
-          <div id="massa-corpo" style="margin-top:10px"></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          ${[["eventos","📅 Eventos"],["avulso","➕ Avulso"],["historico","📋 Histórico"]].map(([a,lb])=>`
+            <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 16px;border-radius:20px;border:${(_presAba||'eventos')===a?'none':'1px solid var(--border)'};background:${(_presAba||'eventos')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'eventos')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s">${lb}</button>`).join("")}
         </div>
-        <div id="gestao-evento-wrap" style="display:none;margin-bottom:2px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
-          <div id="gestao-corpo" class="card"><span class="spin">⟳</span></div>
-        </div>
-        <div class="card" style="margin-top:10px">
-          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
-            <span>➕ Km avulso (fora de evento)</span><span id="km-avulso-ic">▼</span>
-          </button>
-          <div id="km-avulso-wrap" style="display:none;margin-top:12px">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Para saídas fora de evento.</div>
-            ${htmlLancarKm()}
+
+        <div id="pres-panel-eventos" style="display:${(_presAba||'eventos')==='eventos'?'block':'none'}">
+          <div class="card" style="margin-bottom:10px">
+            <div class="sec-title">📋 Lançamento em massa</div>
+            <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
+            <select id="massa-evento" onchange="window.selecionarEventoMassa(parseInt(this.value)||0)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
+              <option value="">Selecione um evento...</option>
+              ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
+            </select>
+            <div id="massa-corpo" style="margin-top:10px"></div>
+          </div>
+          <div id="gestao-evento-wrap" style="display:none;margin-bottom:2px">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
+            <div id="gestao-corpo" class="card"><span class="spin">⟳</span></div>
           </div>
         </div>
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px">🏁 Confirmações por evento</div>
-        <div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
+
+        <div id="pres-panel-avulso" style="display:${(_presAba||'eventos')==='avulso'?'block':'none'}">
+          ${htmlLancarKm()}
+        </div>
+
+        <div id="pres-panel-historico" style="display:${(_presAba||'eventos')==='historico'?'block':'none'}">
+          <div id="presenca-wrap"><span class="spin">⟳</span></div>
+        </div>`:""}
 
       ${TA==="usuarios"?htmlUsuarios():""}
       ${TA==="eventos"?`<div>${htmlEventosSplit()}</div>`:""}
@@ -3526,7 +3531,25 @@ window.salvarPedagio=async(eventoId)=>{
     showToast("✓ Pedágio atualizado!");
   }catch(e){showToast("Erro ao salvar.",true);}
 };
-window.setTA=t=>{TA=t;render();if(t==="presenca")setTimeout(carregarPresencasAdmin,100);};
+window.setTA=t=>{TA=t;_presAba="eventos";render();};
+window.setPresAba=(aba)=>{
+  _presAba=aba;
+  ["eventos","avulso","historico"].forEach(a=>{
+    const panel=document.getElementById("pres-panel-"+a);
+    const btn=document.getElementById("pres-tab-"+a);
+    if(panel)panel.style.display=a===aba?"block":"none";
+    if(btn){
+      const active=a===aba;
+      btn.style.background=active?"var(--orange)":"var(--bg3)";
+      btn.style.color=active?"#fff":"var(--muted)";
+      btn.style.border=active?"none":"1px solid var(--border)";
+    }
+  });
+  if(aba==="historico"){
+    const wrap=document.getElementById("presenca-wrap");
+    if(wrap&&wrap.querySelector(".spin"))carregarPresencasAdmin();
+  }
+};
 window.toggleKmAvulso=()=>{
   const wrap=document.getElementById("km-avulso-wrap");
   const ic=document.getElementById("km-avulso-ic");
