@@ -14,23 +14,26 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;--orange:#e8670a;--white:#f0f0f0;--muted:#888;--danger:#e05252;--green:#4caf7d}
+:root{--bg:#0f0f0f;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#f0f0f0;--muted:#767676;--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
 
 
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;font-size:15px}
-.app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5)}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:radial-gradient(ellipse at 20% 0%,rgba(232,103,10,.06) 0%,transparent 50%),var(--bg);color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
+.app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03)}
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
 @media(min-width:768px){
-  body{background:#111}
+  body{background:radial-gradient(ellipse at 20% 0%,rgba(232,103,10,.06) 0%,transparent 50%),#0a0a0a}
 
   .app{
     max-width:100%;height:100vh;
     display:grid;
     grid-template-columns:220px 1fr;
-    grid-template-rows:auto 1fr;
+    grid-template-rows:72px 1fr;
     grid-template-areas:
       "sidebar header"
       "sidebar content";
@@ -41,10 +44,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   /* Header fica no topo direito */
   .header{
     grid-area:header;
-    padding:14px 28px !important;
-    border-left:1px solid var(--border);
+    padding:10px 24px !important;
+    height:72px;
+    border-left:1px solid rgba(255,255,255,.06);
+    background:rgba(11,11,11,.98) !important;
+    backdrop-filter:blur(14px) !important;
+    -webkit-backdrop-filter:blur(14px) !important;
   }
-  .header-info h2{font-size:18px !important}
+  .header-info h2{font-size:15px !important;font-weight:600 !important}
+  .header-info p{font-size:11px !important;margin-top:1px !important}
 
   /* Sidebar esquerda */
   .bnav{
@@ -52,23 +60,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     flex-direction:column !important;
     height:100%;width:100%;
     border-bottom:none !important;
-    border-right:1px solid var(--border) !important;
+    border-right:1px solid rgba(255,255,255,.06) !important;
+    border-top:none !important;
     padding:20px 10px 16px !important;
     overflow-y:auto;gap:2px !important;
     flex-shrink:0;
     justify-content:flex-start !important;
     align-items:stretch !important;
+    background:rgba(10,10,10,.98) !important;
+    backdrop-filter:blur(16px) !important;
+    -webkit-backdrop-filter:blur(16px) !important;
   }
   .bnav-item{
     flex:none !important;min-height:42px;width:100%;
     flex-direction:row !important;justify-content:flex-start !important;
     gap:10px !important;padding:10px 14px !important;
-    border-radius:10px !important;text-align:left;
+    border-radius:12px !important;text-align:left;
+    transition:background .18s,box-shadow .18s !important;
   }
-  .bnav-item.nav-active{background:rgba(232,103,10,.15)}
+  .bnav-item:hover{background:rgba(255,255,255,.06) !important}
+  .bnav-item.nav-active{
+    background:rgba(232,103,10,.14) !important;
+    box-shadow:inset 0 0 0 1px rgba(232,103,10,.2),0 2px 12px rgba(232,103,10,.1) !important;
+  }
   .bnav-icon{font-size:18px !important;width:22px;text-align:center}
   .bnav-label{font-size:13px !important;font-weight:500 !important;display:block !important}
-  .bnav-item.nav-active .bnav-label{color:var(--orange) !important;font-weight:700 !important}
+  .bnav-item.nav-active .bnav-label{color:var(--orange) !important;font-weight:600 !important}
 
   /* Logo do clube no topo da sidebar */
   .bnav::before{
@@ -76,9 +93,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     display:block;
     font-size:11px;font-weight:700;
     color:var(--orange);
-    text-transform:uppercase;letter-spacing:.8px;
+    text-transform:uppercase;letter-spacing:1px;
     padding:0 12px 14px;
-    border-bottom:1px solid var(--border);
+    border-bottom:1px solid rgba(255,255,255,.07);
     margin-bottom:10px;width:100%;
   }
 
@@ -97,6 +114,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .desktop-grid .card{margin-bottom:0}
 }
+
+/* ── LOGIN DESKTOP ─────────────────────────────────── */
+@media(min-width:768px){
+  .app:has(.login-wrap){
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(ellipse at center,rgba(232,103,10,.1) 0%,transparent 65%),radial-gradient(ellipse at 80% 20%,rgba(232,103,10,.05) 0%,transparent 40%),#0a0a0a;
+  }
+
+  .login-wrap{
+    width: 420px;
+    min-width: 420px;
+    background: rgba(22,22,22,.9);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 24px;
+    padding: 44px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.7),0 0 0 1px rgba(232,103,10,.07);
+  }
+
+  .login-wrap img,
+  .login-wrap > div:first-child {
+    margin: 0 auto 20px;
+    display: block;
+  }
+}
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
 .splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
 .splash-logo{width:130px;height:130px;border-radius:50%;border:3px solid var(--orange);object-fit:contain;background:#111;animation:splashPulse 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(232,103,10,.4)}
@@ -111,27 +154,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .confete{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
 .confete-p{position:absolute;width:8px;height:8px;border-radius:2px;animation:confeteFall linear forwards}
 @keyframes confeteFall{0%{top:-20px;opacity:1;transform:rotate(0deg)}100%{top:110vh;opacity:0;transform:rotate(720deg)}}
-.header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:2px solid rgba(232,103,10,.5);position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(232,103,10,.08) 0%,var(--bg2) 100%);flex-shrink:0}
-.header-flames{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#e8670a,#ff4500,#e8670a,#ff7a1a,#e8670a,transparent)}
+.header{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(232,103,10,.22);position:relative;overflow:hidden;background:rgba(13,13,13,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-shrink:0}
+.header-flames{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(232,103,10,.6) 20%,#e8670a 40%,#ff7a1a 60%,rgba(232,103,10,.6) 80%,transparent 100%)}
 .header-info h2{font-size:17px;font-weight:700}
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .body{padding:16px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.bnav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
+.bnav{display:flex;background:rgba(13,13,13,.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
-.bnav-item{flex:1;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .15s}
-.bnav-item.nav-active{background:rgba(232,103,10,.15)}
+.bnav-item{flex:1;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
 .bnav-icon{font-size:18px;line-height:1;transition:transform .15s}
 .bnav-label{font-size:9px;color:var(--muted);font-weight:500;letter-spacing:.1px;white-space:nowrap}
 .bnav-item.nav-active .bnav-label{color:var(--orange);font-weight:700}
 .bnav-item.nav-active .bnav-icon{transform:scale(1.1)}
 .bnav-item:active .bnav-icon{transform:scale(.85)}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;transition:border-color .2s}
+.bnav-item.nav-active{background:rgba(232,103,10,.14);box-shadow:inset 0 0 0 1px rgba(232,103,10,.18)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s}
 .prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
 .prog-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
 .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.metric{background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
+.metric{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border)}
 .metric-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
 .metric-value{font-size:30px;font-weight:700}
 .sec-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
@@ -142,17 +185,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .badge-gr{background:rgba(76,175,125,.1);color:var(--green);border:1px solid rgba(76,175,125,.2)}
 .badge-admin{background:rgba(232,103,10,.2);color:var(--orange);border:1px solid var(--orange);font-size:9px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:12px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-input,select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;color:var(--white);background:var(--bg3);margin-bottom:14px;transition:border-color .2s}
-input:focus,select:focus{outline:none;border-color:var(--orange)}
+input,select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;font-size:15px;font-family:inherit;color:var(--white);background:var(--bg3);margin-bottom:14px;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,103,10,.14)}
 input::placeholder{color:#444}
-select option{background:var(--bg2);color:var(--white)}
-.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white)}
-.btn-primary{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#e8670a,#ff8c2a);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(232,103,10,.3)}
+select option{background:#161616;color:var(--white)}
+.btn{padding:9px 16px;border-radius:50px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white);transition:border-color var(--transition),background var(--transition)}
+.btn-primary{width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,#e8670a,#ff8c2a);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(232,103,10,.36);transition:transform var(--transition),box-shadow var(--transition)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-outline{width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit}
+.btn-outline{width:100%;padding:11px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color var(--transition),background var(--transition)}
 .btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
 .btn-edit{padding:6px 10px;border-radius:6px;border:1px solid rgba(232,103,10,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit}
-.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer}
+.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s}
 .ev-card.ev-sim,.ev-card.ev-confirmado{border-color:var(--green);background:rgba(76,175,125,.05)}
 .ev-card.ev-nao,.ev-card.ev-desistiu{border-color:var(--danger);background:rgba(224,82,82,.05)}
 .ev-card.ev-compareceu{border-color:#2d6e4f;background:rgba(76,175,125,.1)}
@@ -160,30 +203,30 @@ select option{background:var(--bg2);color:var(--white)}
 .pres-desistiu{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
 .pres-pendente{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
 .pres-confirmado{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
-.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card)}
 .km-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
 .edit-box{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid rgba(232,103,10,.3);display:none}
 .det-box{display:none;margin-top:10px;background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
 .ev-det{display:none;margin-top:12px}
-.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.rota-result{background:var(--bg3);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px}
+.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
+.rota-result{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:12px}
 .rota-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .rota-item small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:2px}
 .rota-item span{font-size:14px;font-weight:600}
 .alert-warn{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--orange);background:rgba(232,103,10,.1);border:1px solid rgba(232,103,10,.2)}
 .alert-ok{font-size:11px;padding:8px 10px;border-radius:6px;color:var(--green);background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.2)}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e1e1e;color:#fff;padding:12px 20px 14px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;min-width:200px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(22,22,22,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;padding:12px 20px 14px;border-radius:16px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;min-width:200px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.err{border-color:rgba(224,82,82,.4)}
 .toast-bar{height:3px;border-radius:2px;margin-top:8px;width:100%;animation:toastBar 2.5s linear forwards}
 @keyframes toastBar{from{width:100%}to{width:0%}}
 .sub-pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sub-pills::-webkit-scrollbar{display:none}
-.sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap}
-.sub-pill.active{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600}
+.sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;transition:border-color var(--transition),color var(--transition)}
+.sub-pill.active{background:linear-gradient(135deg,#e8670a,#ff8c2a);border-color:transparent;color:#fff;font-weight:600}
 .msg-err{font-size:12px;color:var(--danger);margin-bottom:10px;padding:8px 12px;background:rgba(224,82,82,.1);border-radius:8px}
 .msg-ok{font-size:12px;color:var(--green);margin-bottom:10px;padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px}
-.hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--orange)}
+.hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative;overflow:hidden}
@@ -195,7 +238,25 @@ select option{background:var(--bg2);color:var(--white)}
 .pres-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
 .pres-sim{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
 .pres-nao{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
-.lote-card{background:var(--bg2);border:2px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:12px}
+.lote-card{background:var(--bg2);border:2px solid rgba(232,103,10,.5);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 0 0 1px rgba(232,103,10,.08)}
+
+/* ── MICROINTERAÇÕES ────────────────────────────────── */
+.btn-primary:hover:not(:disabled){transform:scale(1.02);box-shadow:0 6px 26px rgba(232,103,10,.5)}
+.btn-primary:active:not(:disabled){transform:scale(.98);box-shadow:0 2px 10px rgba(232,103,10,.3)}
+.btn:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.07)}
+.btn:active{background:rgba(255,255,255,.04)}
+.btn-outline:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.04)}
+.sub-pill:hover:not(.active){border-color:rgba(232,103,10,.35);color:var(--white)}
+.card:hover{border-color:rgba(255,255,255,.14)}
+.ev-card:hover{border-color:rgba(255,255,255,.14)}
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
@@ -338,8 +399,8 @@ const avatarEl=(foto,apelido,size=32)=>foto
 
 function getLogo(){
   const saved=UP&&UP.logoUrl?UP.logoUrl:localStorage.getItem("mutantes_logo");
-  if(saved)return`<img src="${saved}" onclick="window.trocarLogo()" style="width:167px;height:198px;object-fit:cover;border:2px solid var(--orange);cursor:pointer;border-radius:8px;flex-shrink:0"/>`;
-  return`<div onclick="window.trocarLogo()" style="width:167px;height:198px;border:2px solid var(--orange);border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#111">${LOGO_SM}</div>`;
+  if(saved)return`<img src="${saved}" onclick="window.trocarLogo()" style="width:56px;height:56px;object-fit:contain;border:2px solid var(--orange);cursor:pointer;border-radius:10px;flex-shrink:0;background:#111"/>`;
+  return`<div onclick="window.trocarLogo()" style="width:56px;height:56px;border:2px solid var(--orange);border-radius:10px;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#111">${LOGO_SM}</div>`;
 }
 
 function precoPorEstado(estado){
@@ -558,10 +619,11 @@ carregarLogoPublica();
 function renderLogin(el){
   const saved=localStorage.getItem("mutantes_logo");
   el.innerHTML=`<div class="login-wrap">
-    <div style="margin-bottom:24px;position:relative;cursor:default" id="login-logo-wrap">
+    <div style="margin-bottom:24px;position:relative;cursor:pointer;display:inline-block" id="login-logo-wrap" onclick="window.trocarLogoLogin()">
       ${saved
-        ?`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)"><img src="${saved}" id="login-logo-img" style="width:100%;height:100%;object-fit:contain;display:block"/></div>`
+        ?`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4);padding:12px"><img src="${saved}" id="login-logo-img" style="width:100%;height:100%;object-fit:contain;display:block"/></div>`
         :`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)">${LOGO_LG}</div>`}
+      <div style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.55);border:2px solid rgba(0,0,0,.4)">✏️</div>
     </div>
     <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center;letter-spacing:1px">MUTANTES MC ITAJAÍ</h1>
     <p style="font-size:13px;color:#666;margin-bottom:32px;text-align:center">Km Tracker</p>
@@ -644,14 +706,14 @@ function htmlClubeCorpo(){
       {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
       {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
-      {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos"},
+      {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
       {id:"relatorio",ic:"📊",lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:"📋",lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
     ];
     if(!TA||TA==="home"){
       return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${dirMenus.map(m=>`<button onclick="window.setTA('${m.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+        ${dirMenus.filter(m=>!m.hidden).map(m=>`<button onclick="window.setTA('${m.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
           <span style="font-size:28px;line-height:1">${m.ic}</span>
           <div>
             <div style="font-size:14px;font-weight:600;color:var(--white)">${m.lb}</div>
@@ -3645,6 +3707,24 @@ window.previewFoto=input=>{
   r.onload=e=>{const p=document.getElementById("foto-preview");if(p)p.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;};
   r.readAsDataURL(file);
 };
+window.trocarLogoLogin=()=>{
+  const input=document.createElement("input");input.type="file";input.accept="image/*";
+  input.onchange=()=>{
+    const file=input.files[0];if(!file)return;
+    uploadFotoComCrop(file,async url=>{
+      localStorage.setItem("mutantes_logo",url);
+      atualizarIconePWA(url);
+      const imgEl=document.getElementById("login-logo-img");
+      if(imgEl)imgEl.src=url;
+      try{
+        await setDoc(doc(db,"config","logo"),{url,updatedAt:serverTimestamp()});
+        if(UP)UP.logoUrl=url;
+        showToast("✓ Logo atualizada!");
+      }catch{showToast("Erro ao enviar logo.",true);}
+    });
+  };
+  input.click();
+};
 window.trocarLogo=()=>{
   const input=document.createElement("input");input.type="file";input.accept="image/*";
   input.onchange=async()=>{
@@ -4407,6 +4487,135 @@ window.togglePresAnteriores=()=>{
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
 };
 
+window.abrirModalPresenca=async(evId)=>{
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  const modal=document.createElement("div");
+  modal.id="modal-presenca-passado";
+  modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:16px 0 32px";
+  modal.innerHTML=`<div style="width:min(100%,480px);background:var(--bg2);border-radius:16px;overflow:hidden;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--white)">${ev.nome}</div>
+        <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
+      </div>
+      <button onclick="document.getElementById('modal-presenca-passado').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px">×</button>
+    </div>
+    <div id="modal-presenca-corpo" style="padding:16px"><span class="spin">⟳</span></div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener("click",e=>{if(e.target===modal)modal.remove();});
+  await _carregarCorpoModalPresenca(ev);
+};
+
+async function _carregarCorpoModalPresenca(ev){
+  const corpo=document.getElementById("modal-presenca-corpo");
+  if(!corpo)return;
+  try{
+    const [regSnap,memSnap]=await Promise.all([
+      getDocs(query(collection(db,"registros"),where("eventoId","==",ev.id))),
+      getDocs(collection(db,"usuarios"))
+    ]);
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const todos=memSnap.docs.map(d=>({uid:d.id,...d.data()})).filter(m=>!m.isAdmin);
+    const comRegs=new Set(regs.map(r=>r.membroId));
+    const naoCompareceram=todos.filter(m=>!comRegs.has(m.uid));
+
+    let html=`<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🟢 Compareceram (${regs.length})</div>`;
+    if(regs.length===0){
+      html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:16px">Nenhum registro ainda.</div>`;
+    }else{
+      regs.forEach(r=>{
+        html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div>
+            <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
+          </div>
+          <button onclick="window.editarKmPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️ Editar</button>
+          <button onclick="window.excluirRegistroPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+        </div>`;
+      });
+    }
+
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px">⚪ Não compareceram (${naoCompareceram.length})</div>`;
+    if(naoCompareceram.length===0){
+      html+=`<div style="font-size:12px;color:var(--muted)">Todos os membros já têm registro.</div>`;
+    }else{
+      naoCompareceram.forEach(m=>{
+        html+=`<div id="ncomp-row-${m.uid}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white)">${m.apelido||"?"}</div>
+          </div>
+          <button onclick="window.marcarPresencaModal('${m.uid}','${m.apelido||""}',${ev.id})" id="btn-marcar-${m.uid}" style="padding:6px 12px;border-radius:7px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🏁 Marcar presença</button>
+        </div>
+        <div id="km-form-${m.uid}" style="display:none;padding:8px 0 10px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="km-inp-${m.uid}" type="number" min="1" step="1" placeholder="km total ida+volta" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+            <button onclick="window.salvarPresencaModal('${m.uid}','${m.apelido||""}',${ev.id})" style="padding:8px 14px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+            <button onclick="window.cancelarPresencaModal('${m.uid}')" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+    corpo.innerHTML=html;
+  }catch(e){corpo.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro ao carregar: ${e.message}</div>`;}
+}
+
+window.marcarPresencaModal=(uid,apelido,evId)=>{
+  document.getElementById("btn-marcar-"+uid).style.display="none";
+  document.getElementById("km-form-"+uid).style.display="block";
+  document.getElementById("km-inp-"+uid).focus();
+};
+window.cancelarPresencaModal=(uid)=>{
+  document.getElementById("btn-marcar-"+uid).style.display="";
+  document.getElementById("km-form-"+uid).style.display="none";
+};
+window.salvarPresencaModal=async(uid,apelido,evId)=>{
+  const inp=document.getElementById("km-inp-"+uid);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  inp.disabled=true;
+  try{
+    await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
+    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const nt=(mSnap.data()?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
+    await _carregarCorpoModalPresenca(ev);
+  }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
+};
+window.excluirRegistroPresenca=async(regId,membroId,km,evId)=>{
+  if(!confirm("Excluir este registro de comparecimento?"))return;
+  const ev=EVENTOS.find(e=>e.id===evId);
+  try{
+    await deleteDoc(doc(db,"registros",regId));
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast("✓ Registro excluído.");
+    if(ev)await _carregarCorpoModalPresenca(ev);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.editarKmPresenca=async(regId,membroId,kmAtual,evId)=>{
+  const novoKm=parseFloat(prompt("Novo valor de km:",kmAtual));
+  if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
+  const ev=EVENTOS.find(e=>e.id===evId);
+  try{
+    await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const diff=novoKm-kmAtual;
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
+    if(ev)await _carregarCorpoModalPresenca(ev);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+
 async function carregarPresencasAdmin(){
   const wrap=document.getElementById("presenca-wrap");
   if(!wrap)return;
@@ -4456,7 +4665,7 @@ async function carregarPresencasAdmin(){
         const nConf=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado")).length;
         const nDes=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu")).length;
         html+=`<div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden">
-          <button onclick="window.togglePresAcc(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
+          <button onclick="window.abrirModalPresenca(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nome}</div>
               <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
@@ -4466,12 +4675,9 @@ async function carregarPresencasAdmin(){
               ${nConf?`<span style="background:rgba(245,197,24,.15);color:#f5c518;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟡${nConf}</span>`:""}
               ${nDes?`<span style="background:rgba(224,82,82,.1);color:var(--danger);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🔴${nDes}</span>`:""}
               <span style="font-size:10px;color:#888;font-weight:700;background:var(--bg3);padding:2px 7px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>
-              <span id="pres-acc-ic-${ev.id}" style="color:var(--muted);font-size:12px;margin-left:2px">▼</span>
+              <span style="color:var(--muted);font-size:12px;margin-left:2px">›</span>
             </div>
           </button>
-          <div id="pres-acc-body-${ev.id}" style="display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3)">
-            ${_htmlPresencaEvento(ev,pDocs)}
-          </div>
         </div>`;
       });
       html+=`</div>`;
