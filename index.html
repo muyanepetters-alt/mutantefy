@@ -4604,10 +4604,21 @@ async function carregarProximosEventos(){
     const hoje=new Date().toISOString().slice(0,10);
     const futuros=EVENTOS.filter(e=>e.data>=hoje&&e.destino!=="A confirmar");
     if(!futuros.length){wrap.innerHTML=`<div style="font-size:13px;color:var(--muted)">Nenhum evento próximo.</div>`;return;}
-    const snaps=await Promise.all(futuros.map(ev=>getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)))));
+    const [presSnaps,regSnaps]=await Promise.all([
+      Promise.all(futuros.map(ev=>getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id))))),
+      Promise.all(futuros.map(ev=>getDocs(query(collection(db,"registros"),where("eventoId","==",ev.id)))))
+    ]);
     let html="";
     futuros.forEach((ev,i)=>{
-      const pDocs=snaps[i].docs.map(d=>d.data());
+      // Build enriched pDocs: presencas as base, registros wins for compareceu status
+      const presMap={};
+      presSnaps[i].docs.forEach(d=>{const p=d.data();presMap[p.membroId]=p;});
+      regSnaps[i].docs.forEach(d=>{
+        const r={...d.data(),id:d.id};
+        const base=presMap[r.membroId]||{membroId:r.membroId,apelido:r.apelido};
+        presMap[r.membroId]={...base,compareceu:true,resposta:"compareceu",registroId:r.id,kmLancado:r.km};
+      });
+      const pDocs=Object.values(presMap);
       const nComp=pDocs.filter(p=>p.compareceu||p.resposta==="compareceu").length;
       const nConf=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado")).length;
       const nDes=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu")).length;
