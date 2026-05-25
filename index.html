@@ -751,15 +751,28 @@ function htmlClubeCorpo(){
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
         <div class="card" style="margin-bottom:10px">
-          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
-            <span>➕ Lançar km avulso</span><span id="km-avulso-ic">▲</span>
+          <div class="sec-title">📋 Lançamento em massa</div>
+          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
+          <select id="massa-evento" onchange="window.selecionarEventoMassa(parseInt(this.value)||0)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
+            <option value="">Selecione um evento...</option>
+            ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
+          </select>
+          <div id="massa-corpo" style="margin-top:10px"></div>
+        </div>
+        <div id="gestao-evento-wrap" style="display:none;margin-bottom:2px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
+          <div id="gestao-corpo" class="card"><span class="spin">⟳</span></div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <button onclick="window.toggleKmAvulso()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;padding:0;display:flex;align-items:center;justify-content:space-between">
+            <span>➕ Km avulso (fora de evento)</span><span id="km-avulso-ic">▼</span>
           </button>
-          <div id="km-avulso-wrap" style="display:block;margin-top:12px">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Para saídas fora de evento. O botão "Compareceu" já lança km dos eventos.</div>
+          <div id="km-avulso-wrap" style="display:none;margin-top:12px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Para saídas fora de evento.</div>
             ${htmlLancarKm()}
           </div>
         </div>
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏁 Eventos — Presença</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px">🏁 Confirmações por evento</div>
         <div id="presenca-wrap"><span class="spin">⟳</span></div>`:""}
 
       ${TA==="usuarios"?htmlUsuarios():""}
@@ -4485,6 +4498,169 @@ window.togglePresAcc=(evId)=>{
 window.togglePresAnteriores=()=>{
   const w=document.getElementById("pres-ant-wrap"),ic=document.getElementById("pres-ant-ic");
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
+};
+
+window.selecionarEventoMassa=async(evId)=>{
+  const corpo=document.getElementById("massa-corpo");
+  const gestaoWrap=document.getElementById("gestao-evento-wrap");
+  if(!evId){
+    if(corpo)corpo.innerHTML="";
+    if(gestaoWrap)gestaoWrap.style.display="none";
+    return;
+  }
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev||!corpo)return;
+  const kmDefault=ev.dist>0?ev.dist*2:0;
+  const membrosHtml=MEMBROS.map(m=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" id="chk-${m.uid}" value="${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+      <label for="chk-${m.uid}" style="flex:1;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;user-select:none">${m.apelido}</label>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <input type="number" id="km-massa-${m.uid}" value="${kmDefault||""}" placeholder="km" min="1" step="1" style="width:70px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;font-family:inherit;text-align:right"/>
+        <span style="font-size:11px;color:var(--muted)">km</span>
+      </div>
+    </div>`).join("");
+  corpo.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted)">Km padrão: <strong style="color:var(--white)">${kmDefault?toInt(kmDefault)+" km":"—"}</strong></div>
+      <button onclick="window.marcarTodosMassa()" style="font-size:11px;color:var(--orange);background:transparent;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0">Selecionar todos</button>
+    </div>
+    <div style="max-height:300px;overflow-y:auto;margin-bottom:10px">${membrosHtml}</div>
+    <button onclick="window.lancarKmMassa(${ev.id})" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🏁 Lançar para selecionados</button>`;
+  if(gestaoWrap)gestaoWrap.style.display="block";
+  await window.carregarGestaoEvento(evId);
+};
+
+window.marcarTodosMassa=()=>{
+  MEMBROS.forEach(m=>{const el=document.getElementById("chk-"+m.uid);if(el)el.checked=true;});
+};
+
+window.lancarKmMassa=async(evId)=>{
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  const selecionados=MEMBROS.filter(m=>document.getElementById("chk-"+m.uid)?.checked);
+  if(!selecionados.length){showToast("Selecione ao menos um membro.",true);return;}
+  const kms={};
+  for(const m of selecionados){
+    const km=parseFloat(document.getElementById("km-massa-"+m.uid)?.value);
+    if(!km||isNaN(km)||km<=0){showToast(`Informe o km para ${m.apelido}.`,true);return;}
+    kms[m.uid]=km;
+  }
+  showToast(`Lançando para ${selecionados.length} membro(s)...`);
+  try{
+    for(const m of selecionados){
+      const km=kms[m.uid];
+      await addDoc(collection(db,"registros"),{membroId:m.uid,apelido:m.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:ev.id,createdAt:serverTimestamp()});
+      const nt=(m.totalKm||0)+km;
+      await setDoc(doc(db,"usuarios",m.uid),{totalKm:nt},{merge:true});
+      m.totalKm=nt;
+    }
+    showToast(`✓ ${selecionados.length} lançamento(s) salvos!`);
+    selecionados.forEach(m=>{const el=document.getElementById("chk-"+m.uid);if(el)el.checked=false;});
+    await window.carregarGestaoEvento(evId);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+
+window.carregarGestaoEvento=async(evId)=>{
+  const corpo=document.getElementById("gestao-corpo");
+  if(!corpo)return;
+  corpo.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const ev=EVENTOS.find(e=>e.id===evId);
+    const regSnap=await getDocs(query(collection(db,"registros"),where("eventoId","==",evId)));
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const comRegs=new Set(regs.map(r=>r.membroId));
+    const naoCompareceram=MEMBROS.filter(m=>!comRegs.has(m.uid));
+    const kmDefault=ev&&ev.dist>0?ev.dist*2:0;
+    let html=`<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🟢 Compareceram (${regs.length})</div>`;
+    if(regs.length===0){
+      html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Nenhum registro ainda.</div>`;
+    }else{
+      regs.forEach(r=>{
+        html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div>
+            <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
+          </div>
+          <button onclick="window.editarKmGestao('${r.id}','${r.membroId}',${r.km},${evId})" title="Editar km" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️ Editar</button>
+          <button onclick="window.excluirRegistroGestao('${r.id}','${r.membroId}',${r.km},${evId})" title="Excluir" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+        </div>`;
+      });
+    }
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px">⚪ Não compareceram (${naoCompareceram.length})</div>`;
+    if(naoCompareceram.length===0){
+      html+=`<div style="font-size:12px;color:var(--muted)">Todos os membros já têm registro.</div>`;
+    }else{
+      naoCompareceram.forEach(m=>{
+        html+=`<div id="gest-row-${m.uid}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--white)">${m.apelido||"?"}</div></div>
+          <button onclick="window.marcarPresencaGestao('${m.uid}','${m.apelido||""}',${evId})" id="btn-gest-${m.uid}" style="padding:6px 11px;border-radius:7px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Adicionar</button>
+        </div>
+        <div id="km-gest-form-${m.uid}" style="display:none;padding:6px 0 8px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="km-gest-inp-${m.uid}" type="number" min="1" step="1" value="${kmDefault||""}" placeholder="km ida+volta" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+            <button onclick="window.salvarPresencaGestao('${m.uid}','${m.apelido||""}',${evId})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+            <button onclick="window.cancelarPresencaGestao('${m.uid}')" style="padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+    corpo.innerHTML=html;
+  }catch(e){corpo.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro: ${e.message}</div>`;}
+};
+
+window.marcarPresencaGestao=(uid)=>{
+  document.getElementById("btn-gest-"+uid).style.display="none";
+  document.getElementById("km-gest-form-"+uid).style.display="block";
+  const inp=document.getElementById("km-gest-inp-"+uid);
+  if(inp)inp.focus();
+};
+window.cancelarPresencaGestao=(uid)=>{
+  document.getElementById("btn-gest-"+uid).style.display="";
+  document.getElementById("km-gest-form-"+uid).style.display="none";
+};
+window.salvarPresencaGestao=async(uid,apelido,evId)=>{
+  const inp=document.getElementById("km-gest-inp-"+uid);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  inp.disabled=true;
+  try{
+    await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
+    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const nt=(mSnap.data()?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
+    await window.carregarGestaoEvento(evId);
+  }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
+};
+window.editarKmGestao=async(regId,membroId,kmAtual,evId)=>{
+  const novoKm=parseFloat(prompt("Novo valor de km:",kmAtual));
+  if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
+  try{
+    await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const diff=novoKm-kmAtual;
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
+    await window.carregarGestaoEvento(evId);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.excluirRegistroGestao=async(regId,membroId,km,evId)=>{
+  if(!confirm("Excluir este registro?"))return;
+  try{
+    await deleteDoc(doc(db,"registros",regId));
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast("✓ Registro excluído.");
+    await window.carregarGestaoEvento(evId);
+  }catch(e){showToast("Erro: "+e.message,true);}
 };
 
 window.abrirModalPresenca=async(evId)=>{
