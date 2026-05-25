@@ -3855,6 +3855,55 @@ window.editarComparecimento=async(membroId,apelido,eventoId,registroId,kmAtual)=
     await carregarPresencasAdmin();
   }catch(e){showToast("Erro ao editar.",true);}
 };
+const _compFormMode={};
+window.mostrarFormComp=(uid,evId,mode,regId,kmVal)=>{
+  _compFormMode[uid+"_"+evId]={mode,regId:regId||"",kmOld:kmVal||0};
+  const btns=document.getElementById("comp-btns-"+uid+"-"+evId);
+  const form=document.getElementById("comp-form-"+uid+"-"+evId);
+  if(btns)btns.style.display="none";
+  if(form)form.style.display="block";
+  const inp=document.getElementById("comp-inp-"+uid+"-"+evId);
+  if(inp){inp.value=kmVal||"";inp.focus();}
+};
+window.cancelarFormComp=(uid,evId)=>{
+  const btns=document.getElementById("comp-btns-"+uid+"-"+evId);
+  const form=document.getElementById("comp-form-"+uid+"-"+evId);
+  if(btns)btns.style.display="";
+  if(form)form.style.display="none";
+};
+window.salvarFormComp=async(uid,apelido,evId)=>{
+  const inp=document.getElementById("comp-inp-"+uid+"-"+evId);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  const info=_compFormMode[uid+"_"+evId]||{};
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  if(inp)inp.disabled=true;
+  try{
+    if(info.mode==="editar"){
+      const m=MEMBROS.find(m=>m.uid===uid);
+      if(info.regId)await setDoc(doc(db,"registros",info.regId),{km},{merge:true});
+      const diff=km-(info.kmOld||0);
+      const nt=Math.max(0,(m?.totalKm||0)+diff);
+      await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+      if(m)m.totalKm=nt;
+      await setDoc(doc(db,"presencas",uid+"_"+evId),{kmLancado:km},{merge:true});
+      showToast("✓ Km atualizado para "+toInt(km)+"!");
+    }else{
+      const m=MEMBROS.find(m=>m.uid===uid);
+      const regRef=await addDoc(collection(db,"registros"),{membroId:uid,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
+      const nt=(m?.totalKm||0)+km;
+      await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+      if(m)m.totalKm=nt;
+      await setDoc(doc(db,"presencas",uid+"_"+evId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
+      const mToken=m?.fcmToken;
+      if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken]);
+      registrarLog("compareceu",`registrou comparecimento de ${apelido||uid} — ${toInt(km)} km`,ev.nome);
+      showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
+    }
+    await carregarPresencasAdmin();
+  }catch(e){showToast("Erro: "+e.message,true);if(inp)inp.disabled=false;}
+};
 window.limparDadosTeste=async()=>{
   if(!confirm("Limpar TODOS os dados de teste?\n\nIsso vai apagar:\n• Notificações\n• Presenças em eventos\n• Confirmações de sede\n• Registros de km de teste\n• Log de ações"))return;
   showToast("Limpando...");
@@ -4468,6 +4517,8 @@ async function carregarConfirmacoes(){
 }
 function _presCardMembro(p,ev,status){
   const m=MEMBROS.find(m=>m.uid===p.membroId)||{apelido:p.apelido||"?",fotoUrl:null};
+  const uid=p.membroId;const evId=ev.id;
+  const kmDefault=ev.dist>0?ev.dist*2:0;
   const statusCfg={
     compareceu:{cls:"pres-compareceu",label:`🏁 Compareceu · ${toInt(p.kmLancado||0)} km`},
     confirmado:{cls:"pres-confirmado",label:"🟡 Confirmado"},
@@ -4478,15 +4529,25 @@ function _presCardMembro(p,ev,status){
   };
   const cfg=statusCfg[status]||statusCfg.pendente;
   const acoes=status==="compareceu"
-    ?`<button onclick="window.excluirComparecimento('${p.membroId}','${m.apelido}',${ev.id},'${p.registroId||""}',${p.kmLancado||0})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✕ Desfazer</button>`
-    :`<button id="btn-comp-${p.membroId}-${ev.id}" onclick="window.registrarComparecimento('${p.membroId}','${m.apelido}',${ev.id})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✓ Compareceu</button>`;
-  return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+    ?`<button onclick="window.mostrarFormComp('${uid}',${evId},'editar','${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit" title="Editar km">✏️</button>
+       <button onclick="window.excluirComparecimento('${uid}','${m.apelido}',${evId},'${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit" title="Excluir">✕</button>`
+    :`<button id="btn-comp-${uid}-${evId}" onclick="window.mostrarFormComp('${uid}',${evId},'novo','',${kmDefault})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✓ Compareceu</button>`;
+  const kmFormVal=status==="compareceu"?(p.kmLancado||0):kmDefault;
+  return`<div id="comp-row-${uid}-${evId}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
     ${avatarEl(m.fotoUrl,m.apelido,36)}
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.apelido}</div>
       <span class="pres-badge ${cfg.cls}" style="font-size:10px;padding:2px 8px;margin:0">${cfg.label}</span>
     </div>
-    ${acoes}
+    <div id="comp-btns-${uid}-${evId}" style="display:flex;gap:6px;flex-shrink:0">${acoes}</div>
+  </div>
+  <div id="comp-form-${uid}-${evId}" style="display:none;padding:8px 0 10px;border-bottom:1px solid var(--border)">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${m.apelido} — km ida+volta:</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="comp-inp-${uid}-${evId}" type="number" min="1" step="1" value="${kmFormVal||""}" placeholder="km" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+      <button onclick="window.salvarFormComp('${uid}','${m.apelido}',${evId})" style="padding:8px 14px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Confirmar</button>
+      <button onclick="window.cancelarFormComp('${uid}',${evId})" style="padding:8px 9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+    </div>
   </div>`;
 }
 
