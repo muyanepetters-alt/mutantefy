@@ -504,7 +504,7 @@ function evCardMembro(ev){
 }
 
 let CU=null,UP=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
-let _presAba="eventos";
+let _presAba="massa";
 
 async function carregarEncontros(){
   try{
@@ -751,12 +751,12 @@ function htmlClubeCorpo(){
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          ${[["eventos","📅 Eventos"],["avulso","➕ Avulso"],["historico","📋 Histórico"]].map(([a,lb])=>`
-            <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 16px;border-radius:20px;border:${(_presAba||'eventos')===a?'none':'1px solid var(--border)'};background:${(_presAba||'eventos')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'eventos')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s">${lb}</button>`).join("")}
+        <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
+          ${[["massa","📋 Lançamento"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"]].map(([a,lb])=>`
+            <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 14px;border-radius:20px;border:${(_presAba||'massa')===a?'none':'1px solid var(--border)'};background:${(_presAba||'massa')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'massa')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">${lb}</button>`).join("")}
         </div>
 
-        <div id="pres-panel-eventos" style="display:${(_presAba||'eventos')==='eventos'?'block':'none'}">
+        <div id="pres-panel-massa" style="display:${(_presAba||'massa')==='massa'?'block':'none'}">
           <div class="card" style="margin-bottom:10px">
             <div class="sec-title">📋 Lançamento em massa</div>
             <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
@@ -772,12 +772,16 @@ function htmlClubeCorpo(){
           </div>
         </div>
 
-        <div id="pres-panel-avulso" style="display:${(_presAba||'eventos')==='avulso'?'block':'none'}">
+        <div id="pres-panel-avulso" style="display:${(_presAba||'massa')==='avulso'?'block':'none'}">
           ${htmlLancarKm()}
         </div>
 
-        <div id="pres-panel-historico" style="display:${(_presAba||'eventos')==='historico'?'block':'none'}">
-          <div id="presenca-wrap"><span class="spin">⟳</span></div>
+        <div id="pres-panel-proximos" style="display:${(_presAba||'massa')==='proximos'?'block':'none'}">
+          <div id="pres-proximos-wrap"><span class="spin">⟳</span></div>
+        </div>
+
+        <div id="pres-panel-anteriores" style="display:${(_presAba||'massa')==='anteriores'?'block':'none'}">
+          <div id="pres-anteriores-wrap"><span class="spin">⟳</span></div>
         </div>`:""}
 
       ${TA==="usuarios"?htmlUsuarios():""}
@@ -3531,10 +3535,10 @@ window.salvarPedagio=async(eventoId)=>{
     showToast("✓ Pedágio atualizado!");
   }catch(e){showToast("Erro ao salvar.",true);}
 };
-window.setTA=t=>{TA=t;_presAba="eventos";render();};
+window.setTA=t=>{TA=t;_presAba="massa";render();};
 window.setPresAba=(aba)=>{
   _presAba=aba;
-  ["eventos","avulso","historico"].forEach(a=>{
+  ["massa","avulso","proximos","anteriores"].forEach(a=>{
     const panel=document.getElementById("pres-panel-"+a);
     const btn=document.getElementById("pres-tab-"+a);
     if(panel)panel.style.display=a===aba?"block":"none";
@@ -3545,9 +3549,12 @@ window.setPresAba=(aba)=>{
       btn.style.border=active?"none":"1px solid var(--border)";
     }
   });
-  if(aba==="historico"){
-    const wrap=document.getElementById("presenca-wrap");
-    if(wrap&&wrap.querySelector(".spin"))carregarPresencasAdmin();
+  if(aba==="proximos"){
+    const wrap=document.getElementById("pres-proximos-wrap");
+    if(wrap&&wrap.querySelector(".spin"))carregarProximosEventos();
+  }else if(aba==="anteriores"){
+    const wrap=document.getElementById("pres-anteriores-wrap");
+    if(wrap&&wrap.querySelector(".spin"))carregarEventosAnteriores();
   }
 };
 window.toggleKmAvulso=()=>{
@@ -3816,7 +3823,7 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
     if(m)m.totalKm=nt;
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
     showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
-    await carregarPresencasAdmin();
+    await _recarregarPanelPresenca(eventoId);
     // Push para o membro
     const mToken=m?.fcmToken;
     if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken]);
@@ -3837,7 +3844,7 @@ window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
     if(m)m.totalKm=nt;
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"confirmado",compareceu:false,registroId:null,kmLancado:0},{merge:true});
     showToast("✓ Lançamento excluído.");
-    await carregarPresencasAdmin();
+    await _recarregarPanelPresenca(eventoId);
   }catch(e){showToast("Erro ao excluir.",true);}
 };
 window.editarComparecimento=async(membroId,apelido,eventoId,registroId,kmAtual)=>{
@@ -3901,7 +3908,7 @@ window.salvarFormComp=async(uid,apelido,evId)=>{
       registrarLog("compareceu",`registrou comparecimento de ${apelido||uid} — ${toInt(km)} km`,ev.nome);
       showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
     }
-    await carregarPresencasAdmin();
+    await _recarregarPanelPresenca(evId);
   }catch(e){showToast("Erro: "+e.message,true);if(inp)inp.disabled=false;}
 };
 window.limparDadosTeste=async()=>{
@@ -4582,6 +4589,225 @@ window.togglePresAcc=(evId)=>{
 window.togglePresAnteriores=()=>{
   const w=document.getElementById("pres-ant-wrap"),ic=document.getElementById("pres-ant-ic");
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
+};
+
+async function _recarregarPanelPresenca(evId){
+  if(_presAba==="proximos")await carregarProximosEventos();
+  else if(_presAba==="anteriores"&&evId)await carregarCorpoEventoAnt(evId);
+}
+
+async function carregarProximosEventos(){
+  const wrap=document.getElementById("pres-proximos-wrap");
+  if(!wrap)return;
+  wrap.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const futuros=EVENTOS.filter(e=>e.data>=hoje&&e.destino!=="A confirmar");
+    if(!futuros.length){wrap.innerHTML=`<div style="font-size:13px;color:var(--muted)">Nenhum evento próximo.</div>`;return;}
+    const snaps=await Promise.all(futuros.map(ev=>getDocs(query(collection(db,"presencas"),where("eventoId","==",ev.id)))));
+    let html="";
+    futuros.forEach((ev,i)=>{
+      const pDocs=snaps[i].docs.map(d=>d.data());
+      const nComp=pDocs.filter(p=>p.compareceu||p.resposta==="compareceu").length;
+      const nConf=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="sim"||p.resposta==="confirmado")).length;
+      const nDes=pDocs.filter(p=>!p.compareceu&&p.resposta!=="compareceu"&&(p.resposta==="nao"||p.resposta==="desistiu")).length;
+      const isFirst=i===0;
+      html+=`<div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <button onclick="window.togglePresAcc(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nome}</div>
+            <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+            ${nComp?`<span style="background:rgba(76,175,125,.2);color:var(--green);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟢${nComp}</span>`:""}
+            ${nConf?`<span style="background:rgba(245,197,24,.15);color:#f5c518;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟡${nConf}</span>`:""}
+            ${nDes?`<span style="background:rgba(224,82,82,.1);color:var(--danger);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🔴${nDes}</span>`:""}
+            <span id="pres-acc-ic-${ev.id}" style="color:var(--muted);font-size:12px;margin-left:2px">${isFirst?"▲":"▼"}</span>
+          </div>
+        </button>
+        <div id="pres-acc-body-${ev.id}" style="display:${isFirst?"block":"none"};padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3)">
+          ${_htmlPresencaEvento(ev,pDocs)}
+        </div>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }catch(e){wrap.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro ao carregar.</div>`;}
+}
+
+async function carregarEventosAnteriores(){
+  const wrap=document.getElementById("pres-anteriores-wrap");
+  if(!wrap)return;
+  wrap.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const passados=EVENTOS.filter(e=>e.data<hoje).reverse();
+    if(!passados.length){wrap.innerHTML=`<div style="font-size:13px;color:var(--muted)">Nenhum evento anterior.</div>`;return;}
+    const snaps=await Promise.all(passados.map(ev=>getDocs(query(collection(db,"registros"),where("eventoId","==",ev.id)))));
+    let html="";
+    passados.forEach((ev,i)=>{
+      const nComp=snaps[i].docs.length;
+      html+=`<div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <button onclick="window.toggleAccAnt(${ev.id})" style="width:100%;background:var(--bg2);border:none;padding:12px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:10px;text-align:left">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nome}</div>
+            <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+            ${nComp?`<span style="background:rgba(76,175,125,.2);color:var(--green);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">🟢${nComp}</span>`:""}
+            <span style="font-size:10px;color:#888;font-weight:700;background:var(--bg3);padding:2px 7px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>
+            <span id="ant-acc-ic-${ev.id}" style="color:var(--muted);font-size:12px;margin-left:2px">▼</span>
+          </div>
+        </button>
+        <div id="ant-acc-body-${ev.id}" style="display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3)">
+          <span class="spin">⟳</span>
+        </div>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }catch(e){wrap.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro ao carregar.</div>`;}
+}
+
+window.toggleAccAnt=(evId)=>{
+  document.querySelectorAll("[id^='ant-acc-body-']").forEach(el=>{if(el.id!==`ant-acc-body-${evId}`)el.style.display="none";});
+  document.querySelectorAll("[id^='ant-acc-ic-']").forEach(el=>{if(el.id!==`ant-acc-ic-${evId}`)el.textContent="▼";});
+  const body=document.getElementById(`ant-acc-body-${evId}`);
+  const ic=document.getElementById(`ant-acc-ic-${evId}`);
+  if(!body)return;
+  const open=body.style.display==="none";
+  body.style.display=open?"block":"none";
+  if(ic)ic.textContent=open?"▲":"▼";
+  if(open&&body.querySelector(".spin"))carregarCorpoEventoAnt(evId);
+};
+
+async function carregarCorpoEventoAnt(evId){
+  const corpo=document.getElementById(`ant-acc-body-${evId}`);
+  if(!corpo)return;
+  corpo.innerHTML=`<span class="spin">⟳</span>`;
+  try{
+    const ev=EVENTOS.find(e=>e.id===evId);
+    const regSnap=await getDocs(query(collection(db,"registros"),where("eventoId","==",evId)));
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const comRegs=new Set(regs.map(r=>r.membroId));
+    const naoCompareceram=MEMBROS.filter(m=>!comRegs.has(m.uid));
+    const kmDefault=ev&&ev.dist>0?ev.dist*2:0;
+    let html=`<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🟢 Compareceram (${regs.length})</div>`;
+    if(!regs.length){
+      html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Nenhum registro.</div>`;
+    }else{
+      regs.forEach(r=>{
+        html+=`<div id="ant-row-${r.id}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div>
+            <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
+          </div>
+          <div id="ant-btns-${r.id}" style="display:flex;gap:4px">
+            <button onclick="window.mostrarAntEdit('${r.id}',${r.km},${evId})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️</button>
+            <button onclick="window.excluirAntReg('${r.id}','${r.membroId}',${r.km},${evId})" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>
+        <div id="ant-edit-form-${r.id}" style="display:none;padding:6px 0 8px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="ant-edit-inp-${r.id}" type="number" min="1" step="1" value="${r.km}" placeholder="km" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+            <button onclick="window.salvarAntEdit('${r.id}','${r.membroId}',${r.km},${evId})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+            <button onclick="window.cancelarAntEdit('${r.id}')" style="padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px">⚪ Não compareceram (${naoCompareceram.length})</div>`;
+    if(!naoCompareceram.length){
+      html+=`<div style="font-size:12px;color:var(--muted)">Todos já têm registro.</div>`;
+    }else{
+      naoCompareceram.forEach(m=>{
+        html+=`<div id="ant-add-row-${m.uid}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--white)">${m.apelido||"?"}</div></div>
+          <button id="btn-ant-add-${m.uid}" onclick="window.mostrarAntAdd('${m.uid}',${evId})" style="padding:6px 11px;border-radius:7px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Adicionar</button>
+        </div>
+        <div id="ant-add-form-${m.uid}" style="display:none;padding:6px 0 8px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="ant-add-inp-${m.uid}" type="number" min="1" step="1" value="${kmDefault||""}" placeholder="km ida+volta" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+            <button onclick="window.salvarAntAdd('${m.uid}','${m.apelido||""}',${evId})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+            <button onclick="window.cancelarAntAdd('${m.uid}')" style="padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+    corpo.innerHTML=html;
+  }catch(e){corpo.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro: ${e.message}</div>`;}
+}
+
+window.mostrarAntEdit=(regId,kmAtual,evId)=>{
+  const btns=document.getElementById("ant-btns-"+regId);
+  const form=document.getElementById("ant-edit-form-"+regId);
+  if(btns)btns.style.display="none";
+  if(form)form.style.display="block";
+  const inp=document.getElementById("ant-edit-inp-"+regId);
+  if(inp){inp.value=kmAtual;inp.focus();}
+};
+window.cancelarAntEdit=(regId)=>{
+  const btns=document.getElementById("ant-btns-"+regId);
+  const form=document.getElementById("ant-edit-form-"+regId);
+  if(btns)btns.style.display="";
+  if(form)form.style.display="none";
+};
+window.salvarAntEdit=async(regId,membroId,kmAtual,evId)=>{
+  const inp=document.getElementById("ant-edit-inp-"+regId);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  inp.disabled=true;
+  try{
+    await setDoc(doc(db,"registros",regId),{km},{merge:true});
+    const diff=km-kmAtual;
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast(`✓ Km atualizado para ${toInt(km)}!`);
+    await carregarCorpoEventoAnt(evId);
+  }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
+};
+window.excluirAntReg=async(regId,membroId,km,evId)=>{
+  if(!confirm("Excluir este registro?"))return;
+  try{
+    await deleteDoc(doc(db,"registros",regId));
+    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
+    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    showToast("✓ Registro excluído.");
+    await carregarCorpoEventoAnt(evId);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.mostrarAntAdd=(uid,evId)=>{
+  const btn=document.getElementById("btn-ant-add-"+uid);
+  const form=document.getElementById("ant-add-form-"+uid);
+  if(btn)btn.style.display="none";
+  if(form)form.style.display="block";
+  const inp=document.getElementById("ant-add-inp-"+uid);
+  if(inp)inp.focus();
+};
+window.cancelarAntAdd=(uid)=>{
+  const btn=document.getElementById("btn-ant-add-"+uid);
+  const form=document.getElementById("ant-add-form-"+uid);
+  if(btn)btn.style.display="";
+  if(form)form.style.display="none";
+};
+window.salvarAntAdd=async(uid,apelido,evId)=>{
+  const inp=document.getElementById("ant-add-inp-"+uid);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  const ev=EVENTOS.find(e=>e.id===evId);
+  if(!ev)return;
+  inp.disabled=true;
+  try{
+    await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
+    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const nt=(mSnap.data()?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
+    await carregarCorpoEventoAnt(evId);
+  }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
 };
 
 window.selecionarEventoMassa=async(evId)=>{
