@@ -4353,7 +4353,7 @@ window.fazerLogin=async()=>{
   btn.disabled=true;btn.textContent="Entrando...";err.style.display="none";
   try{
     if(apelido.toLowerCase()==="admin"){await signInWithEmailAndPassword(auth,"admin@mutantesmc.com",senha);return;}
-    const snap=await getDocs(query(collection(db,"usuarios"),where("apelido","==",apelido)));
+    const snap=await getDocs(query(collection(db,"usuarios"),where("apelidoLower","==",apelido.toLowerCase())));
     if(snap.empty){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
     await signInWithEmailAndPassword(auth,snap.docs[0].data().email,senha);
   }catch{err.textContent="Apelido ou senha incorretos.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
@@ -4409,7 +4409,7 @@ window.cadastrarMembro=async()=>{
     const fi=document.getElementById("n-foto");
     if(fi?.files[0]){btn.textContent="Enviando foto...";fotoUrl=await uploadFoto(fi.files[0]);}
     const cred=await createUserWithEmailAndPassword(auth,email,senha);
-    await setDoc(doc(db,"usuarios",cred.user.uid),{apelido,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
+    await setDoc(doc(db,"usuarios",cred.user.uid),{apelido,apelidoLower:apelido.toLowerCase(),email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
     await signInWithEmailAndPassword(auth,adminEmail,adminPass);
     await carregarMembros();
     showToast("✓ "+apelido+" cadastrado!");TA="home";
@@ -4427,7 +4427,7 @@ window.salvarUsuario=async uid=>{
   if(!apelido)return;
   try{
     const tel=document.getElementById("ue-tel-"+uid)?.value.replace(/\D/g,"")||"";
-    const dados={apelido,moto:moto||"",nivel:nivel||"",telefone:tel};
+    const dados={apelido,apelidoLower:apelido.toLowerCase(),moto:moto||"",nivel:nivel||"",telefone:tel};
     if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
     await setDoc(doc(db,"usuarios",uid),dados,{merge:true});
     const m=MEMBROS.find(m=>m.uid===uid);if(m)Object.assign(m,dados);
@@ -4576,6 +4576,13 @@ window.trocarSenha=async()=>{
 async function carregarMembros(){
   const snap=await getDocs(collection(db,"usuarios"));
   MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({uid:d.id,...d.data()}));
+}
+async function migrarApelidoLower(){
+  const snap=await getDocs(collection(db,"usuarios"));
+  const pendentes=snap.docs.filter(d=>!d.data().apelidoLower&&d.data().apelido);
+  if(!pendentes.length)return;
+  await Promise.all(pendentes.map(d=>setDoc(doc(db,"usuarios",d.id),{apelidoLower:d.data().apelido.toLowerCase()},{merge:true})));
+  console.log(`migrarApelidoLower: ${pendentes.length} documentos atualizados.`);
 }
 async function carregarRegistros(){
   if(!CU)return;
@@ -5302,7 +5309,7 @@ onAuthStateChanged(auth,async user=>{
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman)tarefas.push(carregarMembros());
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());if(UP.isAdmin)migrarApelidoLower();}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
