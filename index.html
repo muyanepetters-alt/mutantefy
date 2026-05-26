@@ -760,7 +760,6 @@ function htmlClubeCorpo(){
   if(UP.isDiretor||UP.isAdmin){
     const dirMenus=[
       {id:"membros",ic:"🏍️",lb:"Ranking de km",sub:"Meta anual"},
-      {id:"cadastrar",ic:"➕",lb:"Cadastrar",sub:"Novo membro"},
       {id:"presenca",ic:"🎟️",lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
@@ -3609,7 +3608,7 @@ window.salvarPedagio=async(eventoId)=>{
     showToast("✓ Pedágio atualizado!");
   }catch(e){showToast("Erro ao salvar.",true);}
 };
-window.setTA=t=>{TA=t;_presAba="massa";render();};
+window.setTA=t=>{console.log("setTA:",t);TA=t;_presAba="massa";try{render();}catch(e){console.error("setTA render error:",e);}};
 window.setPresAba=(aba)=>{
   _presAba=aba;
   ["massa","avulso","proximos","anteriores"].forEach(a=>{
@@ -3644,14 +3643,17 @@ window.toggleEvDet=id=>{const el=document.getElementById(id);if(el)el.style.disp
 window.toggleEdit=id=>{const el=document.getElementById("edit-"+id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
 function htmlUsuarios(){
   return`<div class="card">
-    <div class="sec-title">👥 Membros cadastrados</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sec-title" style="margin-bottom:0">👥 Membros cadastrados</div>
+      <button onclick="window.setTA('cadastrar')" style="padding:7px 14px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+ Cadastrar</button>
+    </div>
     <div style="position:relative;margin-bottom:14px">
       <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
       <input type="text" id="busca-membro" placeholder="Buscar membro..." autocomplete="off" oninput="window.filtrarMembros(this.value)" style="padding-left:40px;margin-bottom:0"/>
     </div>
     <div id="membros-lista">
     ${MEMBROS.map(m=>`
-      <div class="membro-item" data-apelido="${m.apelido.toLowerCase()}" style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div class="membro-item" data-apelido="${(m.apelido||"").toLowerCase()}" style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer" onclick="window.toggleUsuario('${m.uid}')">
           ${avatarEl(m.fotoUrl,m.apelido,36)}
           <div style="flex:1">
