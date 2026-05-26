@@ -163,10 +163,10 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-.bnav{display:flex;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
+.bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
-.bnav-item{flex:1;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
+.bnav-item{flex:0 0 auto;min-width:64px;scroll-snap-align:start;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
 .bnav-icon{font-size:18px;line-height:1;transition:transform .15s;display:flex;align-items:center;justify-content:center;}
 .bnav-label{font-size:9px;color:var(--muted);font-weight:500;letter-spacing:.1px;white-space:nowrap}
 .bnav-item.nav-active .bnav-label{color:var(--orange);font-weight:700}
@@ -768,8 +768,9 @@ function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
 function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
 function htmlRanking(){
   if(MEMBROS.length===0)return`<div class="card" style="text-align:center;padding:40px 20px"><span class="spin">⟳</span><div style="margin-top:10px;font-size:13px;color:var(--muted)">Carregando ranking...</div></div>`;
-  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
-  const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
+  const membros=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined');
+  const sorted=[...membros].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const abaixo=membros.filter(m=>(m.totalKm||0)<META).length;
   const maxSede=_maxSedeCount();
   const aba=window._rankAba||"km";
   return`<div class="card">
@@ -780,7 +781,7 @@ function htmlRanking(){
     </div>
     ${aba==="km"?`
       <div class="grid2" style="margin-bottom:12px">
-        <div class="metric"><div class="metric-label">${li("users",12)} Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
+        <div class="metric"><div class="metric-label">${li("users",12)} Integrantes</div><div class="metric-value">${membros.length}</div></div>
         <div class="metric"><div class="metric-label">${li("alert-triangle",12)} Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
       </div>
       ${sorted.map((m,i)=>{
@@ -799,7 +800,7 @@ function htmlRanking(){
       }).join("")}
     `:`
       ${(()=>{
-        const ss=[...MEMBROS].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
+        const ss=[...membros].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
         const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
         return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${tot}</div></div>`
         +ss.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>${avatarEl(m.fotoUrl,m.apelido,30)}<span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?"#60b8ff":"var(--muted)"}">⛪ ${sc} presenças</span></div></div>`;}).join("");
@@ -1922,14 +1923,14 @@ function htmlVotacaoAdmin(){
 
 function htmlWhatsApp(ctx){
   // Cabeçalho com sub-abas Mensagens / Mural / Rotas
-  return`<div style="display:flex;gap:8px;margin-bottom:14px">
+  return`<div style="overflow:hidden;max-width:100%"><div style="display:flex;gap:8px;margin-bottom:14px">
     <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("message-circle",14)} WhatsApp</button>
     <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
     <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("map",14)} Rotas</button>
   </div>
   <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
   <div id="sub-msg-mural" style="display:none">${htmlMural()}</div>
-  <div id="sub-msg-rotas" style="display:none">${htmlRotasSugeridas()}</div>`;
+  <div id="sub-msg-rotas" style="display:none">${htmlRotasSugeridas()}</div></div>`;
 }
 window.setSubMsg=(aba)=>{
   ["wpp","mural","rotas"].forEach(a=>{
@@ -3442,7 +3443,7 @@ window.toggleKmAvulso=()=>{
   wrap.style.display=fechando?"none":"block";
   if(ic)ic.textContent=fechando?"▼":"▲";
 };
-window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&MEMBROS.length===0){render();await Promise.all([carregarMembros(),carregarSedePresencas()]);}render();};
+window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&MEMBROS.length===0){render();await Promise.all([carregarMembros(),carregarSedePresencas()]);}render();setTimeout(()=>{const active=document.querySelector('.bnav-item.nav-active');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},50);};
 
 // ── BANNER DE INSTALAÇÃO PWA ────────────────────────
 window._pwaDeferred=null;
