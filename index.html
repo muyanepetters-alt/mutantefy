@@ -4467,8 +4467,8 @@ window.enviarSenhaWhatsApp=async(uid,email,apelido)=>{
     const data=await res.json();
     if(!res.ok)throw new Error(data.error?.message||"Erro desconhecido");
     const link=data.oobLink||"";
-    const msg=encodeURIComponent(`Olá! Acesse o link para redefinir sua senha no app Mutantes MC: ${link}`);
-    window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
+    const msg=encodeURIComponent(`Olá, ${apelido}! 🏍️ Acesse o link abaixo para redefinir sua senha no app Mutantes MC Itajaí:\n${link}`);
+    window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msg}`,"_blank");
   }catch(e){showToast("Erro: "+e.message,true);}
 };
 window.lancarKm=async()=>{
