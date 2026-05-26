@@ -4356,17 +4356,26 @@ window.fazerLogin=async()=>{
       MY_DOC_ID="admin";localStorage.setItem("mutantes_docid","admin");
       await signInWithEmailAndPassword(auth,"muyanewolf@gmail.com",senha);return;
     }
-    const docId=apelido.toLowerCase();
-    console.log("Apelido digitado:",apelido);
-    console.log("ApelidoLower:",docId);
-    const docRef=doc(db,"usuarios",docId);
-    const snap=await getDoc(docRef);
-    console.log("Path buscado:",docRef.path);
-    console.log("Documento existe?",snap.exists());
-    console.log("Dados:",snap.data());
-    if(!snap.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
-    MY_DOC_ID=docId;localStorage.setItem("mutantes_docid",docId);
-    await signInWithEmailAndPassword(auth,snap.data().email,senha);
+    const apelidoLower=apelido.toLowerCase();
+    console.log("Apelido digitado:",apelido,"| ApelidoLower:",apelidoLower);
+    // 1) tenta por apelidoLower como docId (novo formato)
+    let userDoc=await getDoc(doc(db,"usuarios",apelidoLower));
+    console.log("Busca por docId '"+apelidoLower+"':",userDoc.exists());
+    // 2) fallback: query pelo campo apelidoLower (docs antigos com uid como docId)
+    if(!userDoc.exists()){
+      const q=await getDocs(query(collection(db,"usuarios"),where("apelidoLower","==",apelidoLower)));
+      if(!q.empty){userDoc=q.docs[0];console.log("Encontrado via query apelidoLower:",userDoc.id);}
+    }
+    // 3) fallback: query pelo apelido original (docs sem apelidoLower)
+    if(!userDoc.exists()){
+      const q=await getDocs(query(collection(db,"usuarios"),where("apelido","==",apelido)));
+      if(!q.empty){userDoc=q.docs[0];console.log("Encontrado via query apelido:",userDoc.id);}
+    }
+    if(!userDoc.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
+    const {email:userEmail}=userDoc.data();
+    MY_DOC_ID=userDoc.id;localStorage.setItem("mutantes_docid",userDoc.id);
+    console.log("Email encontrado:",userEmail,"| MY_DOC_ID:",userDoc.id);
+    await signInWithEmailAndPassword(auth,userEmail,senha);
   }catch{err.textContent="Apelido ou senha incorretos.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
 window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
