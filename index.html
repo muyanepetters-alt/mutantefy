@@ -4366,11 +4366,7 @@ window.fazerLogin=async()=>{
       const q=await getDocs(query(collection(db,"usuarios"),where("apelidoLower","==",apelidoLower)));
       if(!q.empty){userDoc=q.docs[0];console.log("Encontrado via query apelidoLower:",userDoc.id);}
     }
-    // 3) fallback: query pelo apelido original (docs sem apelidoLower)
-    if(!userDoc.exists()){
-      const q=await getDocs(query(collection(db,"usuarios"),where("apelido","==",apelido)));
-      if(!q.empty){userDoc=q.docs[0];console.log("Encontrado via query apelido:",userDoc.id);}
-    }
+
     if(!userDoc.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
     const {email:userEmail}=userDoc.data();
     MY_DOC_ID=userDoc.id;localStorage.setItem("mutantes_docid",userDoc.id);
@@ -4424,13 +4420,14 @@ window.cadastrarMembro=async()=>{
   const adminEmail=CU.email;
   const adminPass=prompt("Confirme sua senha admin:");
   if(!adminPass){btn.disabled=false;btn.textContent="Cadastrar integrante";return;}
+  let authCred=null;
   try{
     let fotoUrl="";
     const fi=document.getElementById("n-foto");
     if(fi?.files[0]){btn.textContent="Enviando foto...";fotoUrl=await uploadFoto(fi.files[0]);}
-    const cred=await createUserWithEmailAndPassword(auth,email,senha);
-    console.log("Auth UID criado:",cred.user.uid,"para",email);
-    await setDoc(doc(db,"usuarios",apelido.toLowerCase()),{apelido,apelidoLower:apelido.toLowerCase(),uid:cred.user.uid,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
+    authCred=await createUserWithEmailAndPassword(auth,email,senha);
+    console.log("Auth UID criado:",authCred.user.uid,"para",email);
+    await setDoc(doc(db,"usuarios",apelido.toLowerCase()),{apelido,apelidoLower:apelido.toLowerCase(),uid:authCred.user.uid,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
     btn.textContent="Restaurando sessão...";
     try{
       await signInWithEmailAndPassword(auth,adminEmail,adminPass);
@@ -4451,7 +4448,15 @@ window.cadastrarMembro=async()=>{
     showToast("✓ "+apelido+" cadastrado!");TA="home";
     registrarLog("membro_cadastrado",`cadastrou novo membro`,apelido);
     render();
-  }catch(e){console.error("Erro no cadastro:",e);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Cadastrar integrante";}
+  }catch(e){
+    console.error("Erro no cadastro:",e);
+    // se Auth foi criado mas Firestore falhou, remove o usuário órfão
+    if(authCred&&auth.currentUser?.uid===authCred.user.uid){
+      try{await auth.currentUser.delete();console.log("Auth user órfão removido.");}
+      catch(delErr){console.error("Falha ao remover Auth user órfão:",delErr);}
+    }
+    err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Cadastrar integrante";
+  }
 };
 window.salvarUsuario=async uid=>{
   const apelido=document.getElementById("ue-ap-"+uid)?.value.trim();
@@ -4615,6 +4620,8 @@ async function carregarMembros(){
 }
 function findMembro(id){return MEMBROS.find(m=>m.uid===id)||MEMBROS.find(m=>m.authUid===id);}
 function resolveDocId(id){const m=findMembro(id);return m?m.uid:id;}
+// retorna o Firebase Auth UID — usar como membroId em registros/presencas/confirmacoes
+function resolveAuthUid(id){const m=findMembro(id);return m?m.authUid:id;}
 async function migrarParaApelidoLowerId(){
   const snap=await getDocs(collection(db,"usuarios"));
   const antigos=snap.docs.filter(d=>{
@@ -5011,7 +5018,7 @@ window.lancarKmMassa=async(evId)=>{
   try{
     for(const m of selecionados){
       const km=kms[m.uid];
-      await addDoc(collection(db,"registros"),{membroId:m.uid,apelido:m.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:ev.id,createdAt:serverTimestamp()});
+      await addDoc(collection(db,"registros"),{membroId:m.authUid,apelido:m.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:ev.id,createdAt:serverTimestamp()});
       const nt=(m.totalKm||0)+km;
       await setDoc(doc(db,"usuarios",m.uid),{totalKm:nt},{merge:true});
       m.totalKm=nt;
@@ -5357,7 +5364,7 @@ onAuthStateChanged(auth,async user=>{
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());if(UP.isAdmin)migrarParaApelidoLowerId();}
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
