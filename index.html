@@ -3808,7 +3808,7 @@ window.salvarObsMembro=async(uid,showMsg=true)=>{
 };
 
 window.gerarPdfMembro=async(uid)=>{
-  if(typeof JsPDF==='undefined'){showToast('jsPDF não carregado. Verifique conexão.',true);return;}
+  if(!(window.jspdf&&window.jspdf.jsPDF)){showToast('jsPDF não carregado. Verifique conexão.',true);return;}
   const ctx=window._relMembroCtx;
   if(!ctx||ctx.m.uid!==uid){showToast('Selecione o membro primeiro.',true);return;}
   await window.salvarObsMembro(uid,false);
@@ -3840,8 +3840,8 @@ window.gerarPdfMembro=async(uid)=>{
     m.fotoUrl?fetchImgB64(m.fotoUrl,120,true):Promise.resolve(null)
   ]);
 
-  const JsPDF2=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-  const pdf=new JsPDF2({orientation:'portrait',unit:'mm',format:'a4'});
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,H=297,ML=14,MR=14;
   const CW=W-ML-MR;
 
