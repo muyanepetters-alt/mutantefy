@@ -3679,16 +3679,7 @@ function htmlUsuarios(){
             <button id="btn-cred-${m.uid}" onclick="window.copiarCredenciais('${m.uid}')" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar credenciais</button>
             <button onclick="window.enviarAcesso('${m.email}','${m.apelido}')" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(59,130,246,.3);background:transparent;color:#60a5fa;cursor:pointer;font-family:inherit;font-size:12px">📧 Enviar acesso</button>
           </div>
-          <div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end">
-            <div style="flex:1">
-              <label style="margin-bottom:4px">Nova senha</label>
-              <div style="position:relative">
-                <input type="password" id="ue-np-${m.uid}" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="margin-bottom:0;padding-right:38px"/>
-                <button type="button" onclick="(()=>{const i=document.getElementById('ue-np-${m.uid}');i.type=i.type==='password'?'text':'password';})()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0;line-height:1">👁️</button>
-              </div>
-            </div>
-            <button id="btn-rdp-${m.uid}" onclick="window.redefinirSenha('${m.uid}','${m.apelido}')" style="padding:9px 14px;border-radius:8px;border:1px solid rgba(224,82,82,.35);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;flex-shrink:0">🔑 Redefinir senha</button>
-          </div>
+          <button onclick="window.enviarSenhaWhatsApp('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(37,211,102,.3);background:transparent;color:#25d366;cursor:pointer;font-family:inherit;font-size:12px">📲 Enviar senha pelo WhatsApp</button>
           <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
           <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
             <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
@@ -4462,65 +4453,23 @@ window.enviarAcesso=async(email,apelido)=>{
     showToast("✅ Link enviado para "+email);
   }catch(e){showToast("Erro ao enviar: "+e.message,true);}
 };
-function pedirSenhaAdmin(){
-  return new Promise((resolve,reject)=>{
-    const modal=document.createElement("div");
-    modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
-    modal.innerHTML=`<div style="width:min(100%,340px);background:var(--bg2);border-radius:16px;padding:24px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:6px">Confirmação necessária</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Digite sua senha para confirmar a operação</div>
-      <input type="password" id="modal-adm-pass" placeholder="Sua senha" autocomplete="current-password" style="margin-bottom:14px"/>
-      <div style="display:flex;gap:8px">
-        <button id="modal-adm-cancel" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:13px">Cancelar</button>
-        <button id="modal-adm-ok" class="btn-primary" style="flex:1">Confirmar</button>
-      </div>
-    </div>`;
-    document.body.appendChild(modal);
-    const inp=modal.querySelector("#modal-adm-pass");
-    inp.focus();
-    const ok=()=>{const v=inp.value;modal.remove();resolve(v);};
-    const cancel=()=>{modal.remove();reject(new Error("cancelled"));};
-    modal.querySelector("#modal-adm-ok").onclick=ok;
-    modal.querySelector("#modal-adm-cancel").onclick=cancel;
-    inp.addEventListener("keydown",e=>{if(e.key==="Enter")ok();if(e.key==="Escape")cancel();});
-  });
-}
-window.redefinirSenha=async(uid,apelido)=>{
-  const inp=document.getElementById("ue-np-"+uid);
-  const btn=document.getElementById("btn-rdp-"+uid);
-  const novaSenha=inp?.value||"";
-  if(novaSenha.length<6){showToast("Mínimo 6 caracteres.",true);return;}
-  if(!confirm(`Redefinir senha de ${apelido}?`))return;
-  btn.disabled=true;btn.textContent="Aguarde...";
-  const chamarAPI=async()=>{
-    const idToken=await auth.currentUser.getIdToken(true);
-    const res=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",{
+window.enviarSenhaWhatsApp=async(uid,email,apelido)=>{
+  const m=MEMBROS.find(x=>x.uid===uid);
+  const tel=(m?.telefone||"").replace(/\D/g,"");
+  if(!tel){showToast("Cadastre o telefone do membro antes de enviar.",true);return;}
+  if(!confirm(`Gerar link de redefinição e enviar pelo WhatsApp para ${apelido}?`))return;
+  try{
+    const res=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({idToken,localId:uid,password:novaSenha})
+      body:JSON.stringify({requestType:"PASSWORD_RESET",email})
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error?.message||"Erro desconhecido");
-  };
-  try{
-    await chamarAPI();
-    inp.value="";
-    showToast("✅ Senha de "+apelido+" redefinida!");
-  }catch(e){
-    if(e.message.includes("CREDENTIAL_TOO_OLD_LOGIN_AGAIN")){
-      try{
-        const senhaAdmin=await pedirSenhaAdmin();
-        const cred=EmailAuthProvider.credential(auth.currentUser.email,senhaAdmin);
-        await reauthenticateWithCredential(auth.currentUser,cred);
-        await chamarAPI();
-        inp.value="";
-        showToast("✅ Senha de "+apelido+" redefinida!");
-      }catch(e2){if(e2.message!=="cancelled")showToast("Erro: "+e2.message,true);}
-    }else{
-      showToast("Erro: "+e.message,true);
-    }
-  }
-  finally{btn.disabled=false;btn.textContent="🔑 Redefinir senha";}
+    const link=data.oobLink||"";
+    const msg=encodeURIComponent(`Olá! Acesse o link para redefinir sua senha no app Mutantes MC: ${link}`);
+    window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
+  }catch(e){showToast("Erro: "+e.message,true);}
 };
 window.lancarKm=async()=>{
   const membroId=document.getElementById("km-membro")?.value;
