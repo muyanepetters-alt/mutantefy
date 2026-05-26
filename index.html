@@ -816,7 +816,6 @@ function htmlClubeCorpo(){
       {id:"presenca",ic:li("check-square",28),lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:li("users",28),lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:li("calendar",28),lb:"Eventos",sub:"Calendário 2026"},
-      {id:"honra",ic:li("star",28),lb:"Placa de Honra",sub:"Metas atingidas"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
       {id:"relatorio",ic:li("bar-chart-2",28),lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
@@ -875,7 +874,6 @@ function htmlClubeCorpo(){
 
       ${TA==="usuarios"?htmlUsuarios():""}
       ${TA==="eventos"?`<div>${htmlEventosSplit()}</div>`:""}
-      ${TA==="honra"?htmlPlacaHonra():""}
       ${TA==="mensalidades"?`<div id="mensalidades-wrap"><span class="spin">⟳</span></div>`:""}
       ${TA==="galeria"?htmlGaleria():""}
       ${TA==="reunioes"?htmlReunioes():""}
@@ -2030,42 +2028,6 @@ function htmlWhatsAppConteudo(ctx){
   </div>`;
 }
 
-function htmlPlacaHonra(){
-  const alcancaram=MEMBROS.filter(m=>(m.totalKm||0)>=META).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
-  const proximos=MEMBROS.filter(m=>(m.totalKm||0)<META&&(m.totalKm||0)>=(META*0.7)).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
-  return`<div class="card" style="border-color:rgba(232,103,10,.4);background:rgba(232,103,10,.04)">
-    <div style="text-align:center;padding:8px 0 16px">
-      <div style="font-size:40px;margin-bottom:8px">🏆</div>
-      <div style="font-size:16px;font-weight:700;color:var(--orange)">Placa de Honra 2026</div>
-      <div style="font-size:12px;color:var(--muted)">Membros que atingiram ${toInt(META)} km</div>
-    </div>
-    ${alcancaram.length===0
-      ?`<div style="text-align:center;font-size:13px;color:#555;padding:12px 0">Nenhum membro atingiu a meta ainda.</div>`
-      :alcancaram.map((m,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:22px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":"🏅"}</span>
-          ${avatarEl(m.fotoUrl,m.apelido,40)}
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:700">${m.apelido}</div>
-            <div style="font-size:12px;color:var(--green)">✅ ${toInt(m.totalKm||0)} km</div>
-          </div>
-          <div style="font-size:20px">🏆</div>
-        </div>`).join("")}
-  </div>
-  ${proximos.length>0?`<div class="card">
-    <div class="sec-title">🔥 Quase lá — acima de 70%</div>
-    ${proximos.map(m=>{
-      const p=Math.round(((m.totalKm||0)/META)*100);
-      return`<div style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          ${avatarEl(m.fotoUrl,m.apelido,28)}
-          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}</span>
-          <span style="font-size:12px;color:var(--orange)">${toInt(m.totalKm||0)} km · ${p}%</span>
-        </div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${p}%;background:var(--orange)"></div></div>
-      </div>`;
-    }).join("")}
-  </div>`:""}`;
-}
 
 async function carregarVotacoes(){
   const el=document.getElementById("vot-admin-lista");
@@ -2114,7 +2076,6 @@ function htmlVotacoesTab(){
   </div>`;
 }
 
-async function carregarPlacaHonra(){} // renderizado estaticamente
 
 // ═══════════════════════════════════════════════════
 // CONFETE — animação ao bater meta
