@@ -1,4 +1,4 @@
-// v2
+// v3
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js');
 
@@ -32,3 +32,6 @@ self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(clients.openWindow(self.registration.scope));
 });
+
+// Obrigatório para critérios de instalabilidade PWA no Chrome
+self.addEventListener('fetch', e => {});

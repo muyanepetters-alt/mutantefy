@@ -352,7 +352,7 @@ async function registrarTokenPush(){
   if(!messaging||!CU)return;
   try{
     // Detecta o caminho base automaticamente
-    const swPath=location.pathname.replace(/\/[^/]*$/, "/")+"/firebase-messaging-sw.js";
+    const swPath=location.pathname.replace(/\/[^/]*$/,"/")+"firebase-messaging-sw.js";
     const sw=await navigator.serviceWorker.register(swPath);
     const perm=await Notification.requestPermission();
     if(perm!=="granted"){console.warn("Permissão de notificação negada.");return;}
