@@ -3842,206 +3842,215 @@ window.gerarPdfMembro=async(uid)=>{
 
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210,H=297,ML=14,MR=14;
+  const W=210,H=297,ML=15,MR=15;
   const CW=W-ML-MR;
+  const FOOTER_H=14;
 
+  // ── helpers
   const rgb=h=>{const v=h.replace('#','');return[parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)];};
   const fill=h=>{const[r,g,b]=rgb(h);pdf.setFillColor(r,g,b);};
   const txtC=h=>{const[r,g,b]=rgb(h);pdf.setTextColor(r,g,b);};
   const stroke=h=>{const[r,g,b]=rgb(h);pdf.setDrawColor(r,g,b);};
-  const hline=(y2,lw=0.2)=>{stroke('#2a2a2a');pdf.setLineWidth(lw);pdf.line(ML,y2,W-MR,y2);};
+  const sep=(y2)=>{stroke('#333333');pdf.setLineWidth(0.2);pdf.line(ML,y2,W-MR,y2);};
   const secTitle=(txt,y2)=>{
-    txtC('#ff6600');pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');
+    txtC('#ff6600');pdf.setFontSize(11);pdf.setFont('helvetica','bold');
     pdf.text(txt.toUpperCase(),ML,y2);
-    stroke('#ff6600');pdf.setLineWidth(0.15);pdf.line(ML,y2+1.2,W-MR,y2+1.2);
+    sep(y2+2);
   };
-  const newPage=()=>{pdf.addPage();fill('#0d0d0d');pdf.rect(0,0,W,H,'F');};
-  const chk=(y2,n=15)=>{if(y2+n>H-18){newPage();return 15;}return y2;};
+  const newPage=()=>{
+    drawFooter();
+    pdf.addPage();
+    fill('#0d0d0d');pdf.rect(0,0,W,H,'F');
+  };
+  const chk=(y2,n=15)=>{if(y2+n>H-FOOTER_H-4){newPage();return ML;}return y2;};
+  const drawFooter=()=>{
+    fill('#111111');pdf.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
+    stroke('#333333');pdf.setLineWidth(0.2);pdf.line(0,H-FOOTER_H,W,H-FOOTER_H);
+    txtC('#555555');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+    const dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    pdf.text('Gerado em '+dataHoje+' · Mutantefy · Mutantes MC Itajai',W/2,H-5,{align:'center'});
+  };
 
   // ── Background
   fill('#0d0d0d');pdf.rect(0,0,W,H,'F');
 
-  // ── Header — dark with left orange strip + bottom line
-  const HDR=32;
-  fill('#141414');pdf.rect(0,0,W,HDR,'F');
-  fill('#ff6600');pdf.rect(0,0,3,HDR,'F');
-  fill('#ff6600');pdf.rect(0,HDR-0.8,W,0.8,'F');
-  if(logoB64)pdf.addImage(logoB64,'JPEG',5,4.5,22,22);
+  // ── Header: #1a1a1a, logo left, title center, year right, 2px orange bottom border
+  const HDR=34;
+  fill('#1a1a1a');pdf.rect(0,0,W,HDR,'F');
+  fill('#ff6600');pdf.rect(0,HDR-2,W,2,'F');
+  // logo left
+  if(logoB64)pdf.addImage(logoB64,'JPEG',ML,5,20,20);
+  // title center
   txtC('#ffffff');pdf.setFont('helvetica','bold');pdf.setFontSize(13);
-  pdf.text('Mutantes MC Itajai',logoB64?31:7,12);
-  txtC('#aaaaaa');pdf.setFont('helvetica','normal');pdf.setFontSize(8.5);
-  pdf.text('Relatorio Individual do Membro',logoB64?31:7,18.5);
-  txtC('#ff6600');pdf.setFontSize(8);pdf.text(String(ano),W-MR,12,{align:'right'});
-  txtC('#555555');pdf.setFontSize(6.5);pdf.text(new Date().toLocaleDateString('pt-BR'),W-MR,18,{align:'right'});
+  pdf.text('Mutantes MC Itajai',W/2,13,{align:'center'});
+  txtC('#aaaaaa');pdf.setFont('helvetica','normal');pdf.setFontSize(8);
+  pdf.text('Relatorio Individual do Membro',W/2,21,{align:'center'});
+  // year right
+  txtC('#ff6600');pdf.setFont('helvetica','bold');pdf.setFontSize(12);
+  pdf.text(String(ano),W-MR,15,{align:'right'});
 
-  // ── Member profile
-  let y=HDR+7;
+  // ── Member profile row
+  let y=HDR+8;
   if(fotoB64){
-    pdf.addImage(fotoB64,'PNG',ML,y,26,26);
-    stroke('#ff6600');pdf.setLineWidth(0.6);pdf.circle(ML+13,y+13,13,'S');
+    pdf.addImage(fotoB64,'PNG',ML,y,24,24);
+    stroke('#ff6600');pdf.setLineWidth(0.5);pdf.circle(ML+12,y+12,12,'S');
   }else{
-    fill('#1a1a1a');stroke('#333333');pdf.setLineWidth(0.3);pdf.roundedRect(ML,y,26,26,3,3,'FD');
-    stroke('#ff6600');pdf.setLineWidth(0.5);pdf.roundedRect(ML,y,26,26,3,3,'S');
-    txtC('#ff6600');pdf.setFontSize(14);pdf.setFont('helvetica','bold');
-    pdf.text((m.apelido||'?').charAt(0).toUpperCase(),ML+13,y+17,{align:'center'});
+    fill('#1a1a1a');stroke('#333333');pdf.setLineWidth(0.3);pdf.roundedRect(ML,y,24,24,2,2,'FD');
+    stroke('#ff6600');pdf.setLineWidth(0.5);pdf.roundedRect(ML,y,24,24,2,2,'S');
+    txtC('#ff6600');pdf.setFontSize(13);pdf.setFont('helvetica','bold');
+    pdf.text((m.apelido||'?').charAt(0).toUpperCase(),ML+12,y+16,{align:'center'});
   }
-  const nameX=ML+30;
-  txtC('#ffffff');pdf.setFontSize(15);pdf.setFont('helvetica','bold');
-  pdf.text(m.apelido||'',nameX,y+10);
-  txtC('#ff6600');pdf.setFontSize(9.5);pdf.setFont('helvetica','normal');
-  pdf.text(m.nivel||'Membro',nameX,y+18);
-  if(m.isDiretor||m.isAdmin){txtC('#4caf7d');pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.text('DIRETORIA',nameX,y+25);}
-  y+=33;
+  const nX=ML+28;
+  txtC('#ffffff');pdf.setFontSize(14);pdf.setFont('helvetica','bold');pdf.text(m.apelido||'',nX,y+9);
+  txtC('#ff6600');pdf.setFontSize(9);pdf.setFont('helvetica','normal');pdf.text(m.nivel||'Membro',nX,y+17);
+  if(m.isDiretor||m.isAdmin){txtC('#4caf7d');pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.text('DIRETORIA',nX,y+24);}
+  y+=30;sep(y);y+=6;
 
-  // ── Summary cards 2×2
+  // ── Metric cards 2×2 — #1a1a1a, border #333, label #999 10px, value #ff6600 18px bold
   const pctHex=pct>=100?'#4caf7d':pct>=60?'#ff6600':'#e05252';
-  const pctEvHex=pctEv>=80?'#4caf7d':pctEv>=50?'#60b8ff':'#999999';
-  const pctSedeHex=pctSede>=80?'#4caf7d':pctSede>=50?'#60b8ff':'#999999';
-  const bW=(CW-4)/2,bH=14;
-  const statsData=[
+  const pctEvHex=pctEv>=80?'#4caf7d':pctEv>=50?'#60b8ff':'#aaaaaa';
+  const pctSedeHex=pctSede>=80?'#4caf7d':pctSede>=50?'#60b8ff':'#aaaaaa';
+  const cW=(CW-5)/2,cH=22;
+  const cards=[
     {lbl:'Km rodados',val:kmRaw.toLocaleString('pt-BR')+' km',col:'#ff6600'},
     {lbl:'Meta ('+Math.round(META/1000)+'k km)',val:pct+'%',col:pctHex},
     {lbl:'Eventos comparecidos',val:evComp+'/'+evTotal+' ('+pctEv+'%)',col:pctEvHex},
     {lbl:'Presencas na sede',val:sc+'/'+totalSextas+' ('+pctSede+'%)',col:pctSedeHex},
   ];
-  statsData.forEach((s,i)=>{
-    const bx=ML+(i%2)*(bW+4),by=y+Math.floor(i/2)*(bH+3);
-    fill('#1a1a1a');stroke('#2a2a2a');pdf.setLineWidth(0.15);pdf.roundedRect(bx,by,bW,bH,1.5,1.5,'FD');
-    fill('#ff6600');pdf.rect(bx,by+bH-1,bW,1,'F');
-    txtC('#666666');pdf.setFontSize(6);pdf.setFont('helvetica','normal');pdf.text(s.lbl,bx+3,by+5);
-    const[r2,g2,b2]=rgb(s.col);pdf.setTextColor(r2,g2,b2);pdf.setFontSize(9.5);pdf.setFont('helvetica','bold');
-    pdf.text(s.val,bx+3,by+11.5);
+  cards.forEach((c,i)=>{
+    const cx=ML+(i%2)*(cW+5),cy=y+Math.floor(i/2)*(cH+4);
+    fill('#1a1a1a');stroke('#333333');pdf.setLineWidth(0.25);pdf.roundedRect(cx,cy,cW,cH,2,2,'FD');
+    txtC('#999999');pdf.setFontSize(10);pdf.setFont('helvetica','normal');pdf.text(c.lbl,cx+5,cy+8);
+    const[r2,g2,b2]=rgb(c.col);pdf.setTextColor(r2,g2,b2);pdf.setFontSize(18);pdf.setFont('helvetica','bold');
+    pdf.text(c.val,cx+5,cy+19);
   });
-  y+=2*(bH+3)+6;
+  y+=2*(cH+4)+6;
 
-  // ── Km bar chart
-  hline(y);y+=5;
-  secTitle('Km por mes — ultimos 12 meses',y);y+=5;
-  const chartH=22,maxKm2=Math.max(...meses.map(b=>b.km),1),slotW=CW/12;
-  fill('#111111');pdf.rect(ML,y,CW,chartH,'F');
+  // ── Bar chart — full width, #111 bg, #ff6600 bars, #444 axis
+  y=chk(y,42);sep(y);y+=5;
+  secTitle('Km por mes — ultimos 12 meses',y);y+=6;
+  const chartH=28,maxKm2=Math.max(...meses.map(b=>b.km),1),slotW=CW/12;
+  fill('#111111');stroke('#444444');pdf.setLineWidth(0.2);pdf.rect(ML,y,CW,chartH,'FD');
   meses.forEach((b,i)=>{
     const bx=ML+i*slotW;
-    const bh=(b.km/maxKm2)*chartH;
+    const bh=Math.max((b.km/maxKm2)*(chartH-2),0);
     if(b.km>0){
-      fill('#ff6600');pdf.rect(bx+0.6,y+chartH-bh,slotW-1.2,bh,'F');
-      txtC('#cccccc');pdf.setFontSize(4);
-      pdf.text(String(Math.round(b.km)),bx+slotW/2,y+chartH-bh-0.8,{align:'center'});
+      fill('#ff6600');pdf.rect(bx+1,y+chartH-bh-1,slotW-2,bh,'F');
+      txtC('#dddddd');pdf.setFontSize(4);
+      pdf.text(b.km>=1000?Math.round(b.km/100)/10+'k':String(Math.round(b.km)),bx+slotW/2,y+chartH-bh-2,{align:'center'});
     }
-    txtC('#505050');pdf.setFontSize(4.5);
-    pdf.text(b.label,bx+slotW/2,y+chartH+3.5,{align:'center'});
+    txtC('#444444');pdf.setFontSize(4.5);pdf.text(b.label,bx+slotW/2,y+chartH+3.5,{align:'center'});
   });
-  y+=chartH+9;
+  y+=chartH+8;
 
-  // ── Event history
+  // ── Event history — table: Data · Evento · Local · Km
   if(evHistorico&&evHistorico.length){
-    y=chk(y,20);hline(y);y+=5;
-    secTitle('Historico de eventos comparecidos ('+evHistorico.length+')',y);y+=6;
-    evHistorico.forEach(h=>{
-      y=chk(y,9);
-      const[ro,go,bo]=rgb('#ff6600');pdf.setFillColor(ro,go,bo);
-      pdf.circle(ML+1.5,y-0.8,1.2,'F');
-      txtC('#ffffff');pdf.setFontSize(8);pdf.setFont('helvetica','bold');
-      pdf.text(h.nome,ML+5,y);
-      txtC('#ff6600');pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');
-      const detail=[h.dataDisplay,h.local,h.km?h.km.toLocaleString('pt-BR')+' km':''].filter(Boolean).join(' · ');
-      pdf.text(detail,ML+5,y+4);
-      y+=9;
+    y=chk(y,30);sep(y);y+=5;
+    secTitle('Historico de eventos comparecidos',y);y+=7;
+    // header row
+    const cols=[{lbl:'Data',x:ML,w:22},{lbl:'Evento',x:ML+23,w:68},{lbl:'Local',x:ML+92,w:60},{lbl:'Km',x:ML+153,w:27}];
+    fill('#333333');pdf.rect(ML,y-4,CW,6,'F');
+    cols.forEach(c=>{txtC('#ff6600');pdf.setFontSize(8);pdf.setFont('helvetica','bold');pdf.text(c.lbl,c.x+1,y);});
+    y+=4;
+    evHistorico.forEach((h,i)=>{
+      y=chk(y,7);
+      fill(i%2===0?'#111111':'#1a1a1a');pdf.rect(ML,y-3.5,CW,6.5,'F');
+      txtC('#cccccc');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+      const nomeT=pdf.splitTextToSize(h.nome,cols[1].w-2)[0]||'';
+      const localT=pdf.splitTextToSize(h.local||'—',cols[2].w-2)[0]||'';
+      pdf.text(h.dataDisplay||'—',cols[0].x+1,y);
+      pdf.text(nomeT,cols[1].x+1,y);
+      pdf.text(localT,cols[2].x+1,y);
+      if(h.km){txtC('#ff6600');pdf.setFont('helvetica','bold');}
+      pdf.text(h.km?h.km.toLocaleString('pt-BR'):'—',cols[3].x+1,y);
+      y+=6.5;
     });
-    y+=3;
+    y+=5;
   }
 
   // ── Avulso km
   if(kmAvulso&&kmAvulso.length){
-    y=chk(y,20);hline(y);y+=5;
-    secTitle('Km avulso ('+kmAvulso.length+')',y);y+=6;
-    kmAvulso.forEach(k=>{
+    y=chk(y,25);sep(y);y+=5;
+    secTitle('Km avulso',y);y+=7;
+    kmAvulso.forEach((k,i)=>{
       y=chk(y,7);
-      const[ro,go,bo]=rgb('#ff6600');pdf.setFillColor(ro,go,bo);
-      pdf.circle(ML+1.5,y-0.8,1.2,'F');
-      txtC('#888888');pdf.setFontSize(7);pdf.setFont('helvetica','normal');
-      pdf.text(k.dataDisplay+(k.desc?' · '+k.desc:''),ML+5,y);
-      txtC('#ff6600');pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+      fill(i%2===0?'#111111':'#1a1a1a');pdf.rect(ML,y-3.5,CW,6.5,'F');
+      txtC('#cccccc');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+      pdf.text(k.dataDisplay+(k.desc?' · '+k.desc:''),ML+2,y);
+      txtC('#ff6600');pdf.setFont('helvetica','bold');
       pdf.text(k.km.toLocaleString('pt-BR')+' km',W-MR,y,{align:'right'});
-      y+=7;
+      y+=6.5;
     });
-    y+=3;
+    y+=5;
   }
 
   // ── Personal data
-  y=chk(y,20);hline(y);y+=5;
-  secTitle('Dados Pessoais',y);y+=6;
+  y=chk(y,25);sep(y);y+=5;
+  secTitle('Dados Pessoais',y);y+=7;
   const personalFields=[
     m.moto?['Moto',m.moto]:null,
     ['Aniversario',nascDisplay],
     ['Cadastro no clube',cadastroDisplay],
     m.dataIngresso?['Ingresso no clube',m.dataIngresso]:null,
-    m.email?['Email',m.email.substring(0,45)]:null,
+    m.email?['Email',m.email.substring(0,50)]:null,
   ].filter(Boolean);
   personalFields.forEach(([lbl,val])=>{
     y=chk(y,7);
-    txtC('#666666');pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.text(lbl+':',ML,y);
-    txtC('#cccccc');pdf.text(String(val||'—'),ML+33,y);
-    y+=5.5;
+    txtC('#999999');pdf.setFontSize(9);pdf.setFont('helvetica','normal');pdf.text(lbl,ML,y);
+    txtC('#cccccc');pdf.text(String(val||'—'),ML+40,y);
+    y+=6;
   });
-  y+=3;
+  y+=4;
 
   // ── Graduações
   if(m.historicoGraduacoes&&m.historicoGraduacoes.length){
-    y=chk(y,15);hline(y);y+=5;
-    secTitle('Historico de Graduacoes',y);y+=6;
+    y=chk(y,20);sep(y);y+=5;
+    secTitle('Historico de Graduacoes',y);y+=7;
     m.historicoGraduacoes.forEach((g,i)=>{
-      y=chk(y,9);
-      const isLast=i===m.historicoGraduacoes.length-1;
-      const[ro,go,bo]=rgb('#ff6600');pdf.setFillColor(ro,go,bo);
-      pdf.circle(ML+1.5,y-0.8,1.5,isLast?'F':'S');
-      txtC(isLast?'#ff6600':'#cccccc');pdf.setFontSize(8.5);pdf.setFont('helvetica',isLast?'bold':'normal');
-      pdf.text(g.nivel,ML+6,y);
-      txtC('#ff6600');pdf.setFontSize(7);pdf.setFont('helvetica','normal');
-      pdf.text(g.data||'',ML+6,y+4);
-      y+=9;
-    });
-    y+=3;
-  }
-
-  // ── Achievements
-  if(badges.length){
-    y=chk(y,15);hline(y);y+=5;
-    secTitle('Conquistas ('+badges.length+')',y);y+=6;
-    for(let i=0;i<badges.length;i+=2){
       y=chk(y,7);
-      txtC('#cccccc');pdf.setFontSize(8);pdf.setFont('helvetica','normal');
-      pdf.text(badges[i].nome,ML,y);
-      if(i+1<badges.length)pdf.text(badges[i+1].nome,ML+CW/2+3,y);
-      y+=6;
-    }
-    y+=3;
+      const isLast=i===m.historicoGraduacoes.length-1;
+      fill('#ff6600');pdf.circle(ML+2,y-0.5,1.5,'F');
+      txtC(isLast?'#ff6600':'#cccccc');pdf.setFontSize(10);pdf.setFont('helvetica',isLast?'bold':'normal');
+      pdf.text(g.nivel,ML+6,y);
+      txtC('#999999');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+      pdf.text(g.data||'',ML+6,y+4.5);
+      y+=10;
+    });
+    y+=4;
   }
 
-  // ── Observations
+  // ── Achievements — one per line with orange bullet
+  if(badges.length){
+    y=chk(y,20);sep(y);y+=5;
+    secTitle('Conquistas ('+badges.length+')',y);y+=7;
+    badges.forEach(b=>{
+      y=chk(y,7);
+      fill('#ff6600');pdf.circle(ML+2,y-0.5,1.5,'F');
+      txtC('#cccccc');pdf.setFontSize(11);pdf.setFont('helvetica','normal');
+      pdf.text(b.nome,ML+6,y);
+      y+=6.5;
+    });
+    y+=4;
+  }
+
+  // ── Observations — plain text in #1a1a1a box, border #333
   if(obs.trim()){
-    y=chk(y,30);hline(y);y+=5;
-    secTitle('Observacoes',y);y+=6;
+    y=chk(y,30);sep(y);y+=5;
+    secTitle('Observacoes',y);y+=7;
     const obsLines=pdf.splitTextToSize(obs,CW-8);
-    const obsBoxH=obsLines.length*5+8;
-    fill('#111111');stroke('#2a2a2a');pdf.setLineWidth(0.15);
-    pdf.roundedRect(ML,y-2,CW,obsBoxH,2,2,'FD');
-    stroke('#ff6600');pdf.setLineWidth(0.4);
-    pdf.line(ML,y-2,ML,y-2+obsBoxH);
-    txtC('#dddddd');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+    const obsBoxH=obsLines.length*5.5+8;
+    y=chk(y,Math.min(obsBoxH+4,40));
+    fill('#1a1a1a');stroke('#333333');pdf.setLineWidth(0.25);pdf.roundedRect(ML,y-2,CW,obsBoxH,2,2,'FD');
+    txtC('#cccccc');pdf.setFontSize(11);pdf.setFont('helvetica','normal');
     obsLines.forEach(l2=>{
-      if(y>H-20){newPage();y=15;}
-      pdf.text(l2,ML+4,y);y+=5;
+      if(y>H-FOOTER_H-6){drawFooter();pdf.addPage();fill('#0d0d0d');pdf.rect(0,0,W,H,'F');y=ML;}
+      pdf.text(l2,ML+4,y);y+=5.5;
     });
     y+=8;
   }
 
-  // ── Footer
-  fill('#111111');pdf.rect(0,H-12,W,12,'F');
-  stroke('#2a2a2a');pdf.setLineWidth(0.15);pdf.line(0,H-12,W,H-12);
-  txtC('#505050');pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');
-  const dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  pdf.text('Gerado por Mutantefy em '+dataHoje,ML,H-5);
-  pdf.text('Mutantes MC Itajai — Uso interno',W-MR,H-5,{align:'right'});
+  // ── Footer on last page
+  drawFooter();
 
   const fname='relatorio-'+(m.apelido||'membro').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-')+'-'+ano+'.pdf';
   pdf.save(fname);
