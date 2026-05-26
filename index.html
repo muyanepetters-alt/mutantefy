@@ -559,7 +559,7 @@ function evCardMembro(ev){
   </div>`;
 }
 
-let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
+let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={};
 let _presAba="massa";
 
 async function carregarEncontros(){
@@ -753,9 +753,12 @@ window.toggleEventosAnteriores=()=>{
   const w=document.getElementById("ev-ant-wrap"),ic=document.getElementById("ev-ant-ic");
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
 };
+function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
+function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
 function htmlClubeCorpo(){
   const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
   const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const maxSede=_maxSedeCount();
   // Diretor: menu com subseções
   if(UP.isDiretor||UP.isAdmin){
     const dirMenus=[
@@ -795,12 +798,14 @@ function htmlClubeCorpo(){
         ${sorted.map((m,i)=>{
           const p2=Math.round(((m.totalKm||0)/META)*100);
           const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
+          const sc=_sedeCount(m);
+          const isSedeTop=sc>0&&sc===maxSede;
           return`<div style="margin-bottom:14px">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
               <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
               ${avatarEl(m.fotoUrl,m.apelido,30)}
-              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span>
-              <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
+              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
+              <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
             </div>
             <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
           </div>`;
@@ -861,12 +866,14 @@ function htmlClubeCorpo(){
     ${sorted.map((m,i)=>{
       const p2=Math.round(((m.totalKm||0)/META)*100);
       const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
+      const sc=_sedeCount(m);
+      const isSedeTop=sc>0&&sc===maxSede;
       return`<div style="margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
           ${avatarEl(m.fotoUrl,m.apelido,30)}
-          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span>
-          <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
+          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
+          <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
         </div>
         <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
       </div>`;
@@ -1041,7 +1048,7 @@ function renderDiretor(el){
           </div>
         </div>
         <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div class="grid2">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
@@ -1049,6 +1056,10 @@ function renderDiretor(el){
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
             </div>
           </div>
         </div>
@@ -1425,6 +1436,19 @@ async function carregarSedeInfo(){
   }
 }
 
+function meuSedeCount(){
+  return Object.entries(CONF_SEDE).filter(([k,v])=>k.startsWith("presenca_")&&v==="sim").length;
+}
+async function carregarSedePresencas(){
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("resposta","==","sim"),where("tipo","==","presenca")));
+    SEDE_COUNTS={};
+    snap.docs.forEach(d=>{
+      const id=d.data().membroId;
+      if(id)SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;
+    });
+  }catch(e){console.error("carregarSedePresencas:",e);}
+}
 async function carregarEscalaLista(){
   try{
     const canEdit=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor);
@@ -1625,7 +1649,7 @@ function renderBarman(el){
           </div>
         </div>
         <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div class="grid2">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
@@ -1633,6 +1657,10 @@ function renderBarman(el){
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
             </div>
           </div>
         </div>
@@ -1850,7 +1878,7 @@ function renderMembro(el){
           </div>
         </div>
         <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div class="grid2">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
@@ -1858,6 +1886,10 @@ function renderMembro(el){
             <div style="text-align:center">
               <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
               <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
             </div>
           </div>
         </div>
@@ -2527,6 +2559,8 @@ window.uploadFotoMoto=async(input)=>{
 function calcConquistas(membro,regs){
   const km=membro.totalKm||0;
   const saidas=regs?regs.filter(r=>r.membroId===membro.authUid||r.membroId===membro.uid).length:0;
+  const isSelf=membro.authUid===CU?.uid||membro.uid===MY_DOC_ID;
+  const sc=_sedeCount(membro)||(isSelf?meuSedeCount():0);
   const badges=[];
   if(saidas>=1)badges.push({ic:"🏁",nome:"Primeira Saída",desc:"Participou da primeira saída"});
   if(km>=500)badges.push({ic:"🛣️",nome:"500 km",desc:"500 km rodados"});
@@ -2535,6 +2569,9 @@ function calcConquistas(membro,regs){
   if(km>=META)badges.push({ic:"🏆",nome:"Meta Atingida",desc:`${toInt(META)} km — meta anual`});
   if(saidas>=5)badges.push({ic:"🤝",nome:"Membro Ativo",desc:"5 saídas no ano"});
   if(saidas>=10)badges.push({ic:"🦅",nome:"Veterano",desc:"10 saídas no ano"});
+  if(sc>=1)badges.push({ic:"⛪",nome:"Presente na Sede",desc:"Confirmou presença em uma sexta-feira"});
+  if(sc>=5)badges.push({ic:"🏠",nome:"Habitué da Sede",desc:"5 presenças confirmadas na sede"});
+  if(sc>=10)badges.push({ic:"🔑",nome:"Dono da Sede",desc:"10 presenças confirmadas na sede"});
   if(membro.isDiretor||membro.isAdmin)badges.push({ic:"👑",nome:"Liderança",desc:"Membro da diretoria"});
   return badges;
 }
@@ -3458,9 +3495,15 @@ window.trocarAbaSede=(aba)=>{
 window.confirmarSede=async(data,resposta,tipo)=>{
   const tp=tipo||"presenca";
   const docId=CU.uid+"_"+tp+"_"+data;
+  const anterior=CONF_SEDE[tp+"_"+data];
   try{
     await setDoc(doc(db,"sede_confirmacoes",docId),{membroId:CU.uid,apelido:UP.apelido,data,resposta,tipo:tp,updatedAt:serverTimestamp()});
     CONF_SEDE[tp+"_"+data]=resposta;
+    if(tp==="presenca"){
+      const uid=CU.uid;
+      if(resposta==="sim"&&anterior!=="sim")SEDE_COUNTS[uid]=(SEDE_COUNTS[uid]||0)+1;
+      else if(resposta!=="sim"&&anterior==="sim")SEDE_COUNTS[uid]=Math.max(0,(SEDE_COUNTS[uid]||1)-1);
+    }
     showToast(resposta==="sim"?(tp==="limpeza"?"🧹 Confirmado para limpeza!":"⛪ Presença confirmada!"):"❌ Ausência registrada.");
     registrarLog("sede_confirmada",`${resposta==="sim"?"confirmou":"recusou"} ${tp==="limpeza"?"limpeza":"presença na sede"}`,fmtDate(data));
     render();
@@ -4400,7 +4443,7 @@ window.fazerLogin=async()=>{
     await signInWithEmailAndPassword(auth,userEmail,senha);
   }catch(e){console.error("ERRO COMPLETO:",e.code,e.message);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
-window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
+window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};CONF_SEDE={};SEDE_COUNTS={};TA="home";TM="painel";};
 window.cadastrarEmLote=async()=>{
   const btn=document.getElementById("lote-btn");
   const prog=document.getElementById("lote-progress");
@@ -5399,7 +5442,7 @@ onAuthStateChanged(auth,async user=>{
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());}
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros(),carregarSedePresencas());}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
