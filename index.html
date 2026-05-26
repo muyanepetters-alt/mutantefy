@@ -160,7 +160,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
 .body{padding:16px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .bnav{display:flex;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
-.bnav-logo{display:none}
+@media(max-width:767px){.bnav-logo{display:none}}
 .bnav-item{flex:1;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
 .bnav-icon{font-size:18px;line-height:1;transition:transform .15s}
 .bnav-label{font-size:9px;color:var(--muted);font-weight:500;letter-spacing:.1px;white-space:nowrap}
