@@ -4357,7 +4357,10 @@ window.fazerLogin=async()=>{
       await signInWithEmailAndPassword(auth,"muyanewolf@gmail.com",senha);return;
     }
     const docId=apelido.toLowerCase();
+    console.log("Apelido digitado:",apelido);
+    console.log("ApelidoLower:",docId);
     const snap=await getDoc(doc(db,"usuarios",docId));
+    console.log("Documento encontrado:",snap.exists()?snap.data():null);
     if(!snap.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
     MY_DOC_ID=docId;localStorage.setItem("mutantes_docid",docId);
     await signInWithEmailAndPassword(auth,snap.data().email,senha);
