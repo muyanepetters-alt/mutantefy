@@ -48,10 +48,11 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
     grid-area:header;
     padding:10px 24px !important;
     height:72px;
-    border-left:1px solid rgba(255,255,255,.06);
-    background:rgba(0,0,0,.2) !important;
-    backdrop-filter:blur(10px) !important;
-    -webkit-backdrop-filter:blur(10px) !important;
+    border:none !important;
+    background:transparent !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:none !important;
   }
   .header-info h2{font-size:15px !important;font-weight:600 !important}
   .header-info p{font-size:11px !important;margin-top:1px !important}
@@ -61,17 +62,16 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
     grid-area:sidebar;
     flex-direction:column !important;
     height:100%;width:100%;
-    border-bottom:none !important;
-    border-right:1px solid rgba(255,255,255,.06) !important;
-    border-top:none !important;
+    border:none !important;
     padding:20px 10px 16px !important;
     overflow-y:auto;gap:2px !important;
     flex-shrink:0;
     justify-content:flex-start !important;
     align-items:stretch !important;
-    background:rgba(0,0,0,.2) !important;
-    backdrop-filter:blur(12px) !important;
-    -webkit-backdrop-filter:blur(12px) !important;
+    background:transparent !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:none !important;
   }
   .bnav-item{
     flex:none !important;min-height:42px;width:100%;
