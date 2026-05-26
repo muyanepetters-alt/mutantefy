@@ -76,9 +76,9 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     box-shadow:none !important;
   }
   .bnav-item{
-    flex:none !important;min-height:42px;width:100%;
+    flex:none !important;min-height:46px;width:100%;
     flex-direction:row !important;justify-content:flex-start !important;
-    gap:10px !important;padding:10px 14px !important;
+    gap:12px !important;padding:10px 16px !important;
     border-radius:12px !important;text-align:left;
     transition:background .18s,box-shadow .18s !important;
   }
@@ -87,8 +87,9 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     background:rgba(255,102,0,.14) !important;
     box-shadow:inset 0 0 0 1px rgba(255,102,0,.2),0 2px 12px rgba(255,102,0,.1) !important;
   }
-  .bnav-icon{font-size:18px !important;width:22px;text-align:center;display:flex;align-items:center;justify-content:center;}
-  .bnav-label{font-size:13px !important;font-weight:500 !important;display:block !important}
+  .bnav-icon{font-size:22px !important;width:26px;text-align:center;display:flex;align-items:center;justify-content:center;}
+  .bnav-icon .lucide{width:22px !important;height:22px !important;}
+  .bnav-label{font-size:14px !important;font-weight:500 !important;display:block !important}
   .bnav-item.nav-active .bnav-label{color:var(--orange) !important;font-weight:600 !important}
   .bnav-item.nav-active .bnav-icon .lucide{color:var(--orange) !important;stroke:var(--orange) !important}
 
@@ -1886,18 +1887,15 @@ function htmlVotacaoAdmin(){
 }
 
 function htmlWhatsApp(ctx){
-  // Cabeçalho com sub-abas Mensagens / Mural / Rotas
   return`<div style="overflow:hidden;max-width:100%"><div style="display:flex;gap:8px;margin-bottom:14px">
     <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("message-circle",14)} WhatsApp</button>
     <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
-    <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("map",14)} Rotas</button>
   </div>
   <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
-  <div id="sub-msg-mural" style="display:none">${htmlMural()}</div>
-  <div id="sub-msg-rotas" style="display:none">${htmlRotasSugeridas()}</div></div>`;
+  <div id="sub-msg-mural" style="display:none">${htmlMural()}</div></div>`;
 }
 window.setSubMsg=(aba)=>{
-  ["wpp","mural","rotas"].forEach(a=>{
+  ["wpp","mural"].forEach(a=>{
     const btn=document.getElementById("sub-"+a);
     const el=document.getElementById("sub-msg-"+a);
     const active=a===aba;
@@ -1905,7 +1903,6 @@ window.setSubMsg=(aba)=>{
     if(el)el.style.display=active?"block":"none";
   });
   if(aba==="mural")setTimeout(carregarMural,50);
-  if(aba==="rotas")setTimeout(carregarRotasSugeridas,50);
 };
 function htmlWhatsAppConteudo(ctx){
   const id=ctx||"painel";
@@ -2052,77 +2049,6 @@ window.excluirMural=async(id)=>{
   try{await deleteDoc(doc(db,"mural",id));carregarMural();}catch{showToast("Erro.",true);}
 };
 
-// ═══════════════════════════════════════════════════
-// SUGESTÃO DE ROTAS
-// ═══════════════════════════════════════════════════
-function htmlRotasSugeridas(){
-  const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
-  return`<div class="card">
-    <div class="sec-title">${li("map-pin",16)} Rotas sugeridas pelos membros</div>
-    <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:14px">
-      <label>Nome da rota</label><input type="text" id="rs-nome" placeholder="Ex: Serra do Rio do Rastro" autocomplete="off"/>
-      <label>Distância (km)</label><input type="number" id="rs-dist" placeholder="Ex: 280"/>
-      <label>Descrição</label><input type="text" id="rs-desc" placeholder="Destaque da rota..." autocomplete="off"/>
-      <button class="btn-primary" onclick="window.sugerirRota()">📌 Sugerir rota</button>
-    </div>
-    <div id="rotas-lista"><span class="spin">⟳</span></div>
-  </div>`;
-}
-
-async function carregarRotasSugeridas(){
-  const el=document.getElementById("rotas-lista");
-  if(!el)return;
-  try{
-    const snap=await getDocs(query(collection(db,"rotas_sugeridas"),orderBy("likes","desc")));
-    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma rota sugerida ainda.</div>`;return;}
-    el.innerHTML=docs.map(r=>{
-      const jaCurtiu=(r.curtidas||{})[CU.uid];
-      return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
-          <div>
-            <div style="font-size:14px;font-weight:700">🗺️ ${r.nome}</div>
-            <div style="font-size:11px;color:var(--muted)">📍 ${r.dist||"??"} km · por ${r.autor}</div>
-            ${r.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${r.desc}</div>`:""}
-          </div>
-          <button onclick="window.curtirRota('${r.id}','${jaCurtiu?'des':''}')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;border-radius:10px;border:1px solid ${jaCurtiu?"var(--orange)":"var(--border)"};background:${jaCurtiu?"rgba(232,103,10,.15)":"transparent"};cursor:pointer;font-family:inherit">
-            <span style="font-size:18px">${jaCurtiu?"🧡":"🤍"}</span>
-            <span style="font-size:11px;font-weight:700;color:${jaCurtiu?"var(--orange)":"var(--muted)"}">${r.likes||0}</span>
-          </button>
-        </div>
-        ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirRotaSugerida('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕ remover</button>`:""}
-      </div>`;
-    }).join("");
-  }catch{el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
-}
-
-window.sugerirRota=async()=>{
-  const nome=document.getElementById("rs-nome")?.value.trim();
-  const dist=parseInt(document.getElementById("rs-dist")?.value)||0;
-  const desc=document.getElementById("rs-desc")?.value.trim();
-  if(!nome){showToast("Informe o nome da rota.",true);return;}
-  try{
-    await addDoc(collection(db,"rotas_sugeridas"),{nome,dist,desc:desc||"",autor:UP.apelido,autorId:CU.uid,likes:0,curtidas:{},criadoEm:serverTimestamp()});
-    document.getElementById("rs-nome").value="";document.getElementById("rs-dist").value="";document.getElementById("rs-desc").value="";
-    showToast("✓ Rota sugerida!");carregarRotasSugeridas();
-  }catch{showToast("Erro.",true);}
-};
-
-window.curtirRota=async(id,acao)=>{
-  try{
-    const ref=doc(db,"rotas_sugeridas",id);
-    const snap=await getDoc(ref);
-    const d=snap.data();
-    const curtidas=d.curtidas||{};
-    if(acao==="des"){delete curtidas[CU.uid];await setDoc(ref,{curtidas,likes:Math.max(0,(d.likes||1)-1)},{merge:true});}
-    else{curtidas[CU.uid]=true;await setDoc(ref,{curtidas,likes:(d.likes||0)+1},{merge:true});}
-    carregarRotasSugeridas();
-  }catch{showToast("Erro.",true);}
-};
-
-window.excluirRotaSugerida=async(id)=>{
-  try{await deleteDoc(doc(db,"rotas_sugeridas",id));carregarRotasSugeridas();}catch{showToast("Erro.",true);}
-};
 
 // ═══════════════════════════════════════════════════
 // RELATÓRIO INDIVIDUAL DO MEMBRO
