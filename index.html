@@ -1441,11 +1441,16 @@ function meuSedeCount(){
 }
 async function carregarSedePresencas(){
   try{
-    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("resposta","==","sim"),where("tipo","==","presenca")));
+    // Carrega TODOS os "sim" — documentos antigos não têm campo "tipo" (defaultam para presenca)
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("resposta","==","sim")));
     SEDE_COUNTS={};
     snap.docs.forEach(d=>{
-      const id=d.data().membroId;
-      if(id)SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;
+      const r=d.data();
+      const tp=r.tipo||"presenca";
+      if(tp==="presenca"){
+        const id=r.membroId;
+        if(id)SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;
+      }
     });
   }catch(e){console.error("carregarSedePresencas:",e);}
 }
