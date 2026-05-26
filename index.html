@@ -3532,6 +3532,9 @@ function htmlUsuarios(){
         <div id="ue-${m.uid}" style="display:none;padding:12px;border-top:1px solid var(--border);background:var(--bg3)">
           <label>Apelido</label>
           <input type="text" id="ue-ap-${m.uid}" value="${m.apelido}" autocomplete="off"/>
+          <label>Email</label>
+          <input type="email" id="ue-email-${m.uid}" value="${m.email||""}" placeholder="usuario@email.com" autocomplete="off"/>
+          <div style="font-size:11px;color:var(--muted);margin-top:-6px;margin-bottom:8px;padding:0 2px">⚠️ Alterar o email aqui atualiza apenas o Firestore. Para alterar o acesso, recadastre o membro.</div>
           <label>Telefone / WhatsApp</label>
           <input type="tel" id="ue-tel-${m.uid}" value="${m.telefone||""}" placeholder="Ex: 47999998888" autocomplete="off"/>
           <label>Nível no clube</label>
@@ -4806,10 +4809,11 @@ window.salvarUsuario=async uid=>{
   const tanque=parseFloat(document.getElementById("ue-tk-"+uid)?.value)||null;
   const gasolina=parseFloat(document.getElementById("ue-gs-"+uid)?.value)||null;
   const dataIngresso=document.getElementById("ue-ingresso-"+uid)?.value.trim()||"";
+  const email=document.getElementById("ue-email-"+uid)?.value.trim()||"";
   if(!apelido)return;
   try{
     const tel=document.getElementById("ue-tel-"+uid)?.value.replace(/\D/g,"")||"";
-    const dados={apelido,apelidoLower:apelido.toLowerCase(),moto:moto||"",nivel:nivel||"",telefone:tel,dataIngresso};
+    const dados={apelido,apelidoLower:apelido.toLowerCase(),moto:moto||"",nivel:nivel||"",telefone:tel,dataIngresso,email};
     if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
     const docId=resolveDocId(uid);
     console.log("salvarUsuario: uid=",uid,"docId=",docId,"nivel=",nivel,"dados=",dados);
@@ -4822,16 +4826,13 @@ window.salvarUsuario=async uid=>{
 window.copiarCredenciais=async uid=>{
   const m=MEMBROS.find(x=>x.uid===uid);
   if(!m)return;
-  let texto=`Olá, ${m.apelido}! 🏍️ Aqui estão suas credenciais de acesso ao app Mutantes MC Itajaí:\n\n🔗 Link: muyanepetters-alt.github.io/mutantefy\n👤 Usuário: ${m.apelido}\n🔑 Senha: ${m.senhaTemp}`;
-  if(!m.senhaTemp){
-    texto=`Olá, ${m.apelido}! 🏍️ Aqui estão suas credenciais de acesso ao app Mutantes MC Itajaí:\n\n🔗 Link: muyanepetters-alt.github.io/mutantefy\n👤 Usuário: ${m.apelido}`;
-    showToast("⚠️ Senha não disponível — copiado sem a senha.",true);
-  }
+  if(!m.senhaTemp){showToast("⚠️ Senha não cadastrada para este membro.",true);return;}
+  const texto=`Olá, ${m.apelido}! 🏍️ Aqui estão suas credenciais de acesso ao app Mutantes MC Itajaí:\n\n🔗 Link: muyanepetters-alt.github.io/mutantefy\n👤 Usuário: ${m.apelido}\n🔑 Senha: ${m.senhaTemp}`;
   try{
     await navigator.clipboard.writeText(texto);
     const btn=document.getElementById("btn-cred-"+uid);
-    if(btn){const orig=btn.textContent;btn.textContent="✓ Copiado!";setTimeout(()=>{btn.textContent=orig;},2000);}
-    if(m.senhaTemp)showToast("✅ Credenciais copiadas! Cole no WhatsApp.");
+    if(btn){const orig=btn.innerHTML;btn.textContent="✓ Copiado!";setTimeout(()=>{btn.innerHTML=orig;},2000);}
+    showToast("✅ Credenciais copiadas! Cole no WhatsApp.");
   }catch(e){showToast("Erro ao copiar.",true);}
 };
 window.enviarAcesso=async(email,apelido)=>{
