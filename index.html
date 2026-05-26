@@ -22,12 +22,13 @@
 :root{--bg:#0f0f0f;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#f0f0f0;--muted:#767676;--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
 
 
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:radial-gradient(ellipse at 20% 0%,rgba(232,103,10,.06) 0%,transparent 50%),var(--bg);color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
-.app{max-width:480px;margin:0 auto;background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03)}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:url('mobile.png') center/cover fixed;color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:0;pointer-events:none}
+.app{max-width:480px;margin:0 auto;background:transparent;height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03);position:relative;z-index:1}
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
 @media(min-width:768px){
-  body{background:radial-gradient(ellipse at 20% 0%,rgba(232,103,10,.06) 0%,transparent 50%),#0a0a0a}
+  body{background:url('desktop.jpg') center/cover fixed}
 
   .app{
     max-width:100%;height:100vh;
