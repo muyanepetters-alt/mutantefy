@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#e8670a"/>
+<meta name="theme-color" content="#ff6600"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="Mutantes MC"/>
@@ -20,12 +20,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f0f;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#ffffff;--muted:rgba(255,255,255,.85);--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
+:root{--bg:#0f0f0f;--bg2:rgba(0,0,0,.45);--bg3:rgba(0,0,0,.3);--border:rgba(255,255,255,.1);--orange:#ff6600;--orange-glow:rgba(255,102,0,.28);--white:#ffffff;--muted:rgba(255,255,255,.75);--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.06);--transition:200ms ease}
 
 
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
 body::before{content:'';position:fixed;inset:0;background:url('mobile.png') center/cover no-repeat;z-index:-2;pointer-events:none}
-body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:-1;pointer-events:none}
+body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:-1;pointer-events:none}
 .app{max-width:480px;margin:0 auto;background:transparent;height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03)}
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
@@ -83,8 +83,8 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
   }
   .bnav-item:hover{background:rgba(255,255,255,.06) !important}
   .bnav-item.nav-active{
-    background:rgba(232,103,10,.14) !important;
-    box-shadow:inset 0 0 0 1px rgba(232,103,10,.2),0 2px 12px rgba(232,103,10,.1) !important;
+    background:rgba(255,102,0,.14) !important;
+    box-shadow:inset 0 0 0 1px rgba(255,102,0,.2),0 2px 12px rgba(255,102,0,.1) !important;
   }
   .bnav-icon{font-size:18px !important;width:22px;text-align:center;display:flex;align-items:center;justify-content:center;}
   .bnav-label{font-size:13px !important;font-weight:500 !important;display:block !important}
@@ -127,11 +127,13 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
   .login-wrap{
     width: 420px;
     min-width: 420px;
-    background: rgba(22,22,22,.9);
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,.1);
     border-radius: 24px;
     padding: 44px;
-    box-shadow: 0 24px 64px rgba(0,0,0,.7),0 0 0 1px rgba(232,103,10,.07);
+    box-shadow: 0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(255,102,0,.08);
   }
 
   .login-wrap img,
@@ -154,12 +156,12 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
 .confete{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
 .confete-p{position:absolute;width:8px;height:8px;border-radius:2px;animation:confeteFall linear forwards}
 @keyframes confeteFall{0%{top:-20px;opacity:1;transform:rotate(0deg)}100%{top:110vh;opacity:0;transform:rotate(720deg)}}
-.header{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(232,103,10,.22);position:relative;overflow:hidden;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);flex-shrink:0}
-.header-flames{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(232,103,10,.6) 20%,#e8670a 40%,#ff7a1a 60%,rgba(232,103,10,.6) 80%,transparent 100%)}
+.header{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,102,0,.25);position:relative;overflow:hidden;background:rgba(0,0,0,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);flex-shrink:0}
+.header-flames{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(255,102,0,.6) 20%,#ff6600 40%,#ff8c2a 60%,rgba(255,102,0,.6) 80%,transparent 100%)}
 .header-info h2{font-size:17px;font-weight:700}
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.body{padding:16px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .bnav{display:flex;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
@@ -172,13 +174,13 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
 .lucide{color:var(--orange);stroke:var(--orange)}
 .bnav-icon .lucide{color:var(--muted);stroke:var(--muted)}
 .bnav-item.nav-active .bnav-icon .lucide{color:var(--orange);stroke:var(--orange)}
-.bnav-item.nav-active{background:rgba(232,103,10,.14);box-shadow:inset 0 0 0 1px rgba(232,103,10,.18)}
+.bnav-item.nav-active{background:rgba(255,102,0,.14);box-shadow:inset 0 0 0 1px rgba(255,102,0,.2)}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
 .prog-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
 .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.metric{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border)}
+.metric{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .metric-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
 .metric-value{font-size:30px;font-weight:700}
 .sec-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
@@ -190,16 +192,16 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
 .badge-admin{background:rgba(232,103,10,.2);color:var(--orange);border:1px solid var(--orange);font-size:9px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:12px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 input,select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;font-size:15px;font-family:inherit;color:var(--white);background:var(--bg3);margin-bottom:14px;transition:border-color .2s,box-shadow .2s}
-input:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,103,10,.14)}
+input:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,102,0,.16)}
 input::placeholder{color:#444}
 select option{background:#161616;color:var(--white)}
-.btn{padding:9px 16px;border-radius:50px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white);transition:border-color var(--transition),background var(--transition)}
-.btn-primary{width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,#e8670a,#ff8c2a);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(232,103,10,.36);transition:transform var(--transition),box-shadow var(--transition)}
+.btn{padding:9px 16px;min-height:44px;border-radius:50px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white);transition:border-color var(--transition),background var(--transition)}
+.btn-primary{width:100%;padding:14px;min-height:44px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6600,#ff8c2a);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(255,102,0,.36);transition:transform var(--transition),box-shadow var(--transition)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-outline{width:100%;padding:11px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color var(--transition),background var(--transition)}
+.btn-outline{width:100%;padding:11px;min-height:44px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color var(--transition),background var(--transition)}
 .btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
 .btn-edit{padding:6px 10px;border-radius:6px;border:1px solid rgba(232,103,10,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit}
-.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s}
+.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .ev-card.ev-sim,.ev-card.ev-confirmado{border-color:var(--green);background:rgba(76,175,125,.05)}
 .ev-card.ev-nao,.ev-card.ev-desistiu{border-color:var(--danger);background:rgba(224,82,82,.05)}
 .ev-card.ev-compareceu{border-color:#2d6e4f;background:rgba(76,175,125,.1)}
@@ -207,13 +209,13 @@ select option{background:#161616;color:var(--white)}
 .pres-desistiu{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
 .pres-pendente{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
 .pres-confirmado{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
-.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card)}
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .km-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
 .edit-box{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid rgba(232,103,10,.3);display:none}
 .det-box{display:none;margin-top:10px;background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)}
 .ev-det{display:none;margin-top:12px}
-.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
-.rota-result{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:12px}
+.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.rota-result{background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .rota-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .rota-item small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:2px}
 .rota-item span{font-size:14px;font-weight:600}
@@ -227,7 +229,7 @@ select option{background:#161616;color:var(--white)}
 .sub-pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sub-pills::-webkit-scrollbar{display:none}
 .sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;transition:border-color var(--transition),color var(--transition)}
-.sub-pill.active{background:linear-gradient(135deg,#e8670a,#ff8c2a);border-color:transparent;color:#fff;font-weight:600}
+.sub-pill.active{background:linear-gradient(135deg,#ff6600,#ff8c2a);border-color:transparent;color:#fff;font-weight:600}
 .msg-err{font-size:12px;color:var(--danger);margin-bottom:10px;padding:8px 12px;background:rgba(224,82,82,.1);border-radius:8px}
 .senha-wrap{position:relative;margin-bottom:14px}
 .senha-wrap input{margin-bottom:0;padding-right:44px}
@@ -245,11 +247,11 @@ select option{background:#161616;color:var(--white)}
 .pres-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
 .pres-sim{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
 .pres-nao{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger)}
-.lote-card{background:var(--bg2);border:2px solid rgba(232,103,10,.5);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 0 0 1px rgba(232,103,10,.08)}
+.lote-card{background:var(--bg2);border:2px solid rgba(255,102,0,.5);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 0 0 1px rgba(255,102,0,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 
 /* ── MICROINTERAÇÕES ────────────────────────────────── */
-.btn-primary:hover:not(:disabled){transform:scale(1.02);box-shadow:0 6px 26px rgba(232,103,10,.5)}
-.btn-primary:active:not(:disabled){transform:scale(.98);box-shadow:0 2px 10px rgba(232,103,10,.3)}
+.btn-primary:hover:not(:disabled){transform:scale(1.02);box-shadow:0 6px 26px rgba(255,102,0,.5)}
+.btn-primary:active:not(:disabled){transform:scale(.98);box-shadow:0 2px 10px rgba(255,102,0,.3)}
 .btn:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.07)}
 .btn:active{background:rgba(255,255,255,.04)}
 .btn-outline:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.04)}
@@ -661,7 +663,7 @@ function atualizarIconePWA(url){
   if(!url)return;
   document.getElementById("apple-touch-icon").href=url;
   const origin=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,"/");
-  const manifest={name:"Mutantes MC Itajaí",short_name:"Mutantes MC",start_url:origin,display:"standalone",background_color:"#0f0f0f",theme_color:"#e8670a",icons:[{src:url,sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:url,sizes:"512x512",type:"image/png"}]};
+  const manifest={name:"Mutantes MC Itajaí",short_name:"Mutantes MC",start_url:origin,display:"standalone",background_color:"#0f0f0f",theme_color:"#ff6600",icons:[{src:url,sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:url,sizes:"512x512",type:"image/png"}]};
   const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
   const old=document.getElementById("pwa-manifest");
   if(old._blobUrl)URL.revokeObjectURL(old._blobUrl);
@@ -779,8 +781,8 @@ function htmlRanking(){
     </div>
     ${aba==="km"?`
       <div class="grid2" style="margin-bottom:12px">
-        <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
-        <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
+        <div class="metric"><div class="metric-label">${li("users",12)} Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
+        <div class="metric"><div class="metric-label">${li("alert-triangle",12)} Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
       </div>
       ${sorted.map((m,i)=>{
         const p2=Math.round(((m.totalKm||0)/META)*100);
@@ -923,7 +925,7 @@ function renderDiretor(el){
           </div>
           <div class="grid2" style="margin-bottom:10px">
             <div class="metric" style="padding:10px"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
-            <div class="metric" style="padding:10px"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${meuRegs.length}</div></div>
+            <div class="metric" style="padding:10px"><div class="metric-label">${li("route",12)} Saídas</div><div class="metric-value">${meuRegs.length}</div></div>
           </div>
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
@@ -1006,7 +1008,7 @@ function renderDiretor(el){
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
-        <div class="sec-title">🗺️ Planejar por evento</div>
+        <div class="sec-title">${li("map",16)} Planejar por evento</div>
         ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
@@ -1067,7 +1069,7 @@ function renderDiretor(el){
           </div>
         </div>
       </div>
-      <div class="sec-title">🏍️ Garagem</div>
+      <div class="sec-title">${li("bike",16)} Garagem</div>
         <div style="margin-bottom:12px">
           ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
           <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
@@ -1522,7 +1524,7 @@ function renderBarman(el){
           </div>
           <div class="grid2" style="margin-bottom:10px">
             <div class="metric" style="padding:10px"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
-            <div class="metric" style="padding:10px"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${REGS.length}</div></div>
+            <div class="metric" style="padding:10px"><div class="metric-label">${li("route",12)} Saídas</div><div class="metric-value">${REGS.length}</div></div>
           </div>
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
@@ -1605,7 +1607,7 @@ function renderBarman(el){
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
-        <div class="sec-title">🗺️ Planejar por evento</div>
+        <div class="sec-title">${li("map",16)} Planejar por evento</div>
         ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
@@ -1675,7 +1677,7 @@ function renderBarman(el){
           </div>
         </div>
       </div>
-      <div class="sec-title">🏍️ Garagem</div>
+      <div class="sec-title">${li("bike",16)} Garagem</div>
         <div style="margin-bottom:12px">
           ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
           <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
@@ -1760,7 +1762,7 @@ function renderMembro(el){
           </div>
           <div class="grid2" style="margin-bottom:10px">
             <div class="metric" style="padding:10px"><div class="metric-label">🏁 Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(km)}</div></div>
-            <div class="metric" style="padding:10px"><div class="metric-label">🗺️ Saídas</div><div class="metric-value">${REGS.length}</div></div>
+            <div class="metric" style="padding:10px"><div class="metric-label">${li("route",12)} Saídas</div><div class="metric-value">${REGS.length}</div></div>
           </div>
           <div id="painel-ultimas-saidas"><span class="spin">⟳</span></div>
         </div>
@@ -1843,7 +1845,7 @@ function renderMembro(el){
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="rota"?`
       <div class="card">
-        <div class="sec-title">🗺️ Planejar por evento</div>
+        <div class="sec-title">${li("map",16)} Planejar por evento</div>
         ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
@@ -1904,7 +1906,7 @@ function renderMembro(el){
           </div>
         </div>
       </div>
-      <div class="sec-title">🏍️ Garagem</div>
+      <div class="sec-title">${li("bike",16)} Garagem</div>
         <div style="margin-bottom:12px">
           ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
           <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
@@ -1964,7 +1966,7 @@ function renderMembro(el){
 
 function htmlVotacaoAdmin(){
   return`<div class="card">
-    <div class="sec-title">➕ Nova enquete</div>
+    <div class="sec-title">${li("plus-circle",16)} Nova enquete</div>
     <label>Pergunta</label><input type="text" id="vot-pergunta" placeholder="Ex: Onde fazer o churrasquinho?" autocomplete="off"/>
     <label>Opção 1</label><input type="text" id="vot-op1" placeholder="Ex: Sede" autocomplete="off"/>
     <label>Opção 2</label><input type="text" id="vot-op2" placeholder="Ex: Parque" autocomplete="off"/>
@@ -1982,9 +1984,9 @@ function htmlVotacaoAdmin(){
 function htmlWhatsApp(ctx){
   // Cabeçalho com sub-abas Mensagens / Mural / Rotas
   return`<div style="display:flex;gap:8px;margin-bottom:14px">
-    <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
-    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📌 Mural</button>
-    <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🗺️ Rotas</button>
+    <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("message-circle",14)} WhatsApp</button>
+    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
+    <button onclick="window.setSubMsg('rotas')" id="sub-rotas" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("map",14)} Rotas</button>
   </div>
   <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
   <div id="sub-msg-mural" style="display:none">${htmlMural()}</div>
@@ -2014,7 +2016,7 @@ function htmlWhatsAppConteudo(ctx){
     {ic:"🍺",lb:"Escala do bar esta sexta",msg:(()=>{const d=proxSexta();return`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A🍺 Escala do bar desta sexta, ${fmtDate(d)}:%0A%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`;})()},
   ];
   return`<div class="card">
-    <div class="sec-title">💬 Mensagens para o grupo</div>
+    <div class="sec-title">${li("send",16)} Mensagens para o grupo</div>
     ${msgs.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:22px">${m.ic}</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.lb}</div></div>
@@ -2022,9 +2024,9 @@ function htmlWhatsAppConteudo(ctx){
     </div>`).join("")}
   </div>
   <div class="card">
-    <div class="sec-title">✏️ Mensagem personalizada</div>
+    <div class="sec-title">${li("edit-3",16)} Mensagem personalizada</div>
     <textarea id="wpp-custom-${id}" placeholder="Escreva sua mensagem..." style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:10px"></textarea>
-    <a href="#" onclick="const t=document.getElementById('wpp-custom-${id}').value.trim();if(t)window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return false;" style="display:block;width:100%;padding:12px;border-radius:8px;background:#25d366;color:#fff;font-size:14px;font-weight:700;text-decoration:none;text-align:center">💬 Abrir no WhatsApp</a>
+    <a href="#" onclick="const t=document.getElementById('wpp-custom-${id}').value.trim();if(t)window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return false;" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;min-height:44px;border-radius:8px;background:#25d366;color:#fff;font-size:14px;font-weight:700;text-decoration:none;text-align:center">${li("message-circle",16)} Abrir no WhatsApp</a>
   </div>`;
 }
 
@@ -2151,7 +2153,7 @@ window.excluirMural=async(id)=>{
 function htmlRotasSugeridas(){
   const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
   return`<div class="card">
-    <div class="sec-title">🗺️ Rotas sugeridas pelos membros</div>
+    <div class="sec-title">${li("map-pin",16)} Rotas sugeridas pelos membros</div>
     <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:14px">
       <label>Nome da rota</label><input type="text" id="rs-nome" placeholder="Ex: Serra do Rio do Rastro" autocomplete="off"/>
       <label>Distância (km)</label><input type="number" id="rs-dist" placeholder="Ex: 280"/>
@@ -2235,7 +2237,7 @@ function htmlRelatorio(){
     </div>
     <div class="grid2" style="margin-bottom:14px">
       <div class="metric" style="padding:14px;text-align:center">
-        <div class="metric-label">🏍️ Km do clube</div>
+        <div class="metric-label">${li("bike",12)} Km do clube</div>
         <div class="metric-value" style="color:var(--orange);font-size:22px">${toInt(totalKmClube)}</div>
       </div>
       <div class="metric" style="padding:14px;text-align:center">
@@ -2277,7 +2279,12 @@ function htmlRelatorio(){
         </div>
       </div>`;
     }).join("")}
-  </div>`;
+  </div>
+  ${UP&&UP.isAdmin?`<div class="card" style="margin-top:6px">
+    <div class="sec-title">${li("settings",16)} Utilitários admin</div>
+    <button class="btn-outline" style="margin-bottom:10px;min-height:44px" onclick="window.recalcularTotalKm()">${li("refresh-cw",15)} Recalcular totalKm de todos os membros</button>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5">Soma todos os registros de km do Firestore e corrige o contador de cada membro. Use após migrações ou se os totais estiverem incorretos.</div>
+  </div>`:""}`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -4037,6 +4044,30 @@ window.limparDadosTeste=async()=>{
     CONF_SEDE={};
     await carregarRegistros();
     showToast("✓ Tudo limpo!");render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.recalcularTotalKm=async()=>{
+  if(!confirm("Recalcular o totalKm de todos os membros?\n\nIsso vai somar todos os registros de km de cada membro e corrigir o valor no Firestore.\nPode demorar alguns segundos."))return;
+  showToast("Recalculando...");
+  try{
+    const snap=await getDocs(collection(db,"registros"));
+    const totais={};
+    snap.docs.forEach(d=>{
+      const r=d.data();
+      const id=r.membroId;
+      if(id&&typeof r.km==="number")totais[id]=(totais[id]||0)+r.km;
+    });
+    const batch=[];
+    for(const[id,total] of Object.entries(totais)){
+      const docId=resolveDocId(id)||id;
+      batch.push(setDoc(doc(db,"usuarios",docId),{totalKm:Math.round(total)},{merge:true}));
+      const m=MEMBROS.find(m=>m.uid===id||m.authUid===id);
+      if(m)m.totalKm=Math.round(total);
+    }
+    await Promise.all(batch);
+    await carregarMembros();
+    showToast(`✓ totalKm recalculado para ${Object.keys(totais).length} membros`);
+    render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
 window.toggleFicha=async(uid)=>{
