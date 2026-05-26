@@ -1089,7 +1089,7 @@ function renderDiretor(el){
         </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
-          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
         <div style="margin-top:14px">
@@ -1673,7 +1673,7 @@ function renderBarman(el){
         </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
-          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
       </div>`:""}
@@ -1898,7 +1898,7 @@ function renderMembro(el){
         </div>
         <div style="margin-top:14px">
           <label>🎂 Data de nascimento</label>
-          <input type="date" id="m-nascimento" value="${UP.nascimento||""}" autocomplete="off"/>
+          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
       </div>`:""}
@@ -2752,9 +2752,25 @@ window.salvarCargo=async()=>{
   }catch{showToast("Erro.",true);}
 };
 
+function nascForDisplay(v){
+  if(!v)return"";
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const[y,m,d]=v.split("-");return`${d}/${m}/${y}`;}
+  return v;
+}
+function nascForStorage(v){
+  const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m?`${m[3]}-${m[2]}-${m[1]}`:"";
+}
+window.maskNasc=el=>{
+  let v=el.value.replace(/\D/g,"").slice(0,8);
+  if(v.length>4)v=v.slice(0,2)+"/"+v.slice(2,4)+"/"+v.slice(4);
+  else if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);
+  el.value=v;
+};
 window.salvarNascimento=async()=>{
-  const nasc=document.getElementById("m-nascimento")?.value;
-  if(!nasc){showToast("Selecione a data.",true);return;}
+  const raw=document.getElementById("m-nascimento")?.value;
+  const nasc=nascForStorage(raw||"");
+  if(!nasc){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
   try{
     await setDoc(doc(db,"usuarios",MY_DOC_ID),{nascimento:nasc},{merge:true});
     UP.nascimento=nasc;showToast("✓ Data de nascimento salva!");
