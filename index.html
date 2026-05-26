@@ -2744,13 +2744,13 @@ async function buscarClima(cidade,elId,dataEvento){
   }catch{if(el)el.innerHTML="";}
 }
 
-window.salvarCargo=async()=>{
+window.salvarNivel=window.salvarCargo=async()=>{
   const cargo=document.getElementById("m-cargo")?.value;
   if(!cargo){showToast("Selecione um nível.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nivel},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nivel:cargo},{merge:true});
     UP.nivel=cargo;showToast("✓ Nível salvo!");render();
-  }catch{showToast("Erro.",true);}
+  }catch(e){showToast("Erro: "+e.message,true);}
 };
 
 function nascForDisplay(v){
@@ -3653,7 +3653,7 @@ function htmlUsuarios(){
     </div>
     <div id="membros-lista">
     ${MEMBROS.map(m=>`
-      <div class="membro-item" data-apelido="${(m.apelido||"").toLowerCase()}" style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div class="membro-item" data-apelido="${(m.apelidoLower||m.apelido||"").toLowerCase()}" style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer" onclick="window.toggleUsuario('${m.uid}')">
           ${avatarEl(m.fotoUrl,m.apelido,36)}
           <div style="flex:1">
