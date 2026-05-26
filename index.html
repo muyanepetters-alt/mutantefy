@@ -631,9 +631,11 @@ async function uploadFotoComCrop(file, onDone){
   abrirCropper(file, async croppedFile=>{
     showToast("Enviando foto...");
     try{
+      console.log("uploadFotoComCrop: iniciando upload para Cloudinary...");
       const url=await uploadFoto(croppedFile);
-      onDone(url);
-    }catch{showToast("Erro ao enviar foto.",true);}
+      console.log("uploadFotoComCrop: upload OK, url=",url);
+      await onDone(url);
+    }catch(e){console.error("uploadFotoComCrop: ERRO",e);showToast("Erro ao enviar foto: "+e.message,true);}
   });
 }
 
@@ -3677,7 +3679,7 @@ function htmlUsuarios(){
           <label>Nível no clube</label>
           <select id="ue-nv-${m.uid}">
             <option value="">Selecione...</option>
-            <option value="Diretor Regional">${m.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor">${m.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor">${m.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Escudo">${m.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="Meio Escudo Maior">${m.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Meio Escudo">${m.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="PP">${m.nivel==="PP"?"selected":""}>🔶 PP</option>
+            <option value="Diretor Regional" ${m.nivel==="Diretor Regional"?"selected":""}>🎗️ Diretor Regional</option><option value="Diretor" ${m.nivel==="Diretor"?"selected":""}>⭐ Diretor</option><option value="Sub Diretor" ${m.nivel==="Sub Diretor"?"selected":""}>⭐ Sub Diretor</option><option value="Escudo" ${m.nivel==="Escudo"?"selected":""}>🛡️ Escudo</option><option value="Meio Escudo Maior" ${m.nivel==="Meio Escudo Maior"?"selected":""}>🔶 Meio Escudo Maior</option><option value="Meio Escudo" ${m.nivel==="Meio Escudo"?"selected":""}>🔶 Meio Escudo</option><option value="PP" ${m.nivel==="PP"?"selected":""}>🔶 PP</option>
           </select>
           <label>Moto</label>
           <input type="text" id="ue-mo-${m.uid}" value="${m.moto||""}" placeholder="Ex: Honda CB 500" autocomplete="off"/>
@@ -3858,10 +3860,15 @@ window.trocarFoto=async(uid,apelido)=>{
   const input=document.createElement("input");input.type="file";input.accept="image/*";
   input.onchange=async()=>{
     const file=input.files[0];if(!file)return;
+    // para não-admin trocando a própria foto, usa MY_DOC_ID em vez de resolveDocId(CU.uid)
+    const docId=findMembro(uid)?resolveDocId(uid):MY_DOC_ID;
+    console.log("trocarFoto: uid=",uid,"docId=",docId);
     uploadFotoComCrop(file,async url=>{
-      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{fotoUrl:url},{merge:true});
+      console.log("trocarFoto: salvando fotoUrl no Firestore, docId=",docId,"url=",url);
+      await setDoc(doc(db,"usuarios",docId),{fotoUrl:url},{merge:true});
+      console.log("trocarFoto: setDoc OK");
       const m=findMembro(uid);if(m)m.fotoUrl=url;
-      if(MY_DOC_ID===resolveDocId(uid))UP.fotoUrl=url;
+      if(MY_DOC_ID===docId)UP.fotoUrl=url;
       showToast("✓ Foto atualizada!");render();
     });
   };input.click();
@@ -4486,10 +4493,13 @@ window.salvarUsuario=async uid=>{
     const tel=document.getElementById("ue-tel-"+uid)?.value.replace(/\D/g,"")||"";
     const dados={apelido,apelidoLower:apelido.toLowerCase(),moto:moto||"",nivel:nivel||"",telefone:tel};
     if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
-    await setDoc(doc(db,"usuarios",resolveDocId(uid)),dados,{merge:true});
+    const docId=resolveDocId(uid);
+    console.log("salvarUsuario: uid=",uid,"docId=",docId,"nivel=",nivel,"dados=",dados);
+    await setDoc(doc(db,"usuarios",docId),dados,{merge:true});
+    console.log("salvarUsuario: setDoc OK");
     const m=findMembro(uid);if(m)Object.assign(m,dados);
     showToast("✓ Dados atualizados!");document.getElementById("ue-"+uid).style.display="none";render();
-  }catch(e){showToast("Erro: "+e.message,true);}
+  }catch(e){console.error("salvarUsuario: ERRO",e);showToast("Erro: "+e.message,true);}
 };
 window.copiarCredenciais=async uid=>{
   const m=MEMBROS.find(x=>x.uid===uid);
