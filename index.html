@@ -85,7 +85,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
     background:rgba(232,103,10,.14) !important;
     box-shadow:inset 0 0 0 1px rgba(232,103,10,.2),0 2px 12px rgba(232,103,10,.1) !important;
   }
-  .bnav-icon{font-size:18px !important;width:22px;text-align:center}
+  .bnav-icon{font-size:18px !important;width:22px;text-align:center;display:flex;align-items:center;justify-content:center;}
   .bnav-label{font-size:13px !important;font-weight:500 !important;display:block !important}
   .bnav-item.nav-active .bnav-label{color:var(--orange) !important;font-weight:600 !important}
 
@@ -162,7 +162,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
 .bnav-item{flex:1;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
-.bnav-icon{font-size:18px;line-height:1;transition:transform .15s}
+.bnav-icon{font-size:18px;line-height:1;transition:transform .15s;display:flex;align-items:center;justify-content:center;}
 .bnav-label{font-size:9px;color:var(--muted);font-weight:500;letter-spacing:.1px;white-space:nowrap}
 .bnav-item.nav-active .bnav-label{color:var(--orange);font-weight:700}
 .bnav-item.nav-active .bnav-icon{transform:scale(1.1)}
@@ -264,6 +264,7 @@ select option{background:#161616;color:var(--white)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <div id="splash" class="splash">
@@ -535,7 +536,7 @@ function evCardMembro(ev){
         ${enc.resp?`<div style="font-size:12px;color:var(--muted)">👤 Responsável: ${enc.resp}</div>`:""}
         ${enc.obs?`<div style="font-size:12px;color:var(--muted)">📝 ${enc.obs}</div>`:""}
       </div>`:""}
-      ${calc?`<div class="rota-result">${htmlRota(calc,ev.destino,ev.pedInfo)}</div>`:`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os custos.</div>`}
+      ${calc?`<div class="rota-result">${htmlRota(calc,ev.destino,ev.pedInfo)}</div>`:`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil para ver os custos.</div>`}
       ${ev.dist>0&&COORDS_EVENTOS[ev.id]?`<button style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(232,103,10,.4);background:rgba(232,103,10,.08);color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;margin-bottom:2px" onclick="event.stopPropagation();window.toggleMapaEvento(${ev.id})">🗺️ Ver rota no mapa</button><div id="ev-mapa-${ev.id}" style="height:240px;border-radius:8px;margin-top:6px;display:none;overflow:hidden"></div>`:""}
       ${conf==="pendente"?`
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -561,6 +562,9 @@ function evCardMembro(ev){
 
 let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={};
 let _presAba="massa";
+window._rankAba=window._rankAba||"km";
+const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
+function lcr(){setTimeout(()=>{if(typeof lucide!=="undefined")lucide.createIcons();},30);}
 
 async function carregarEncontros(){
   try{
@@ -645,6 +649,7 @@ function render(){
   if(!UP){el.innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;return;}
   if(UP.isDiretor||UP.isAdmin)renderDiretor(el);
   else renderMembro(el);
+  lcr();
 }
 
 function atualizarIconePWA(url){
@@ -714,7 +719,7 @@ function renderLogin(el){
 function htmlCadastrar(){
   return`
     <div class="card">
-      <div class="sec-title">➕ Cadastrar individualmente</div>
+      <div class="sec-title">${li("plus",14)} Cadastrar individualmente</div>
       <label>Foto</label>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
         <div id="foto-preview" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0">📷</div>
@@ -738,7 +743,7 @@ function htmlEventosSplit(showHints=false){
   const anteriores=EVENTOS.filter(e=>e.data<hoje).reverse();
   return`<div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 PRÓXIMOS EVENTOS (${proximos.length})</div>
-    ${showHints&&!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+    ${showHints&&!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
     ${proximos.length?proximos.map(ev=>evCardMembro(ev)).join(""):`<div style="font-size:13px;color:#555;padding:8px 0">Nenhum evento próximo.</div>`}
     ${anteriores.length?`
       <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
@@ -762,20 +767,20 @@ function htmlClubeCorpo(){
   // Diretor: menu com subseções
   if(UP.isDiretor||UP.isAdmin){
     const dirMenus=[
-      {id:"membros",ic:"🏍️",lb:"Ranking de km",sub:"Meta anual"},
-      {id:"presenca",ic:"🎟️",lb:"Presença & Km",sub:"Confirmações e lançamentos"},
-      {id:"usuarios",ic:"👥",lb:"Membros",sub:"Editar dados"},
-      {id:"eventos",ic:"📅",lb:"Eventos",sub:"Calendário 2026"},
-      {id:"honra",ic:"🏆",lb:"Placa de Honra",sub:"Metas atingidas"},
+      {id:"membros",ic:li("trophy",28),lb:"Ranking",sub:"Meta anual"},
+      {id:"presenca",ic:li("check-square",28),lb:"Presença & Km",sub:"Confirmações e lançamentos"},
+      {id:"usuarios",ic:li("users",28),lb:"Membros",sub:"Editar dados"},
+      {id:"eventos",ic:li("calendar",28),lb:"Eventos",sub:"Calendário 2026"},
+      {id:"honra",ic:li("star",28),lb:"Placa de Honra",sub:"Metas atingidas"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
-      {id:"relatorio",ic:"📊",lb:"Relatório",sub:"Resumo do ano"},
-      {id:"reunioes",ic:"📋",lb:"Reuniões",sub:"Atas e presenças"},
-      {id:"log",ic:"📋",lb:"Registro",sub:"Histórico de ações"},
+      {id:"relatorio",ic:li("bar-chart-2",28),lb:"Relatório",sub:"Resumo do ano"},
+      {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
+      {id:"log",ic:li("file-text",28),lb:"Registro",sub:"Histórico de ações"},
     ];
     if(!TA||TA==="home"){
       return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         ${dirMenus.filter(m=>!m.hidden).map(m=>`<button onclick="window.setTA('${m.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:28px;line-height:1">${m.ic}</span>
+          <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px">${m.ic}</span>
           <div>
             <div style="font-size:14px;font-weight:600;color:var(--white)">${m.lb}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:1px">${m.sub}</div>
@@ -785,8 +790,8 @@ function htmlClubeCorpo(){
     }
     const cur=dirMenus.find(m=>m.id===TA);
     return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <button onclick="window.setTA('home')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">← Voltar</button>
-        <div style="font-size:15px;font-weight:600">${cur?cur.ic+" "+cur.lb:""}</div>
+        <button onclick="window.setTA('home')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">${li("arrow-left",14)} Voltar</button>
+        <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px">${cur?cur.ic+" "+cur.lb:""}</div>
       </div>
       ${TA==="membros"?`
       <div class="grid2">
@@ -794,7 +799,12 @@ function htmlClubeCorpo(){
         <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
       </div>
       <div class="card">
-        <div class="sec-title">🏆 Ranking de km</div>
+        <div class="sec-title">${li("trophy",16)} Ranking</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button id="rank-tab-km" onclick="window.setRankAba('km')" style="flex:1;padding:9px;border-radius:20px;border:${(window._rankAba||'km')==='km'?'none':'1px solid var(--border)'};background:${(window._rankAba||'km')==='km'?'var(--orange)':'var(--bg3)'};color:${(window._rankAba||'km')==='km'?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
+          <button id="rank-tab-sede" onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${(window._rankAba||'km')==='sede'?'none':'1px solid var(--border)'};background:${(window._rankAba||'km')==='sede'?'var(--orange)':'var(--bg3)'};color:${(window._rankAba||'km')==='sede'?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
+        </div>
+        ${(window._rankAba||'km')==='km'?`
         ${sorted.map((m,i)=>{
           const p2=Math.round(((m.totalKm||0)/META)*100);
           const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
@@ -809,7 +819,9 @@ function htmlClubeCorpo(){
             </div>
             <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
           </div>`;
-        }).join("")}
+        }).join("")}`:`
+        ${(()=>{const sortedSede=[...MEMBROS].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));const totalSede=sortedSede.reduce((s,m)=>s+(_sedeCount(m)||0),0);return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${totalSede}</div></div>`+sortedSede.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>${avatarEl(m.fotoUrl,m.apelido,30)}<span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?'#60b8ff':'var(--muted)'}">⛪ ${sc} presenças</span></div></div>`;}).join("")})()}
+        `}
       </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
@@ -858,7 +870,7 @@ function htmlClubeCorpo(){
   }
   // Membro comum: ranking read-only
   return`<div class="card">
-    <div class="sec-title">🏆 Ranking do clube</div>
+    <div class="sec-title">${li("trophy",16)} Ranking do clube</div>
     <div class="grid2" style="margin-bottom:12px">
       <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
       <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
@@ -885,7 +897,7 @@ function renderDiretor(el){
   const pct=Math.min(100,Math.round((km/META)*100));
   const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
   const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid||r.membroId===MY_DOC_ID):REGS;
-  const clubeLabel=UP.isAdmin?"⚙️ Admin":"🏆 Clube";
+  const clubeLabel=UP.isAdmin?`${li("wrench",14)} Admin`:"🏆 Clube";
   const roleBadge=UP.nivel
     ?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`
     :"";
@@ -900,15 +912,15 @@ function renderDiretor(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+        <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],["clube","🎯","Diretoria"]])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+          <div class="sec-title" style="margin-bottom:0">${li("flag",16)} Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
@@ -928,7 +940,7 @@ function renderDiretor(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
           <div style="display:flex;align-items:center;gap:6px">
             <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
               <option value="Itajaí,SC">📍 Itajaí, SC</option>
@@ -948,26 +960,26 @@ function renderDiretor(el){
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
-        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
       <div class="card">
-        <div class="sec-title">📅 Próximo evento</div>
+        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
           <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
         </div>
         <div id="mural-preview"><span class="spin">⟳</span></div>
       </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
         </div>
         <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
           <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
@@ -1004,7 +1016,7 @@ function renderDiretor(el){
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
           <option value="">Selecione...</option>
@@ -1017,7 +1029,7 @@ function renderDiretor(el){
         <div id="ev-mapa" style="height:260px;width:100%"></div>
       </div>
       <div class="card">
-        <div class="sec-title">⚙️ Rota personalizada</div>
+        <div class="sec-title">${li("wrench",14)} Rota personalizada</div>
         <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
         <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
         <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
@@ -1105,7 +1117,7 @@ function renderDiretor(el){
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
         <div style="margin-top:14px">
-          <div class="sec-title">🏅 Conquistas</div>
+          <div class="sec-title">${li("flame",16)} Conquistas</div>
           <div>${htmlConquistas(UP,REGS)}</div>
         </div>
       </div>`:""}
@@ -1269,13 +1281,13 @@ function htmlEscalaGerenciar(tipo){window._barAba=tipo;
   return`<div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div style="font-size:14px;font-weight:600">${ic} Escala do ${label}</div>
-      <button onclick="window.toggleFormEscala('${tipo}')" style="padding:6px 12px;border-radius:8px;border:1px solid ${btnColor};background:transparent;color:${btnColor};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">➕ Cadastrar</button>
+      <button onclick="window.toggleFormEscala('${tipo}')" style="padding:6px 12px;border-radius:8px;border:1px solid ${btnColor};background:transparent;color:${btnColor};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Cadastrar</button>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Próxima sexta — ${fmtDate(data)}</div>
     <div id="escala-proxima-${tipo}"><span class="spin">⟳</span></div>
   </div>
   <div class="card" id="form-card-${tipo}" style="display:none">
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px">➕ Cadastrar escala ${isBar?"do bar":"do churrasco"}</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px">${li("plus",14)} Cadastrar escala ${isBar?"do bar":"do churrasco"}</div>
     <div id="form-escala-${tipo}">
       <label>Data (sexta-feira)</label>
       <input type="date" id="${isBar?"bar":"chur"}-data" value="${data}" autocomplete="off"/>
@@ -1340,7 +1352,7 @@ function htmlBarGerenciar(){
     </div>
     <div id="bar-conteudo">
     ${abaBar==="bar"?`
-    <div class="sec-title">➕ Cadastrar escala do bar</div>
+    <div class="sec-title">${li("plus",14)} Cadastrar escala do bar</div>
     <label>Data (sexta-feira)</label>
     <input type="date" id="bar-data" value="${proxSexta()}" autocomplete="off"/>
     <label>Membro 1</label>
@@ -1351,7 +1363,7 @@ function htmlBarGerenciar(){
     <input type="text" id="bar-obs" placeholder="Ex: trazer gelo" autocomplete="off"/>
     <div id="bar-err" class="msg-err" style="display:none"></div>
     <button class="btn-primary" onclick="window.salvarEscalaBar()">Salvar escala do bar</button>`:`
-    <div class="sec-title">➕ Cadastrar escala do churrasco</div>
+    <div class="sec-title">${li("plus",14)} Cadastrar escala do churrasco</div>
     <label>Data (sexta-feira)</label>
     <input type="date" id="chur-data" value="${proxSexta()}" autocomplete="off"/>
     <label>Membro 1</label>
@@ -1498,15 +1510,15 @@ function renderBarman(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+        <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+          <div class="sec-title" style="margin-bottom:0">${li("flag",16)} Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
@@ -1526,7 +1538,7 @@ function renderBarman(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
           <div style="display:flex;align-items:center;gap:6px">
             <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
               <option value="Itajaí,SC">📍 Itajaí, SC</option>
@@ -1546,26 +1558,26 @@ function renderBarman(el){
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
-        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
       <div class="card">
-        <div class="sec-title">📅 Próximo evento</div>
+        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
           <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
         </div>
         <div id="mural-preview"><span class="spin">⟳</span></div>
       </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
         </div>
         <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
           <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
@@ -1602,7 +1614,7 @@ function renderBarman(el){
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
           <option value="">Selecione...</option>
@@ -1615,7 +1627,7 @@ function renderBarman(el){
         <div id="ev-mapa" style="height:260px;width:100%"></div>
       </div>
       <div class="card">
-        <div class="sec-title">⚙️ Rota personalizada</div>
+        <div class="sec-title">${li("wrench",14)} Rota personalizada</div>
         <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
         <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
         <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
@@ -1735,15 +1747,15 @@ function renderMembro(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="window.fazerLogout()">Sair</button>
+        <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel","🏠","Início"],["sede","⛪","Sede"],["eventos","📅","Eventos"],["rota","🗺️","Rota"],["msgs","💬","Mensagens"],["galeria","📸","Galeria"],["votacao_tab","🗳️","Votações"],["perfil","👤","Perfil"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="sec-title" style="margin-bottom:0">🎯 Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
+          <div class="sec-title" style="margin-bottom:0">${li("flag",16)} Meta anual — ${toInt(META)} km · <span style="color:${pct>=100?"var(--green)":"var(--orange)"}">${pct}%${pct>100?" 🏆":""}</span></div>
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
@@ -1763,7 +1775,7 @@ function renderMembro(el){
       <div class="desktop-grid">
       <div class="card" style="padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">🌤️ Clima</div>
+          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
           <div style="display:flex;align-items:center;gap:6px">
             <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
               <option value="Itajaí,SC">📍 Itajaí, SC</option>
@@ -1783,26 +1795,26 @@ function renderMembro(el){
         <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
       </div>
       <div class="card" style="border-color:rgba(232,103,10,.3)">
-        <div class="sec-title" style="margin-bottom:14px">⚡ Ação rápida</div>
+        <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
       <div class="card">
-        <div class="sec-title">📅 Próximo evento</div>
+        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">💬 Mural do clube</div>
+          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
           <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
         </div>
         <div id="mural-preview"><span class="spin">⟳</span></div>
       </div>
       <div class="card" id="painel-votacoes-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
+          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
         </div>
         <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
           <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
@@ -1839,7 +1851,7 @@ function renderMembro(el){
     ${TM==="rota"?`
       <div class="card">
         <div class="sec-title">🗺️ Planejar por evento</div>
-        ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil primeiro.</div>`:""}
+        ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil primeiro.</div>`:""}
         <label>Evento</label>
         <select id="rm-evento" onchange="window.calcMembroEvento()">
           <option value="">Selecione...</option>
@@ -1852,7 +1864,7 @@ function renderMembro(el){
         <div id="ev-mapa" style="height:260px;width:100%"></div>
       </div>
       <div class="card">
-        <div class="sec-title">⚙️ Rota personalizada</div>
+        <div class="sec-title">${li("wrench",14)} Rota personalizada</div>
         <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
         <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
         <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
@@ -1968,7 +1980,7 @@ function htmlVotacaoAdmin(){
     <button class="btn-primary" onclick="window.criarVotacao()">Publicar enquete</button>
   </div>
   <div class="card">
-    <div class="sec-title">🗳️ Enquetes ativas e encerradas</div>
+    <div class="sec-title">${li("bar-chart-2",16)} Enquetes ativas e encerradas</div>
     <div id="vot-admin-lista"><span class="spin">⟳</span></div>
   </div>`;
 }
@@ -2003,7 +2015,7 @@ function htmlWhatsAppConteudo(ctx){
   const msgs=[
     {ic:"🗓️",lb:"Sede desta sexta",msg:`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A⛪ Sede aberta esta sexta, ${fmtDate(dataSex)}!%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`},
     {ic:"🏆",lb:"Ranking de km",msg:`🏍️ *MUTANTES MC ITAJAÍ — Ranking de Km*%0A%0A${ranking}%0A%0AMeta: ${toInt(META)} km por membro em 2026%0AApp: https://muyanepetters-alt.github.io/mutantefy`},
-    {ic:"📅",lb:"Próximo evento",msg:(()=>{const ev=EVENTOS.filter(e=>new Date(e.data)>=new Date())[0];return ev?`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A📅 Próximo evento: *${ev.nome}*%0A🗓️ ${fmtDate(ev.data)}%0A📍 ${ev.destino}${ev.dist>0?`%0A🛣️ ${toInt(ev.dist*2)} km ida+volta`:""}%0A%0AConfirme sua presença no app:%0Ahttps://muyanepetters-alt.github.io/mutantefy`:"Nenhum evento futuro."})()},
+    {ic:"📅",lb:"Próximo evento",msg:(()=>{const ev=EVENTOS.filter(e=>new Date(e.data)>=new Date())[0];return ev?`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A${li("calendar-check",16)} Próximo evento: *${ev.nome}*%0A🗓️ ${fmtDate(ev.data)}%0A📍 ${ev.destino}${ev.dist>0?`%0A🛣️ ${toInt(ev.dist*2)} km ida+volta`:""}%0A%0AConfirme sua presença no app:%0Ahttps://muyanepetters-alt.github.io/mutantefy`:"Nenhum evento futuro."})()},
     {ic:"🧹",lb:"Limpeza desta quarta",msg:`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A🧹 Limpeza da sede esta quarta, ${fmtDate(proxQuarta())}!%0AConfirme no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`},
     {ic:"🍺",lb:"Escala do bar esta sexta",msg:(()=>{const d=proxSexta();return`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A🍺 Escala do bar desta sexta, ${fmtDate(d)}:%0A%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`;})()},
   ];
@@ -2073,7 +2085,7 @@ async function carregarVotacoes(){
       return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="font-size:13px;font-weight:600">${v.pergunta}</div>
-          <button onclick="window.encerrarVotacao('${d.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:1px solid rgba(224,82,82,.3);border-radius:5px;padding:2px 7px;cursor:pointer;font-family:inherit">${v.encerrada?"🗑️ Excluir":"⏹ Encerrar"}</button>
+          <button onclick="window.encerrarVotacao('${d.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:1px solid rgba(224,82,82,.3);border-radius:5px;padding:2px 7px;cursor:pointer;font-family:inherit">${v.encerrada?`${li("trash-2",14)} Excluir`:"⏹ Encerrar"}</button>
         </div>
         ${v.opcoes.map(op=>{const n=contagem[op]||0;const pct=total?Math.round((n/total)*100):0;
           return`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>${op}</span><span style="color:var(--muted)">${n} voto${n!==1?"s":""} (${pct}%)</span></div>
@@ -2088,8 +2100,8 @@ async function carregarVotacoes(){
 function htmlVotacoesTab(){
   return`<div class="card" id="painel-votacoes-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div class="sec-title" style="margin-bottom:0">🗳️ Enquetes</div>
-      <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Nova</button>
+      <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
+      <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
     </div>
     <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
       <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
@@ -2131,7 +2143,7 @@ function dispararConfete(){
 // ═══════════════════════════════════════════════════
 function htmlMural(){
   return`<div class="card">
-    <div class="sec-title">💬 Mural do clube</div>
+    <div class="sec-title">${li("message-square",16)} Mural do clube</div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <input type="text" id="mural-msg" placeholder="Escreva seu recado..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.postarMural()"/>
       <button onclick="window.postarMural()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Postar</button>
@@ -3099,7 +3111,7 @@ async function carregarReunioes(){
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn-primary" style="flex:1" onclick="window.salvarAta('${r.id}')">💾 Salvar ata</button>
-            <button onclick="window.excluirReuniao('${r.id}')" style="padding:9px 14px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:13px">🗑️</button>
+            <button onclick="window.excluirReuniao('${r.id}')" style="padding:9px 14px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:13px">${li("trash-2",14)}</button>
           </div>`:""}
         </div>`;
     }else{
@@ -3378,7 +3390,7 @@ window.trocarAbaBar=(aba)=>{
   if(el){
     if(aba==="bar"){
       el.innerHTML=`
-      <div class="sec-title">➕ Cadastrar escala do bar</div>
+      <div class="sec-title">${li("plus",14)} Cadastrar escala do bar</div>
       <label>Data (sexta-feira)</label>
       <input type="date" id="bar-data" value="${proxSexta()}" autocomplete="off"/>
       <label>Membro 1</label>
@@ -3391,7 +3403,7 @@ window.trocarAbaBar=(aba)=>{
       <button class="btn-primary" onclick="window.salvarEscalaBar()">Salvar escala do bar</button>`;
     }else{
       el.innerHTML=`
-      <div class="sec-title">➕ Cadastrar escala do churrasco</div>
+      <div class="sec-title">${li("plus",14)} Cadastrar escala do churrasco</div>
       <label>Data (sexta-feira)</label>
       <input type="date" id="chur-data" value="${proxSexta()}" autocomplete="off"/>
       <label>Membro 1</label>
@@ -3449,7 +3461,7 @@ function htmlRotaAdmin(){
   return`
   <div class="card">
     <div class="sec-title">🗺️ Planejar por evento</div>
-    ${!UP.autonomia?`<div class="hint-box">⚙️ Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
+    ${!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
     <label>Evento</label>
     <select id="rm-evento" onchange="window.calcMembroEvento()">
       <option value="">Selecione...</option>
@@ -3462,7 +3474,7 @@ function htmlRotaAdmin(){
     <div id="ev-mapa" style="height:260px;width:100%"></div>
   </div>
   <div class="card">
-    <div class="sec-title">⚙️ Rota personalizada</div>
+    <div class="sec-title">${li("wrench",14)} Rota personalizada</div>
     <label>Distância ida (km)</label><input type="number" id="rm-dist" placeholder="Ex: 300"/>
     <label>Destino</label><input type="text" id="rm-dest" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
     <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
@@ -3658,6 +3670,7 @@ window.salvarPedagio=async(eventoId)=>{
   }catch(e){showToast("Erro ao salvar.",true);}
 };
 window.setTA=t=>{console.log("setTA:",t);TA=t;_presAba="massa";try{render();}catch(e){console.error("setTA render error:",e);}};
+window.setRankAba=aba=>{window._rankAba=aba;render();};
 window.setPresAba=(aba)=>{
   _presAba=aba;
   ["massa","avulso","proximos","anteriores"].forEach(a=>{
@@ -3694,7 +3707,7 @@ function htmlUsuarios(){
   return`<div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="sec-title" style="margin-bottom:0">👥 Membros cadastrados</div>
-      <button onclick="window.setTA('cadastrar')" style="padding:7px 14px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+ Cadastrar</button>
+      <button onclick="window.setTA('cadastrar')" style="padding:7px 14px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">${li("plus",14)} Cadastrar</button>
     </div>
     <div style="position:relative;margin-bottom:14px">
       <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
@@ -3743,9 +3756,9 @@ function htmlUsuarios(){
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn-primary" style="flex:1" onclick="window.salvarUsuario('${m.uid}')">Salvar</button>
             <button onclick="window.trocarFoto('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📷 Foto</button>
-            <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">🗑️</button>
+            <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">${li("trash-2",14)}</button>
           </div>
-          <button id="btn-cred-${m.uid}" onclick="window.copiarCredenciais('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar credenciais</button>
+          <button id="btn-cred-${m.uid}" onclick="window.copiarCredenciais('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">${li("clipboard",14)} Copiar credenciais</button>
           <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
           <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
             <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
@@ -4215,7 +4228,7 @@ window.calcAdminEvento=()=>{
   const mOpt=mSel.options[mSel.selectedIndex];
   const eOpt=eSel.options[eSel.selectedIndex];
   const auto=parseFloat(mOpt.dataset.auto),tanque=parseFloat(mOpt.dataset.tanque);
-  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">⚙️ Integrante sem configuração de moto.</div>`;return;}
+  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">${li("wrench",14)} Integrante sem configuração de moto.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(parseFloat(eOpt.dataset.dist),auto,tanque,eOpt.dataset.estado,parseFloat(eOpt.dataset.ped)||null),eOpt.dataset.dest,eOpt.dataset.pedinfo)}</div>`;
 };
 window.calcAdminCustom=()=>{
@@ -4226,7 +4239,7 @@ window.calcAdminCustom=()=>{
   if(!mSel?.value||!dist||!res)return;
   const mOpt=mSel.options[mSel.selectedIndex];
   const auto=parseFloat(mOpt.dataset.auto),tanque=parseFloat(mOpt.dataset.tanque);
-  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">⚙️ Integrante sem configuração de moto.</div>`;return;}
+  if(!auto||!tanque){res.innerHTML=`<div class="hint-box">${li("wrench",14)} Integrante sem configuração de moto.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,auto,tanque,"SC"),dest)}</div>`;
 };
 let _mapa=null;
@@ -4391,7 +4404,7 @@ window.calcMembroEvento=()=>{
   const card=document.getElementById("mapa-card");
   if(!res||!sel?.value){if(res)res.innerHTML="";if(card)card.style.display="none";return;}
   const opt=sel.options[sel.selectedIndex];
-  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">⚙️ Configure sua moto na aba Perfil.</div>`;return;}
+  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(parseFloat(opt.dataset.dist),parseFloat(UP.autonomia),parseFloat(UP.tanque),opt.dataset.estado,parseFloat(opt.dataset.ped)||null),opt.dataset.dest,opt.dataset.pedinfo)}</div>`;
   const evId=parseInt(sel.value);
   const coords=COORDS_EVENTOS[evId];
@@ -4403,7 +4416,7 @@ window.calcMembroCustom=()=>{
   const dest=document.getElementById("rm-dest")?.value||"destino";
   const res=document.getElementById("rm-custom-result");
   if(!dist||!res)return;
-  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">⚙️ Configure sua moto na aba Perfil.</div>`;return;}
+  if(!UP.autonomia||!UP.tanque){res.innerHTML=`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil.</div>`;return;}
   res.innerHTML=`<div class="rota-result">${htmlRota(calcRota(dist,parseFloat(UP.autonomia),parseFloat(UP.tanque),"SC"),dest)}</div>`;
 };
 window.salvarMoto=async()=>{
@@ -4766,7 +4779,7 @@ function _presCardMembro(p,ev,status){
   };
   const cfg=statusCfg[status]||statusCfg.pendente;
   const acoes=status==="compareceu"
-    ?`<button onclick="window.mostrarFormComp('${uid}',${evId},'editar','${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit" title="Editar km">✏️</button>
+    ?`<button onclick="window.mostrarFormComp('${uid}',${evId},'editar','${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit" title="Editar km">${li("pencil",14)}</button>
        <button onclick="window.excluirComparecimento('${uid}','${m.apelido}',${evId},'${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit" title="Excluir">✕</button>`
     :`<button id="btn-comp-${uid}-${evId}" onclick="window.mostrarFormComp('${uid}',${evId},'novo','',${kmDefault})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✓ Compareceu</button>`;
   const kmFormVal=status==="compareceu"?(p.kmLancado||0):kmDefault;
@@ -4942,7 +4955,7 @@ async function carregarCorpoEventoAnt(evId){
             <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
           </div>
           <div id="ant-btns-${r.id}" style="display:flex;gap:4px">
-            <button onclick="window.mostrarAntEdit('${r.id}',${r.km},${evId})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️</button>
+            <button onclick="window.mostrarAntEdit('${r.id}',${r.km},${evId})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)}</button>
             <button onclick="window.excluirAntReg('${r.id}','${r.membroId}',${r.km},${evId})" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
           </div>
         </div>
@@ -5133,7 +5146,7 @@ window.carregarGestaoEvento=async(evId)=>{
             <div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div>
             <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
           </div>
-          <button onclick="window.editarKmGestao('${r.id}','${r.membroId}',${r.km},${evId})" title="Editar km" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️ Editar</button>
+          <button onclick="window.editarKmGestao('${r.id}','${r.membroId}',${r.km},${evId})" title="Editar km" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)} Editar</button>
           <button onclick="window.excluirRegistroGestao('${r.id}','${r.membroId}',${r.km},${evId})" title="Excluir" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
         </div>`;
       });
@@ -5258,7 +5271,7 @@ async function _carregarCorpoModalPresenca(ev){
             <div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div>
             <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
           </div>
-          <button onclick="window.editarKmPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">✏️ Editar</button>
+          <button onclick="window.editarKmPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)} Editar</button>
           <button onclick="window.excluirRegistroPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
         </div>`;
       });
