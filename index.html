@@ -4414,13 +4414,29 @@ window.cadastrarMembro=async()=>{
     const fi=document.getElementById("n-foto");
     if(fi?.files[0]){btn.textContent="Enviando foto...";fotoUrl=await uploadFoto(fi.files[0]);}
     const cred=await createUserWithEmailAndPassword(auth,email,senha);
+    console.log("Auth UID criado:",cred.user.uid,"para",email);
     await setDoc(doc(db,"usuarios",apelido.toLowerCase()),{apelido,apelidoLower:apelido.toLowerCase(),uid:cred.user.uid,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
-    await signInWithEmailAndPassword(auth,adminEmail,adminPass);
+    btn.textContent="Restaurando sessão...";
+    try{
+      await signInWithEmailAndPassword(auth,adminEmail,adminPass);
+      if(auth.currentUser?.email!==adminEmail){
+        showToast("⚠️ Sessão do admin não confirmada. Faça login novamente.",true);
+        return;
+      }
+      MY_DOC_ID=adminEmail==="admin@mutantesmc.com"?"admin":adminEmail.split("@")[0].toLowerCase();
+      const savedDocId=localStorage.getItem("mutantes_docid");
+      if(savedDocId)MY_DOC_ID=savedDocId;
+    }catch(reLoginErr){
+      err.textContent="Membro cadastrado mas houve erro ao restaurar sua sessão. Faça login novamente.";
+      err.style.display="block";
+      btn.disabled=false;btn.textContent="Cadastrar integrante";
+      return;
+    }
     await carregarMembros();
     showToast("✓ "+apelido+" cadastrado!");TA="home";
     registrarLog("membro_cadastrado",`cadastrou novo membro`,apelido);
     render();
-  }catch(e){err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Cadastrar integrante";}
+  }catch(e){console.error("Erro no cadastro:",e);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Cadastrar integrante";}
 };
 window.salvarUsuario=async uid=>{
   const apelido=document.getElementById("ue-ap-"+uid)?.value.trim();
