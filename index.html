@@ -3674,13 +3674,12 @@ function htmlUsuarios(){
           <input type="number" id="ue-tk-${m.uid}" value="${m.tanque||""}" placeholder="Ex: 13.7" step="0.1" autocomplete="off"/>
           <label>Preço gasolina (R$/L)</label>
           <input type="number" id="ue-gs-${m.uid}" value="${m.gasolina||""}" placeholder="Ex: 6.20" step="0.01" autocomplete="off"/>
-          ${m.senhaTemp?`<label>Senha temporária</label><div class="senha-wrap"><input type="password" id="st-${m.uid}" value="${m.senhaTemp}" readonly style="background:var(--bg);color:var(--muted);cursor:default"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('st-${m.uid}')">👁️</button></div>`:``}
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn-primary" style="flex:1" onclick="window.salvarUsuario('${m.uid}')">Salvar</button>
             <button onclick="window.trocarFoto('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📷 Foto</button>
             <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">🗑️</button>
           </div>
-          <button id="btn-cplr-${m.uid}" onclick="window.copiarLinkRedefinicao('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Enviar redefinição e copiar mensagem</button>
+          <button id="btn-cred-${m.uid}" onclick="window.copiarCredenciais('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar credenciais</button>
           <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
           <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
             <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
@@ -4482,11 +4481,16 @@ window.salvarUsuario=async uid=>{
 window.copiarCredenciais=async uid=>{
   const m=MEMBROS.find(x=>x.uid===uid);
   if(!m)return;
-  const texto=`Login: ${m.email}\nSenha: ${m.senhaTemp||"(não definida)"}`;
+  let texto=`Olá, ${m.apelido}! 🏍️ Aqui estão suas credenciais de acesso ao app Mutantes MC Itajaí:\n\n🔗 Link: muyanepetters-alt.github.io/mutantefy\n👤 Usuário: ${m.apelido}\n🔑 Senha: ${m.senhaTemp}`;
+  if(!m.senhaTemp){
+    texto=`Olá, ${m.apelido}! 🏍️ Aqui estão suas credenciais de acesso ao app Mutantes MC Itajaí:\n\n🔗 Link: muyanepetters-alt.github.io/mutantefy\n👤 Usuário: ${m.apelido}`;
+    showToast("⚠️ Senha não disponível — copiado sem a senha.",true);
+  }
   try{
     await navigator.clipboard.writeText(texto);
     const btn=document.getElementById("btn-cred-"+uid);
     if(btn){const orig=btn.textContent;btn.textContent="✓ Copiado!";setTimeout(()=>{btn.textContent=orig;},2000);}
+    if(m.senhaTemp)showToast("✅ Credenciais copiadas! Cole no WhatsApp.");
   }catch(e){showToast("Erro ao copiar.",true);}
 };
 window.enviarAcesso=async(email,apelido)=>{
