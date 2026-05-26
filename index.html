@@ -358,7 +358,7 @@ async function registrarTokenPush(){
     if(perm!=="granted"){console.warn("Permissão de notificação negada.");return;}
     const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:sw});
     if(token){
-      await setDoc(doc(db,"usuarios",CU.uid),{fcmToken:token},{merge:true});
+      await setDoc(doc(db,"usuarios",MY_DOC_ID),{fcmToken:token},{merge:true});
       onMessage(messaging,payload=>{
         const {title,body}=payload.notification||{};
         showToast((title?title+": ":"")+body,false);
@@ -559,7 +559,7 @@ function evCardMembro(ev){
   </div>`;
 }
 
-let CU=null,UP=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
+let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={};
 let _presAba="massa";
 
 async function carregarEncontros(){
@@ -2504,7 +2504,7 @@ window.salvarGaragem=async()=>{
   const gasolina=parseFloat(document.getElementById("m-gasolina")?.value)||0;
   if(!moto){showToast("Informe o nome da moto.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",CU.uid),{moto,motoAno:ano||"",motoCil:cil||"",motoCor:cor||"",autonomia,tanque,gasolina},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{moto,motoAno:ano||"",motoCil:cil||"",motoCor:cor||"",autonomia,tanque,gasolina},{merge:true});
     UP.moto=moto;UP.motoAno=ano;UP.motoCil=cil;UP.motoCor=cor;
     UP.autonomia=autonomia;UP.tanque=tanque;UP.gasolina=gasolina;
     showToast("✓ Garagem salva!");render();
@@ -2514,7 +2514,7 @@ window.salvarGaragem=async()=>{
 window.uploadFotoMoto=async(input)=>{
   const file=input.files[0];if(!file)return;
   uploadFotoComCrop(file,async url=>{
-    await setDoc(doc(db,"usuarios",CU.uid),{fotoMoto:url},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{fotoMoto:url},{merge:true});
     UP.fotoMoto=url;showToast("✓ Foto da moto salva!");render();
   });
 };
@@ -2576,7 +2576,7 @@ window.salvarTelefone=async()=>{
   const tel=document.getElementById("meu-telefone")?.value.replace(/\D/g,"");
   if(!tel){showToast("Informe o telefone.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",CU.uid),{telefone:tel},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{telefone:tel},{merge:true});
     UP.telefone=tel;showToast("✓ Telefone salvo!");
   }catch{showToast("Erro.",true);}
 };
@@ -2747,7 +2747,7 @@ window.salvarCargo=async()=>{
   const cargo=document.getElementById("m-cargo")?.value;
   if(!cargo){showToast("Selecione um nível.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",CU.uid),{nivel},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nivel},{merge:true});
     UP.nivel=cargo;showToast("✓ Nível salvo!");render();
   }catch{showToast("Erro.",true);}
 };
@@ -2756,7 +2756,7 @@ window.salvarNascimento=async()=>{
   const nasc=document.getElementById("m-nascimento")?.value;
   if(!nasc){showToast("Selecione a data.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",CU.uid),{nascimento:nasc},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nascimento:nasc},{merge:true});
     UP.nascimento=nasc;showToast("✓ Data de nascimento salva!");
   }catch{showToast("Erro.",true);}
 };
@@ -3555,8 +3555,8 @@ window.toggleBarman=async(uid,apelido,atual)=>{
   const novo=!atual;
   if(!confirm(novo?`Dar acesso Bar para ${apelido}?`:`Remover acesso Bar de ${apelido}?`))return;
   try{
-    await setDoc(doc(db,"usuarios",uid),{isBarman:novo},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.isBarman=novo;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{isBarman:novo},{merge:true});
+    const m=findMembro(uid);if(m)m.isBarman=novo;
     showToast(novo?`✓ ${apelido} agora gerencia o bar`:`✓ Acesso Bar removido de ${apelido}`);render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
@@ -3844,9 +3844,9 @@ window.trocarFoto=async(uid,apelido)=>{
   input.onchange=async()=>{
     const file=input.files[0];if(!file)return;
     uploadFotoComCrop(file,async url=>{
-      await setDoc(doc(db,"usuarios",uid),{fotoUrl:url},{merge:true});
-      const m=MEMBROS.find(m=>m.uid===uid);if(m)m.fotoUrl=url;
-      if(CU&&CU.uid===uid)UP.fotoUrl=url;
+      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{fotoUrl:url},{merge:true});
+      const m=findMembro(uid);if(m)m.fotoUrl=url;
+      if(MY_DOC_ID===resolveDocId(uid))UP.fotoUrl=url;
       showToast("✓ Foto atualizada!");render();
     });
   };input.click();
@@ -3873,11 +3873,11 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
   if(btn){btn.disabled=true;btn.textContent="Lançando...";}
   let km=ev.dist>0?ev.dist*2:parseFloat(prompt("Distância total ida+volta (km) do evento "+ev.nome+":"));
   if(!km||isNaN(km)||km<=0){if(btn){btn.disabled=false;btn.textContent="🏁 Compareceu";}return;}
-  const m=MEMBROS.find(m=>m.uid===membroId);
+  const m=findMembro(membroId);
   try{
     const regRef=await addDoc(collection(db,"registros"),{membroId,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId,createdAt:serverTimestamp()});
     const nt=(m?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
     showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
@@ -3894,11 +3894,11 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
 };
 window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
   if(!confirm("Excluir lançamento de "+toInt(km)+" km de "+apelido+"?"))return;
-  const m=MEMBROS.find(m=>m.uid===membroId);
+  const m=findMembro(membroId);
   try{
     if(registroId)await deleteDoc(doc(db,"registros",registroId));
     const nt=Math.max(0,(m?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"confirmado",compareceu:false,registroId:null,kmLancado:0},{merge:true});
     showToast("✓ Lançamento excluído.");
@@ -3908,12 +3908,12 @@ window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
 window.editarComparecimento=async(membroId,apelido,eventoId,registroId,kmAtual)=>{
   const novoKm=parseFloat(prompt("Novo valor de km para "+apelido+":",kmAtual));
   if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
-  const m=MEMBROS.find(m=>m.uid===membroId);
+  const m=findMembro(membroId);
   try{
     if(registroId)await setDoc(doc(db,"registros",registroId),{km:novoKm},{merge:true});
     const diff=novoKm-kmAtual;
     const nt=Math.max(0,(m?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{kmLancado:novoKm},{merge:true});
     showToast("✓ Km atualizado para "+toInt(novoKm)+"!");
@@ -3946,19 +3946,19 @@ window.salvarFormComp=async(uid,apelido,evId)=>{
   if(inp)inp.disabled=true;
   try{
     if(info.mode==="editar"){
-      const m=MEMBROS.find(m=>m.uid===uid);
+      const m=findMembro(uid);
       if(info.regId)await setDoc(doc(db,"registros",info.regId),{km},{merge:true});
       const diff=km-(info.kmOld||0);
       const nt=Math.max(0,(m?.totalKm||0)+diff);
-      await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
       if(m)m.totalKm=nt;
       await setDoc(doc(db,"presencas",uid+"_"+evId),{kmLancado:km},{merge:true});
       showToast("✓ Km atualizado para "+toInt(km)+"!");
     }else{
-      const m=MEMBROS.find(m=>m.uid===uid);
+      const m=findMembro(uid);
       const regRef=await addDoc(collection(db,"registros"),{membroId:uid,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
       const nt=(m?.totalKm||0)+km;
-      await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
+      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
       if(m)m.totalKm=nt;
       await setDoc(doc(db,"presencas",uid+"_"+evId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
       const mToken=m?.fcmToken;
@@ -4129,8 +4129,8 @@ window.toggleDiretor=async(uid,apelido,atual)=>{
   const novo=!atual;
   if(!confirm((novo?`Dar acesso Adm para ${apelido}?`:`Remover acesso Adm de ${apelido}?`)))return;
   try{
-    await setDoc(doc(db,"usuarios",uid),{isDiretor:novo},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.isDiretor=novo;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{isDiretor:novo},{merge:true});
+    const m=findMembro(uid);if(m)m.isDiretor=novo;
     showToast(novo?`✓ ${apelido} agora tem acesso Adm`:`✓ Acesso Adm removido de ${apelido}`);render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
@@ -4339,7 +4339,7 @@ window.salvarMoto=async()=>{
   const gasolina=parseFloat(document.getElementById("m-gasolina")?.value);
   if(!autonomia||!tanque||!gasolina){showToast("Preencha todos os campos.",true);return;}
   try{
-    await setDoc(doc(db,"usuarios",CU.uid),{autonomia,tanque,gasolina},{merge:true});
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{autonomia,tanque,gasolina},{merge:true});
     UP.autonomia=autonomia;UP.tanque=tanque;UP.gasolina=gasolina;
     showToast("✓ Configurações salvas!");render();
   }catch{showToast("Erro ao salvar.",true);}
@@ -4352,13 +4352,18 @@ window.fazerLogin=async()=>{
   if(!apelido||!senha)return;
   btn.disabled=true;btn.textContent="Entrando...";err.style.display="none";
   try{
-    if(apelido.toLowerCase()==="admin"){await signInWithEmailAndPassword(auth,"admin@mutantesmc.com",senha);return;}
-    const snap=await getDocs(query(collection(db,"usuarios"),where("apelidoLower","==",apelido.toLowerCase())));
-    if(snap.empty){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
-    await signInWithEmailAndPassword(auth,snap.docs[0].data().email,senha);
+    if(apelido.toLowerCase()==="admin"){
+      MY_DOC_ID="admin";localStorage.setItem("mutantes_docid","admin");
+      await signInWithEmailAndPassword(auth,"admin@mutantesmc.com",senha);return;
+    }
+    const docId=apelido.toLowerCase();
+    const snap=await getDoc(doc(db,"usuarios",docId));
+    if(!snap.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
+    MY_DOC_ID=docId;localStorage.setItem("mutantes_docid",docId);
+    await signInWithEmailAndPassword(auth,snap.data().email,senha);
   }catch{err.textContent="Apelido ou senha incorretos.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
-window.fazerLogout=async()=>{await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
+window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
 window.cadastrarEmLote=async()=>{
   const btn=document.getElementById("lote-btn");
   const prog=document.getElementById("lote-progress");
@@ -4375,10 +4380,10 @@ window.cadastrarEmLote=async()=>{
     status.textContent="Cadastrando "+u.apelido+"... ("+(i+1)+"/"+LOTE.length+")";
     bar.style.width=Math.round((i/LOTE.length)*100)+"%";
     try{
-      const snap=await getDocs(query(collection(db,"usuarios"),where("apelido","==",u.apelido)));
-      if(!snap.empty){ok.push(u.apelido+" (já existe)");continue;}
+      const existeSnap=await getDoc(doc(db,"usuarios",u.apelido.toLowerCase()));
+      if(existeSnap.exists()){ok.push(u.apelido+" (já existe)");continue;}
       const cred=await createUserWithEmailAndPassword(auth,u.email,u.senha);
-      await setDoc(doc(db,"usuarios",cred.user.uid),{apelido:u.apelido,email:u.email,moto:"",isAdmin:false,totalKm:0,fotoUrl:"",createdAt:serverTimestamp()});
+      await setDoc(doc(db,"usuarios",u.apelido.toLowerCase()),{apelido:u.apelido,apelidoLower:u.apelido.toLowerCase(),uid:cred.user.uid,email:u.email,moto:"",isAdmin:false,totalKm:0,fotoUrl:"",createdAt:serverTimestamp()});
       await signInWithEmailAndPassword(auth,adminEmail,adminPass);
       ok.push(u.apelido);
     }catch(e){
@@ -4409,7 +4414,7 @@ window.cadastrarMembro=async()=>{
     const fi=document.getElementById("n-foto");
     if(fi?.files[0]){btn.textContent="Enviando foto...";fotoUrl=await uploadFoto(fi.files[0]);}
     const cred=await createUserWithEmailAndPassword(auth,email,senha);
-    await setDoc(doc(db,"usuarios",cred.user.uid),{apelido,apelidoLower:apelido.toLowerCase(),email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
+    await setDoc(doc(db,"usuarios",apelido.toLowerCase()),{apelido,apelidoLower:apelido.toLowerCase(),uid:cred.user.uid,email,moto:moto||"",isAdmin:false,totalKm:0,fotoUrl,senhaTemp:senha,createdAt:serverTimestamp()});
     await signInWithEmailAndPassword(auth,adminEmail,adminPass);
     await carregarMembros();
     showToast("✓ "+apelido+" cadastrado!");TA="home";
@@ -4429,8 +4434,8 @@ window.salvarUsuario=async uid=>{
     const tel=document.getElementById("ue-tel-"+uid)?.value.replace(/\D/g,"")||"";
     const dados={apelido,apelidoLower:apelido.toLowerCase(),moto:moto||"",nivel:nivel||"",telefone:tel};
     if(autonomia)dados.autonomia=autonomia;if(tanque)dados.tanque=tanque;if(gasolina)dados.gasolina=gasolina;
-    await setDoc(doc(db,"usuarios",uid),dados,{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)Object.assign(m,dados);
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),dados,{merge:true});
+    const m=findMembro(uid);if(m)Object.assign(m,dados);
     showToast("✓ Dados atualizados!");document.getElementById("ue-"+uid).style.display="none";render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
@@ -4481,11 +4486,11 @@ window.lancarKm=async()=>{
   }
   if(!membroId||!data||!km){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
   btn.disabled=true;btn.textContent="Lançando...";err.style.display="none";
-  const m=MEMBROS.find(m=>m.uid===membroId);
+  const m=findMembro(membroId);
   try{
     await addDoc(collection(db,"registros"),{membroId,apelido:m?.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
     const nt=(m?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
     await carregarRegistros();
     showToast("✓ "+toInt(km)+" km lançado!");
@@ -4506,7 +4511,7 @@ window.salvarEdicao=async(id,membroId,kmAntigo)=>{
   try{
     await setDoc(doc(db,"registros",id),{desc,data,km},{merge:true});
     const diff=km-kmAntigo;
-    if(diff!==0){const m=MEMBROS.find(m=>m.uid===membroId);if(m){const nt=Math.max(0,(m.totalKm||0)+diff);await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}}
+    if(diff!==0){const m=findMembro(membroId);if(m){const nt=Math.max(0,(m.totalKm||0)+diff);await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});m.totalKm=nt;}}
     await carregarRegistros();showToast("✓ Atualizado!");
     registrarLog("km_editado",`editou lançamento para ${toInt(km)} km`,"");
     render();
@@ -4516,8 +4521,8 @@ window.excluirKm=async(id,membroId,km)=>{
   if(!confirm("Excluir este lançamento?"))return;
   try{
     await deleteDoc(doc(db,"registros",id));
-    const m=MEMBROS.find(m=>m.uid===membroId);
-    if(m){const nt=Math.max(0,(m.totalKm||0)-km);await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}
+    const m=findMembro(membroId);
+    if(m){const nt=Math.max(0,(m.totalKm||0)-km);await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});m.totalKm=nt;}
     await carregarRegistros();showToast("Lançamento excluído");
     registrarLog("km_excluido",`excluiu lançamento de ${toInt(km)} km`,m?.apelido||"");
     render();
@@ -4528,8 +4533,8 @@ window.excluirMembro=async(uid,apelido)=>{
   try{
     const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",uid)));
     for(const d of snap.docs)await deleteDoc(doc(db,"registros",d.id));
-    await deleteDoc(doc(db,"usuarios",uid));
-    MEMBROS=MEMBROS.filter(m=>m.uid!==uid);
+    await deleteDoc(doc(db,"usuarios",resolveDocId(uid)));
+    MEMBROS=MEMBROS.filter(m=>m.uid!==uid&&m.authUid!==uid);
     showToast("✓ "+apelido+" removido.");
     registrarLog("membro_excluido",`excluiu o membro`,apelido);
     render();
@@ -4575,14 +4580,25 @@ window.trocarSenha=async()=>{
 };
 async function carregarMembros(){
   const snap=await getDocs(collection(db,"usuarios"));
-  MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({uid:d.id,...d.data()}));
+  MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({...d.data(),uid:d.id,authUid:d.data().uid||d.id}));
 }
-async function migrarApelidoLower(){
+function findMembro(id){return MEMBROS.find(m=>m.uid===id)||MEMBROS.find(m=>m.authUid===id);}
+function resolveDocId(id){const m=findMembro(id);return m?m.uid:id;}
+async function migrarParaApelidoLowerId(){
   const snap=await getDocs(collection(db,"usuarios"));
-  const pendentes=snap.docs.filter(d=>!d.data().apelidoLower&&d.data().apelido);
-  if(!pendentes.length)return;
-  await Promise.all(pendentes.map(d=>setDoc(doc(db,"usuarios",d.id),{apelidoLower:d.data().apelido.toLowerCase()},{merge:true})));
-  console.log(`migrarApelidoLower: ${pendentes.length} documentos atualizados.`);
+  const antigos=snap.docs.filter(d=>{
+    const data=d.data();
+    const esperado=(data.apelido||"").toLowerCase();
+    return esperado&&d.id!==esperado&&d.id!=="admin";
+  });
+  if(!antigos.length){console.log("Migração usuarios: nada a fazer.");return;}
+  for(const d of antigos){
+    const data=d.data();
+    const novoId=data.apelido.toLowerCase();
+    await setDoc(doc(db,"usuarios",novoId),{...data,uid:d.id,apelidoLower:novoId});
+    await deleteDoc(doc(db,"usuarios",d.id));
+  }
+  console.log(`Migração usuarios: ${antigos.length} documentos migrados para ID=apelidoLower.`);
 }
 async function carregarRegistros(){
   if(!CU)return;
@@ -4862,10 +4878,10 @@ window.salvarAntEdit=async(regId,membroId,kmAtual,evId)=>{
   try{
     await setDoc(doc(db,"registros",regId),{km},{merge:true});
     const diff=km-kmAtual;
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast(`✓ Km atualizado para ${toInt(km)}!`);
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -4874,10 +4890,10 @@ window.excluirAntReg=async(regId,membroId,km,evId)=>{
   if(!confirm("Excluir este registro?"))return;
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast("✓ Registro excluído.");
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -4905,10 +4921,10 @@ window.salvarAntAdd=async(uid,apelido,evId)=>{
   inp.disabled=true;
   try{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
-    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
+    const m=findMembro(uid);if(m)m.totalKm=nt;
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -5042,10 +5058,10 @@ window.salvarPresencaGestao=async(uid,apelido,evId)=>{
   inp.disabled=true;
   try{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
-    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
+    const m=findMembro(uid);if(m)m.totalKm=nt;
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await window.carregarGestaoEvento(evId);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -5055,11 +5071,11 @@ window.editarKmGestao=async(regId,membroId,kmAtual,evId)=>{
   if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
   try{
     await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const diff=novoKm-kmAtual;
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
     await window.carregarGestaoEvento(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5068,10 +5084,10 @@ window.excluirRegistroGestao=async(regId,membroId,km,evId)=>{
   if(!confirm("Excluir este registro?"))return;
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast("✓ Registro excluído.");
     await window.carregarGestaoEvento(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5169,10 +5185,10 @@ window.salvarPresencaModal=async(uid,apelido,evId)=>{
   inp.disabled=true;
   try{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
-    const mSnap=await getDoc(doc(db,"usuarios",uid));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",uid),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===uid);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
+    const m=findMembro(uid);if(m)m.totalKm=nt;
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -5182,10 +5198,10 @@ window.excluirRegistroPresenca=async(regId,membroId,km,evId)=>{
   const ev=EVENTOS.find(e=>e.id===evId);
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast("✓ Registro excluído.");
     if(ev)await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5196,11 +5212,11 @@ window.editarKmPresenca=async(regId,membroId,kmAtual,evId)=>{
   const ev=EVENTOS.find(e=>e.id===evId);
   try{
     await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
-    const mSnap=await getDoc(doc(db,"usuarios",membroId));
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
     const diff=novoKm-kmAtual;
     const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",membroId),{totalKm:nt},{merge:true});
-    const m=MEMBROS.find(m=>m.uid===membroId);if(m)m.totalKm=nt;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+    const m=findMembro(membroId);if(m)m.totalKm=nt;
     showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
     if(ev)await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5300,16 +5316,17 @@ onAuthStateChanged(auth,async user=>{
   document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
   try{
     // Fase 1: perfil + logo em paralelo
+    MY_DOC_ID=localStorage.getItem("mutantes_docid")||user.uid;
     const [snap,logoSnap]=await Promise.all([
-      getDoc(doc(db,"usuarios",user.uid)),
+      getDoc(doc(db,"usuarios",MY_DOC_ID)),
       getDoc(doc(db,"config","logo"))
     ]);
     UP=snap.exists()?{uid:user.uid,...snap.data()}:{uid:user.uid,apelido:"Admin",isAdmin:true};
-    if(!snap.exists())await setDoc(doc(db,"usuarios",user.uid),{apelido:"Admin",email:user.email,isAdmin:true,totalKm:0});
+    if(!snap.exists())await setDoc(doc(db,"usuarios",MY_DOC_ID),{apelido:"Admin",email:user.email,isAdmin:true,totalKm:0});
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());if(UP.isAdmin)migrarApelidoLower();}
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros());if(UP.isAdmin)migrarParaApelidoLowerId();}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
