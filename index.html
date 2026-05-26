@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f0f;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#f0f0f0;--muted:#767676;--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
+:root{--bg:#0f0f0f;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--orange:#e8670a;--orange-glow:rgba(232,103,10,.28);--white:#ffffff;--muted:rgba(255,255,255,.85);--danger:#e05252;--green:#4caf7d;--shadow-card:0 8px 32px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05);--transition:200ms ease}
 
 
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:url('mobile.png') center/cover fixed;color:var(--white);min-height:100vh;font-size:15px;line-height:1.5}
@@ -28,7 +28,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.72);z-inde
 
 /* ── LAYOUT DESKTOP ────────────────────────────────── */
 @media(min-width:768px){
-  body{background:url('desktop.jpg') center/cover fixed}
+  body{background:url('desktop1.png') center/cover fixed}
 
   .app{
     max-width:100%;height:100vh;
@@ -68,9 +68,9 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.72);z-inde
     flex-shrink:0;
     justify-content:flex-start !important;
     align-items:stretch !important;
-    background:rgba(10,10,10,.98) !important;
-    backdrop-filter:blur(16px) !important;
-    -webkit-backdrop-filter:blur(16px) !important;
+    background:rgba(0,0,0,.6) !important;
+    backdrop-filter:blur(12px) !important;
+    -webkit-backdrop-filter:blur(12px) !important;
   }
   .bnav-item{
     flex:none !important;min-height:42px;width:100%;
@@ -170,7 +170,7 @@ body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.72);z-inde
 .bnav-item.nav-active .bnav-icon{transform:scale(1.1)}
 .bnav-item:active .bnav-icon{transform:scale(.85)}
 .bnav-item.nav-active{background:rgba(232,103,10,.14);box-shadow:inset 0 0 0 1px rgba(232,103,10,.18)}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
 .prog-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
 .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
