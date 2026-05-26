@@ -3682,7 +3682,10 @@ function htmlUsuarios(){
           <div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end">
             <div style="flex:1">
               <label style="margin-bottom:4px">Nova senha</label>
-              <input type="password" id="ue-np-${m.uid}" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="margin-bottom:0"/>
+              <div style="position:relative">
+                <input type="password" id="ue-np-${m.uid}" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="margin-bottom:0;padding-right:38px"/>
+                <button type="button" onclick="(()=>{const i=document.getElementById('ue-np-${m.uid}');i.type=i.type==='password'?'text':'password';})()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0;line-height:1">👁️</button>
+              </div>
             </div>
             <button id="btn-rdp-${m.uid}" onclick="window.redefinirSenha('${m.uid}','${m.apelido}')" style="padding:9px 14px;border-radius:8px;border:1px solid rgba(224,82,82,.35);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;flex-shrink:0">🔑 Redefinir senha</button>
           </div>
