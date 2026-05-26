@@ -4822,9 +4822,7 @@ window.cadastrarMembro=async()=>{
         showToast("⚠️ Sessão do admin não confirmada. Faça login novamente.",true);
         return;
       }
-      MY_DOC_ID=adminEmail==="muyanewolf@gmail.com"?"admin":adminEmail.split("@")[0].toLowerCase();
-      const savedDocId=localStorage.getItem("mutantes_docid");
-      if(savedDocId)MY_DOC_ID=savedDocId;
+      MY_DOC_ID="admin"; // valor temporário; onAuthStateChanged revalida do Firestore
     }catch(reLoginErr){
       err.textContent="Membro cadastrado mas houve erro ao restaurar sua sessão. Faça login novamente.";
       err.style.display="block";
@@ -5748,14 +5746,28 @@ onAuthStateChanged(auth,async user=>{
   if(!user){UP=null;REGS=[];MEMBROS=[];render();setTimeout(esconderSplash,600);return;}
   document.getElementById("app").innerHTML=`<div class="loading"><span class="spin">⟳</span> Carregando...</div>`;
   try{
-    // Fase 1: perfil + logo em paralelo
-    MY_DOC_ID=localStorage.getItem("mutantes_docid")||user.uid;
-    const [snap,logoSnap]=await Promise.all([
-      getDoc(doc(db,"usuarios",MY_DOC_ID)),
+    // Fase 1: perfil + logo em paralelo — identidade sempre via Firebase Auth UID, nunca localStorage
+    const [qSnap,logoSnap]=await Promise.all([
+      getDocs(query(collection(db,"usuarios"),where("uid","==",user.uid),limit(1))),
       getDoc(doc(db,"config","logo"))
     ]);
-    UP=snap.exists()?{uid:user.uid,...snap.data()}:{uid:user.uid,apelido:"Admin",isAdmin:true};
-    if(!snap.exists())await setDoc(doc(db,"usuarios",MY_DOC_ID),{apelido:"Admin",email:user.email,isAdmin:true,totalKm:0});
+    if(!qSnap.empty){
+      MY_DOC_ID=qSnap.docs[0].id;
+      UP={uid:user.uid,...qSnap.docs[0].data()};
+    }else{
+      // Fallback: admin pode não ter campo uid ainda — verifica pelo email
+      const adminSnap=await getDoc(doc(db,"usuarios","admin"));
+      if(adminSnap.exists()&&adminSnap.data().email===user.email){
+        MY_DOC_ID="admin";
+        UP={uid:user.uid,...adminSnap.data()};
+        // Persiste o uid no doc admin para que próximas consultas sejam diretas
+        setDoc(doc(db,"usuarios","admin"),{uid:user.uid},{merge:true}).catch(()=>{});
+      }else{
+        // Nenhum perfil válido encontrado — bloqueia acesso
+        console.error("onAuthStateChanged: sem perfil no Firestore para uid="+user.uid);
+        await signOut(auth);render();setTimeout(esconderSplash,600);return;
+      }
+    }
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
