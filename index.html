@@ -765,6 +765,47 @@ window.toggleEventosAnteriores=()=>{
 };
 function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
 function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
+function htmlRanking(){
+  if(MEMBROS.length===0)return`<div class="card" style="text-align:center;padding:40px 20px"><span class="spin">⟳</span><div style="margin-top:10px;font-size:13px;color:var(--muted)">Carregando ranking...</div></div>`;
+  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
+  const maxSede=_maxSedeCount();
+  const aba=window._rankAba||"km";
+  return`<div class="card">
+    <div class="sec-title">${li("trophy",16)} Ranking</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button onclick="window.setRankAba('km')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="km"?"none":"1px solid var(--border)"};background:${aba==="km"?"var(--orange)":"var(--bg3)"};color:${aba==="km"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
+      <button onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="sede"?"none":"1px solid var(--border)"};background:${aba==="sede"?"var(--orange)":"var(--bg3)"};color:${aba==="sede"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
+    </div>
+    ${aba==="km"?`
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
+        <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
+      </div>
+      ${sorted.map((m,i)=>{
+        const p2=Math.round(((m.totalKm||0)/META)*100);
+        const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
+        const sc=_sedeCount(m);const isSedeTop=sc>0&&sc===maxSede;
+        return`<div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
+            ${avatarEl(m.fotoUrl,m.apelido,30)}
+            <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
+            <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
+          </div>
+          <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
+        </div>`;
+      }).join("")}
+    `:`
+      ${(()=>{
+        const ss=[...MEMBROS].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
+        const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
+        return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${tot}</div></div>`
+        +ss.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>${avatarEl(m.fotoUrl,m.apelido,30)}<span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?"#60b8ff":"var(--muted)"}">⛪ ${sc} presenças</span></div></div>`;}).join("");
+      })()}
+    `}
+  </div>`;
+}
 function htmlClubeCorpo(){
   const abaixo=MEMBROS.filter(m=>(m.totalKm||0)<META).length;
   const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
@@ -772,7 +813,6 @@ function htmlClubeCorpo(){
   // Diretor: menu com subseções
   if(UP.isDiretor||UP.isAdmin){
     const dirMenus=[
-      {id:"membros",ic:li("trophy",28),lb:"Ranking",sub:"Meta anual"},
       {id:"presenca",ic:li("check-square",28),lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:li("users",28),lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:li("calendar",28),lb:"Eventos",sub:"Calendário 2026"},
@@ -798,36 +838,6 @@ function htmlClubeCorpo(){
         <button onclick="window.setTA('home')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">${li("arrow-left",14)} Voltar</button>
         <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px">${cur?cur.ic+" "+cur.lb:""}</div>
       </div>
-      ${TA==="membros"?`
-      <div class="grid2">
-        <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
-        <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
-      </div>
-      <div class="card">
-        <div class="sec-title">${li("trophy",16)} Ranking</div>
-        <div style="display:flex;gap:6px;margin-bottom:14px">
-          <button id="rank-tab-km" onclick="window.setRankAba('km')" style="flex:1;padding:9px;border-radius:20px;border:${(window._rankAba||'km')==='km'?'none':'1px solid var(--border)'};background:${(window._rankAba||'km')==='km'?'var(--orange)':'var(--bg3)'};color:${(window._rankAba||'km')==='km'?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
-          <button id="rank-tab-sede" onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${(window._rankAba||'km')==='sede'?'none':'1px solid var(--border)'};background:${(window._rankAba||'km')==='sede'?'var(--orange)':'var(--bg3)'};color:${(window._rankAba||'km')==='sede'?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
-        </div>
-        ${(window._rankAba||'km')==='km'?`
-        ${sorted.map((m,i)=>{
-          const p2=Math.round(((m.totalKm||0)/META)*100);
-          const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
-          const sc=_sedeCount(m);
-          const isSedeTop=sc>0&&sc===maxSede;
-          return`<div style="margin-bottom:14px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
-              ${avatarEl(m.fotoUrl,m.apelido,30)}
-              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
-              <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
-            </div>
-            <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
-          </div>`;
-        }).join("")}`:`
-        ${(()=>{const sortedSede=[...MEMBROS].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));const totalSede=sortedSede.reduce((s,m)=>s+(_sedeCount(m)||0),0);return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${totalSede}</div></div>`+sortedSede.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>${avatarEl(m.fotoUrl,m.apelido,30)}<span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?'#60b8ff':'var(--muted)'}">⛪ ${sc} presenças</span></div></div>`;}).join("")})()}
-        `}
-      </div>`:""}
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
         <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
@@ -873,29 +883,7 @@ function htmlClubeCorpo(){
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
     `;
   }
-  // Membro comum: ranking read-only
-  return`<div class="card">
-    <div class="sec-title">${li("trophy",16)} Ranking do clube</div>
-    <div class="grid2" style="margin-bottom:12px">
-      <div class="metric"><div class="metric-label">🏍️ Integrantes</div><div class="metric-value">${MEMBROS.length}</div></div>
-      <div class="metric"><div class="metric-label">⚠️ Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
-    </div>
-    ${sorted.map((m,i)=>{
-      const p2=Math.round(((m.totalKm||0)/META)*100);
-      const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
-      const sc=_sedeCount(m);
-      const isSedeTop=sc>0&&sc===maxSede;
-      return`<div style="margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
-          ${avatarEl(m.fotoUrl,m.apelido,30)}
-          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
-          <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
-        </div>
-        <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
-      </div>`;
-    }).join("")}
-  </div>`;
+  return htmlRanking();
 }
 function renderDiretor(el){
   const km=UP.totalKm||0;
@@ -920,7 +908,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["clube",li("shield",20),"Diretoria"]])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1127,6 +1115,7 @@ function renderDiretor(el){
         </div>
       </div>`:""}
     ${TM==="clube"?htmlClubeCorpo():""}
+    ${TM==="ranking"?htmlRanking():""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
@@ -1518,7 +1507,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1638,6 +1627,7 @@ function renderBarman(el){
         <button class="btn-primary" onclick="window.calcMembroCustom()">Calcular</button>
         <div id="rm-custom-result"></div>
       </div>`:""}
+    ${TM==="ranking"?htmlRanking():""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
@@ -1755,7 +1745,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["rota",li("navigation",20),"Rota"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       <div class="card" onclick="window.toggleUltimasSaidas(this)" style="cursor:pointer">
@@ -1957,6 +1947,7 @@ function renderMembro(el){
           <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
         </div>
       </div>`:""}
+    ${TM==="ranking"?htmlRanking():""}
     ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
@@ -3705,7 +3696,7 @@ window.toggleKmAvulso=()=>{
   wrap.style.display=fechando?"none":"block";
   if(ic)ic.textContent=fechando?"▼":"▲";
 };
-window.setTM=t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";render();};
+window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&MEMBROS.length===0){render();await Promise.all([carregarMembros(),carregarSedePresencas()]);}render();};
 window.toggleEvDet=id=>{const el=document.getElementById(id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
 window.toggleEdit=id=>{const el=document.getElementById("edit-"+id);if(el)el.style.display=el.style.display==="block"?"none":"block";};
 function htmlUsuarios(){
