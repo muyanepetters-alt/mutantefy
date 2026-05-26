@@ -3675,11 +3675,7 @@ function htmlUsuarios(){
             <button onclick="window.trocarFoto('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📷 Foto</button>
             <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">🗑️</button>
           </div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button id="btn-cred-${m.uid}" onclick="window.copiarCredenciais('${m.uid}')" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar credenciais</button>
-            <button onclick="window.enviarAcesso('${m.email}','${m.apelido}')" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(59,130,246,.3);background:transparent;color:#60a5fa;cursor:pointer;font-family:inherit;font-size:12px">📧 Enviar acesso</button>
-          </div>
-          <button onclick="window.enviarSenhaWhatsApp('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(37,211,102,.3);background:transparent;color:#25d366;cursor:pointer;font-family:inherit;font-size:12px">📲 Enviar senha pelo WhatsApp</button>
+          <button onclick="window.enviarSenhaWhatsApp('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(37,211,102,.3);background:transparent;color:#25d366;cursor:pointer;font-family:inherit;font-size:12px">📲 Redefinir senha pelo WhatsApp</button>
           <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
           <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
             <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
