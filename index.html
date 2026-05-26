@@ -3675,7 +3675,7 @@ function htmlUsuarios(){
             <button onclick="window.trocarFoto('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📷 Foto</button>
             <button onclick="window.excluirMembro('${m.uid}','${m.apelido}')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;font-family:inherit;font-size:12px">🗑️</button>
           </div>
-          <button id="btn-cplr-${m.uid}" onclick="window.copiarLinkRedefinicao('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar link de redefinição</button>
+          <button id="btn-cplr-${m.uid}" onclick="window.copiarLinkRedefinicao('${m.uid}','${m.email}','${m.apelido}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid rgba(76,175,125,.3);background:transparent;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px">📋 Enviar redefinição e copiar mensagem</button>
           <button onclick="event.stopPropagation();window.toggleFicha('${m.uid}')" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">📋 Ficha do membro</button>
           <div id="ficha-${m.uid}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
             <div id="ficha-conteudo-${m.uid}"><span class="spin">⟳</span></div>
@@ -4451,21 +4451,14 @@ window.enviarAcesso=async(email,apelido)=>{
 };
 window.copiarLinkRedefinicao=async(uid,email,apelido)=>{
   const btn=document.getElementById("btn-cplr-"+uid);
-  if(btn){btn.disabled=true;btn.textContent="Gerando...";}
+  if(btn){btn.disabled=true;btn.textContent="Enviando...";}
   try{
-    const res=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({requestType:"PASSWORD_RESET",email})
-    });
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error?.message||"Erro desconhecido");
-    const link=data.oobLink||"";
-    const texto=`Olá, ${apelido}! 🏍️ Acesse o link abaixo para redefinir sua senha no app Mutantes MC Itajaí:\n${link}`;
+    await sendPasswordResetEmail(auth,email);
+    const texto=`Olá, ${apelido}! 🏍️ Enviamos um link de redefinição de senha para o seu e-mail cadastrado. Acesse e redefina sua senha para entrar no app Mutantes MC Itajaí.`;
     await navigator.clipboard.writeText(texto);
-    showToast("✅ Copiado! Cole no WhatsApp.");
+    showToast("✅ E-mail enviado e mensagem copiada! Cole no WhatsApp.");
   }catch(e){showToast("Erro: "+e.message,true);}
-  finally{if(btn){btn.disabled=false;btn.textContent="📋 Copiar link de redefinição";}}
+  finally{if(btn){btn.disabled=false;btn.textContent="📋 Enviar redefinição e copiar mensagem";}}
 };
 window.lancarKm=async()=>{
   const membroId=document.getElementById("km-membro")?.value;
