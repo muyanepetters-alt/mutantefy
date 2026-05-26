@@ -4372,7 +4372,7 @@ window.fazerLogin=async()=>{
     MY_DOC_ID=userDoc.id;localStorage.setItem("mutantes_docid",userDoc.id);
     console.log("Email encontrado:",userEmail,"| MY_DOC_ID:",userDoc.id);
     await signInWithEmailAndPassword(auth,userEmail,senha);
-  }catch{err.textContent="Apelido ou senha incorretos.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
+  }catch(e){console.error("ERRO COMPLETO:",e.code,e.message);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
 window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};TA="home";TM="painel";};
 window.cadastrarEmLote=async()=>{
