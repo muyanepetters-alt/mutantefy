@@ -4462,6 +4462,29 @@ window.enviarAcesso=async(email,apelido)=>{
     showToast("✅ Link enviado para "+email);
   }catch(e){showToast("Erro ao enviar: "+e.message,true);}
 };
+function pedirSenhaAdmin(){
+  return new Promise((resolve,reject)=>{
+    const modal=document.createElement("div");
+    modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
+    modal.innerHTML=`<div style="width:min(100%,340px);background:var(--bg2);border-radius:16px;padding:24px">
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px">Confirmação necessária</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Digite sua senha para confirmar a operação</div>
+      <input type="password" id="modal-adm-pass" placeholder="Sua senha" autocomplete="current-password" style="margin-bottom:14px"/>
+      <div style="display:flex;gap:8px">
+        <button id="modal-adm-cancel" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:13px">Cancelar</button>
+        <button id="modal-adm-ok" class="btn-primary" style="flex:1">Confirmar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    const inp=modal.querySelector("#modal-adm-pass");
+    inp.focus();
+    const ok=()=>{const v=inp.value;modal.remove();resolve(v);};
+    const cancel=()=>{modal.remove();reject(new Error("cancelled"));};
+    modal.querySelector("#modal-adm-ok").onclick=ok;
+    modal.querySelector("#modal-adm-cancel").onclick=cancel;
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter")ok();if(e.key==="Escape")cancel();});
+  });
+}
 window.redefinirSenha=async(uid,apelido)=>{
   const inp=document.getElementById("ue-np-"+uid);
   const btn=document.getElementById("btn-rdp-"+uid);
@@ -4469,7 +4492,7 @@ window.redefinirSenha=async(uid,apelido)=>{
   if(novaSenha.length<6){showToast("Mínimo 6 caracteres.",true);return;}
   if(!confirm(`Redefinir senha de ${apelido}?`))return;
   btn.disabled=true;btn.textContent="Aguarde...";
-  try{
+  const chamarAPI=async()=>{
     const idToken=await auth.currentUser.getIdToken(true);
     const res=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",{
       method:"POST",
@@ -4478,9 +4501,25 @@ window.redefinirSenha=async(uid,apelido)=>{
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error?.message||"Erro desconhecido");
+  };
+  try{
+    await chamarAPI();
     inp.value="";
     showToast("✅ Senha de "+apelido+" redefinida!");
-  }catch(e){showToast("Erro: "+e.message,true);}
+  }catch(e){
+    if(e.message.includes("CREDENTIAL_TOO_OLD_LOGIN_AGAIN")){
+      try{
+        const senhaAdmin=await pedirSenhaAdmin();
+        const cred=EmailAuthProvider.credential(auth.currentUser.email,senhaAdmin);
+        await reauthenticateWithCredential(auth.currentUser,cred);
+        await chamarAPI();
+        inp.value="";
+        showToast("✅ Senha de "+apelido+" redefinida!");
+      }catch(e2){if(e2.message!=="cancelled")showToast("Erro: "+e2.message,true);}
+    }else{
+      showToast("Erro: "+e.message,true);
+    }
+  }
   finally{btn.disabled=false;btn.textContent="🔑 Redefinir senha";}
 };
 window.lancarKm=async()=>{
