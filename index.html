@@ -137,11 +137,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     box-shadow: 0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(255,102,0,.08);
   }
 
-  .login-wrap img,
-  .login-wrap > div:first-child {
-    margin: 0 auto 20px;
-    display: block;
-  }
+  .login-logo-img{max-width:220px}
 }
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
 .splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
@@ -176,7 +172,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .bnav-icon .lucide{color:var(--muted);stroke:var(--muted)}
 .bnav-item.nav-active .bnav-icon .lucide{color:var(--orange);stroke:var(--orange)}
 .bnav-item.nav-active{background:rgba(255,102,0,.14);box-shadow:inset 0 0 0 1px rgba(255,102,0,.2)}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden;word-break:break-word;overflow-wrap:anywhere}
 .prog-bar{height:6px;border-radius:3px;background:var(--bg3);overflow:hidden;margin:8px 0 4px}
 .prog-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
 .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
@@ -239,6 +235,8 @@ select option{background:#161616;color:var(--white)}
 .hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes loginFadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.login-logo-img{display:block;margin:0 auto 28px;max-width:180px;width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 0 20px rgba(255,102,0,.4));animation:loginFadeIn .8s ease forwards}
 .login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative;overflow:hidden}
 .login-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(232,103,10,.12) 0%,transparent 70%);pointer-events:none}
 .login-wrap::after{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:repeating-linear-gradient(45deg,rgba(232,103,10,.02) 0px,rgba(232,103,10,.02) 1px,transparent 1px,transparent 40px);pointer-events:none}
@@ -690,14 +688,7 @@ carregarLogoPublica();
 function renderLogin(el){
   const saved=localStorage.getItem("mutantes_logo");
   el.innerHTML=`<div class="login-wrap">
-    <div style="margin-bottom:24px;position:relative;cursor:pointer;display:inline-block" id="login-logo-wrap" onclick="window.trocarLogoLogin()">
-      ${saved
-        ?`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4);padding:12px"><img src="${saved}" id="login-logo-img" style="width:100%;height:100%;object-fit:contain;display:block"/></div>`
-        :`<div style="width:150px;height:150px;border:3px solid var(--orange);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;box-shadow:0 0 24px rgba(232,103,10,.4)">${LOGO_LG}</div>`}
-      <div style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.55);border:2px solid rgba(0,0,0,.4)">✏️</div>
-    </div>
-    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;text-align:center;letter-spacing:1px">MUTANTES MC ITAJAÍ</h1>
-    <p style="font-size:13px;color:#666;margin-bottom:32px;text-align:center">Km Tracker</p>
+    <img src="logo.png" class="login-logo-img" alt="Mutantes MC Itajaí"/>
     <div style="width:100%;max-width:340px">
       <div id="l-err" class="msg-err" style="display:none"></div>
       <label>Apelido</label><input type="text" id="l-apelido" placeholder="Seu apelido no clube" autocomplete="off"/>
@@ -712,15 +703,6 @@ function renderLogin(el){
       <button onclick="window.toggleEsqueci()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:12px;margin-top:10px;cursor:pointer;font-family:inherit;padding:6px">Esqueci minha senha</button>
     </div>
   </div>`;
-  // Sempre busca logo atualizada do Firebase (ignora cache)
-  getDoc(doc(db,"config","logo")).then(snap=>{
-    if(snap.exists()){
-      const url=snap.data().url;
-      localStorage.setItem("mutantes_logo",url);
-      const img=document.getElementById("login-logo-img");
-      if(img)img.src=url;
-    }
-  }).catch(()=>{});
 }
 
 function htmlCadastrar(){
@@ -1948,6 +1930,7 @@ function htmlWhatsAppConteudo(ctx){
   const id=ctx||"painel";
   const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
   const ranking=sorted.slice(0,5).map((m,i)=>`${i+1}. ${m.apelido} — ${toInt(m.totalKm||0)} km`).join("%0A");
+  const stripHTML=s=>s.replace(/<[^>]*>/g,'');
   const dataSex=proxSexta();
   const msgs=[
     {ic:"🗓️",lb:"Sede desta sexta",msg:`🏍️ *MUTANTES MC ITAJAÍ*%0A%0A⛪ Sede aberta esta sexta, ${fmtDate(dataSex)}!%0AConfirme sua presença no app 👇%0Ahttps://muyanepetters-alt.github.io/mutantefy`},
@@ -1961,13 +1944,13 @@ function htmlWhatsAppConteudo(ctx){
     ${msgs.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:22px">${m.ic}</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.lb}</div></div>
-      <a href="https://wa.me/?text=${m.msg}" target="_blank" style="padding:8px 14px;border-radius:8px;background:#25d366;color:#fff;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0">Enviar</a>
+      <a href="https://wa.me/?text=${stripHTML(m.msg)}" target="_blank" style="padding:8px 14px;border-radius:8px;background:#25d366;color:#fff;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0;word-break:normal">Enviar</a>
     </div>`).join("")}
   </div>
   <div class="card">
     <div class="sec-title">${li("edit-3",16)} Mensagem personalizada</div>
     <textarea id="wpp-custom-${id}" placeholder="Escreva sua mensagem..." style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;margin-bottom:10px"></textarea>
-    <a href="#" onclick="const t=document.getElementById('wpp-custom-${id}').value.trim();if(t)window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return false;" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;min-height:44px;border-radius:8px;background:#25d366;color:#fff;font-size:14px;font-weight:700;text-decoration:none;text-align:center">${li("message-circle",16)} Abrir no WhatsApp</a>
+    <a href="#" onclick="const t=document.getElementById('wpp-custom-${id}').value.trim();if(t)window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return false;" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;min-height:44px;border-radius:8px;background:#25d366;color:#fff;font-size:14px;font-weight:700;text-decoration:none;text-align:center;box-sizing:border-box">${li("message-circle",16)} Abrir no WhatsApp</a>
   </div>`;
 }
 
@@ -2067,7 +2050,7 @@ async function carregarMural(){
             <div style="font-size:12px;font-weight:700;color:var(--orange)">${r.autor}</div>
             <div style="font-size:10px;color:#555">${r.criadoEm?.toDate?fmtDate(r.criadoEm.toDate().toISOString().slice(0,10)):""}</div>
           </div>
-          <div style="font-size:13px;line-height:1.4">${r.msg}</div>
+          <div style="font-size:13px;line-height:1.4;word-break:break-word;overflow-wrap:anywhere">${r.msg}</div>
           ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;margin-top:2px">✕ apagar</button>`:""}
         </div>
       </div>`).join("");
