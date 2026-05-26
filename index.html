@@ -520,15 +520,13 @@ function evCardMembro(ev){
   const evData=new Date(ev.data+"T00:00:00");
   const diasFalt=Math.round((evData-hoje)/(1000*60*60*24));
   const diasLabel=diasFalt===0?"🔴 Hoje!":diasFalt===1?"🟠 Amanhã":diasFalt>0?`🕐 ${diasFalt} dias`:"";
-  const climaId="clima-ev-"+ev.id;
-  if(diasFalt>=0&&diasFalt<=7){setTimeout(()=>buscarClimaEvento(ev.destino,climaId,ev.data),200);}
   return`<div class="${cls}" onclick="window.toggleEvDet('evd${ev.id}')">
     <div style="display:flex;align-items:flex-start;gap:10px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${icon} ${ev.nome}</div>
         <div style="font-size:11px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>
         ${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}
-        ${diasFalt>=0&&diasFalt<=7?`<div id="${climaId}" style="font-size:11px;color:var(--muted);margin-top:3px">🌤️ Buscando previsão...</div>`:""}        ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
+        ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
@@ -931,28 +929,7 @@ function renderDiretor(el){
         </div>
       </div>
       <div class="desktop-grid">
-      <div class="card" style="padding:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
-              <option value="Itajaí,SC">📍 Itajaí, SC</option>
-              <option value="Tubarão,SC">Tubarão, SC</option>
-              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
-              <option value="Lages,SC">Lages, SC</option>
-              <option value="Indaial,SC">Indaial, SC</option>
-              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
-              <option value="Erechim,RS">Erechim, RS</option>
-              <option value="Soledade,RS">Soledade, RS</option>
-              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
-              <option value="Goiânia,GO">Goiânia, GO</option>
-            </select>
-            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
-          </div>
-        </div>
-        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" style="border-color:rgba(232,103,10,.3)">
+      <div class="card" style="border-color:rgba(255,102,0,.3)">
         <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
@@ -1530,28 +1507,7 @@ function renderBarman(el){
         </div>
       </div>
       <div class="desktop-grid">
-      <div class="card" style="padding:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
-              <option value="Itajaí,SC">📍 Itajaí, SC</option>
-              <option value="Tubarão,SC">Tubarão, SC</option>
-              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
-              <option value="Lages,SC">Lages, SC</option>
-              <option value="Indaial,SC">Indaial, SC</option>
-              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
-              <option value="Erechim,RS">Erechim, RS</option>
-              <option value="Soledade,RS">Soledade, RS</option>
-              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
-              <option value="Goiânia,GO">Goiânia, GO</option>
-            </select>
-            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
-          </div>
-        </div>
-        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" style="border-color:rgba(232,103,10,.3)">
+      <div class="card" style="border-color:rgba(255,102,0,.3)">
         <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
@@ -1768,28 +1724,7 @@ function renderMembro(el){
         </div>
       </div>
       <div class="desktop-grid">
-      <div class="card" style="padding:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="sec-title" style="margin-bottom:0">${li("cloud",16)} Clima</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <select id="clima-cidade-sel" onchange="window.mudarCidadeClima()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:11px;padding:4px 6px;border-radius:8px;font-family:inherit;max-width:130px">
-              <option value="Itajaí,SC">📍 Itajaí, SC</option>
-              <option value="Tubarão,SC">Tubarão, SC</option>
-              <option value="Rancho Queimado,SC">Rancho Queimado, SC</option>
-              <option value="Lages,SC">Lages, SC</option>
-              <option value="Indaial,SC">Indaial, SC</option>
-              <option value="Porto Vitória,PR">Porto Vitória, PR</option>
-              <option value="Erechim,RS">Erechim, RS</option>
-              <option value="Soledade,RS">Soledade, RS</option>
-              <option value="Uruguaiana,RS">Uruguaiana, RS</option>
-              <option value="Goiânia,GO">Goiânia, GO</option>
-            </select>
-            <button onclick="window.atualizarClimaInicio()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer">↻</button>
-          </div>
-        </div>
-        <div id="clima-inicio" style="margin-top:10px;font-size:13px;color:var(--muted)"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" style="border-color:rgba(232,103,10,.3)">
+      <div class="card" style="border-color:rgba(255,102,0,.3)">
         <div class="sec-title" style="margin-bottom:14px">${li("zap",16)} Ação rápida</div>
         <div id="quick-actions-painel"><span class="spin">⟳</span></div>
       </div>
@@ -2604,165 +2539,6 @@ window.salvarTelefone=async()=>{
 // ═══════════════════════════════════════════════════
 // ANIVERSÁRIOS
 // ═══════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════
-// PREVISÃO DO TEMPO — Open-Meteo (gratuita, sem chave)
-// ═══════════════════════════════════════════════════
-const _climaCache={};
-async function buscarClimaEvento(cidade,elId,dataEvento){
-  const el=document.getElementById(elId);
-  if(!el)return;
-  const cacheKey=cidade+"_"+dataEvento;
-  if(_climaCache[cacheKey]){el.innerHTML=_climaCache[cacheKey];return;}
-  try{
-    const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.split(" - ")[0])}&count=1&language=pt&format=json`);
-    const gd=await geo.json();
-    if(!gd.results||!gd.results[0]){el.innerHTML="";return;}
-    const {latitude:lat,longitude:lon}=gd.results[0];
-    // Pegar 7 dias a partir da data do evento
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&start_date=${dataEvento}&forecast_days=7`);
-    const d=await r.json();
-    if(!d.daily)return;
-    const wcIc=wc=>wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
-    const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const hoje=new Date().toISOString().slice(0,10);
-    const html=`<div style="margin-top:8px;background:var(--bg3);border-radius:10px;padding:8px;border:1px solid rgba(232,103,10,.2)">
-      <div style="font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🌤️ Previsão — ${cidade.split(" - ")[0]}</div>
-      ${d.daily.weathercode.map((wc,i)=>{
-        const data=d.daily.time[i];
-        const diaSem=dias[new Date(data+"T00:00:00").getDay()];
-        const isEvento=i===0;
-        const tmax=Math.round(d.daily.temperature_2m_max[i]);
-        const tmin=Math.round(d.daily.temperature_2m_min[i]);
-        const chuva=d.daily.precipitation_probability_max[i]||0;
-        return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${i<d.daily.weathercode.length-1?"border-bottom:1px solid var(--border)":""}">
-          <span style="font-size:10px;font-weight:${isEvento?"700":"400"};color:${isEvento?"var(--orange)":"var(--muted)"};width:32px">${diaSem}</span>
-          <span style="font-size:16px">${wcIc(wc)}</span>
-          <span style="font-size:11px;color:var(--white);font-weight:${isEvento?"700":"400"};flex:1">${tmax}°<span style="color:var(--muted)">/${tmin}°</span></span>
-          ${chuva>20?`<span style="font-size:10px;color:${chuva>60?"var(--orange)":"var(--muted)"}">🌧️${chuva}%</span>`:""}
-          ${isEvento?`<span style="font-size:9px;background:rgba(232,103,10,.2);color:var(--orange);padding:1px 5px;border-radius:6px">Evento</span>`:""}
-        </div>`;
-      }).join("")}
-    </div>`;
-    _climaCache[cacheKey]=html;
-    if(el)el.innerHTML=html;
-  }catch{if(el)el.innerHTML="";}
-}
-const CIDADES_CLIMA={
-  "Itajaí,SC":[-26.9078,-48.6619],
-  "Tubarão,SC":[-28.4679,-49.0148],
-  "Rancho Queimado,SC":[-27.6574,-49.0083],
-  "Lages,SC":[-27.8159,-50.3258],
-  "Indaial,SC":[-26.8978,-49.2375],
-  "Porto Vitória,PR":[-26.1333,-51.2333],
-  "Erechim,RS":[-27.6344,-52.2734],
-  "Soledade,RS":[-28.8166,-52.5079],
-  "Uruguaiana,RS":[-29.7572,-57.0882],
-  "Goiânia,GO":[-16.6868,-49.2648],
-};
-window.mudarCidadeClima=()=>{
-  const sel=document.getElementById("clima-cidade-sel");
-  if(sel)window._climaCidade=sel.value;
-  window.atualizarClimaInicio(window._climaView);
-};
-window.atualizarClimaInicio=async(view)=>{
-  const el=document.getElementById("clima-inicio");
-  if(!el)return;
-  window._climaView=view||window._climaView||"hoje";
-  // Sync select visual se não estiver no dom ainda
-  const sel=document.getElementById("clima-cidade-sel");
-  const cidadeKey=window._climaCidade||(sel?.value)||"Itajaí,SC";
-  if(sel&&sel.value!==cidadeKey)sel.value=cidadeKey;
-  const cidadeLabel=cidadeKey.replace(",",", ");
-  el.innerHTML=`<span class="spin">⟳</span>`;
-  try{
-    const coords=CIDADES_CLIMA[cidadeKey]||[-26.9078,-48.6619];
-    const [lat,lon]=coords;
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&forecast_days=7`);
-    const d=await r.json();
-    const wcIc=wc=>wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
-    const wcDesc=wc=>wc===0?"Céu limpo":wc<=3?"Parc. nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
-    const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-
-    const hojeHtml=()=>{
-      const wc=d.current.weathercode;
-      const temp=Math.round(d.current.temperature_2m);
-      const umid=d.current.relativehumidity_2m;
-      const vento=Math.round(d.current.windspeed_10m);
-      const tmax=Math.round(d.daily.temperature_2m_max[0]);
-      const tmin=Math.round(d.daily.temperature_2m_min[0]);
-      const chuva=d.daily.precipitation_probability_max[0]||0;
-      return`<div style="display:flex;align-items:center;gap:14px;padding:4px 0">
-        <span style="font-size:36px">${wcIc(wc)}</span>
-        <div><div style="font-size:22px;font-weight:700;color:var(--white)">${temp}°C</div>
-        <div style="font-size:12px;color:var(--muted)">${wcDesc(wc)}</div></div>
-        <div style="margin-left:auto;text-align:right">
-          <div style="font-size:12px;color:var(--muted)">↑${tmax}° ↓${tmin}°</div>
-          <div style="font-size:11px;color:var(--muted)">💧${umid}% · 💨${vento}km/h</div>
-          <div style="font-size:11px;color:${chuva>50?"var(--orange)":"var(--muted)"}">🌧️ ${chuva}%</div>
-        </div></div>`;
-    };
-
-    const semanaHtml=()=>{
-      const hoje=new Date();
-      return d.daily.weathercode.map((wc,i)=>{
-        const data=new Date(d.daily.time[i]+"T00:00:00");
-        const label=i===0?"Hoje":i===1?"Amanhã":dias[data.getDay()];
-        const tmax=Math.round(d.daily.temperature_2m_max[i]);
-        const tmin=Math.round(d.daily.temperature_2m_min[i]);
-        const chuva=d.daily.precipitation_probability_max[i]||0;
-        return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-          <div style="font-size:11px;font-weight:600;color:${i===0?"var(--orange)":"var(--muted)"};width:52px">${label}</div>
-          <span style="font-size:20px">${wcIc(wc)}</span>
-          <div style="font-size:11px;color:var(--muted);flex:1">${wcDesc(wc)}</div>
-          <div style="text-align:right;font-size:11px">
-            <span style="color:var(--white);font-weight:600">${tmax}°</span>
-            <span style="color:var(--muted)"> / ${tmin}°</span>
-            ${chuva>20?`<div style="color:${chuva>60?"var(--orange)":"var(--muted)"}">🌧️${chuva}%</div>`:""}
-          </div>
-        </div>`;
-      }).join("");
-    };
-
-    const v=window._climaView;
-    el.innerHTML=`
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">📍 ${cidadeLabel}</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button onclick="window.atualizarClimaInicio('hoje')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="hoje"?"none":"1px solid var(--border)"};background:${v==="hoje"?"var(--orange)":"var(--bg3)"};color:${v==="hoje"?"#fff":"var(--muted)"}">Hoje</button>
-        <button onclick="window.atualizarClimaInicio('semana')" style="flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:${v==="semana"?"none":"1px solid var(--border)"};background:${v==="semana"?"var(--orange)":"var(--bg3)"};color:${v==="semana"?"#fff":"var(--muted)"}">7 dias</button>
-        <button onclick="window.atualizarClimaInicio(window._climaView)" style="padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--bg3);color:var(--muted)">↻</button>
-      </div>
-      ${v==="hoje"?hojeHtml():semanaHtml()}`;
-  }catch{
-    if(el)el.innerHTML=`<span style="font-size:12px;color:#555">Clima indisponível</span>`;
-  }
-};
-async function buscarClima(cidade,elId,dataEvento){
-  const el=document.getElementById(elId);
-  if(!el)return;
-  if(_climaCache[cidade]){el.innerHTML=_climaCache[cidade];return;}
-  try{
-    // Geocoding
-    const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.split(" - ")[0])}&count=1&language=pt&format=json`);
-    const gd=await geo.json();
-    if(!gd.results||!gd.results[0]){el.innerHTML="";return;}
-    const {latitude:lat,longitude:lon}=gd.results[0];
-    // Previsão
-    const data=dataEvento||new Date().toISOString().slice(0,10);
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=America%2FSao_Paulo&start_date=${data}&end_date=${data}`);
-    const d=await r.json();
-    if(!d.daily||!d.daily.weathercode){el.innerHTML="";return;}
-    const wc=d.daily.weathercode[0];
-    const tmax=Math.round(d.daily.temperature_2m_max[0]);
-    const tmin=Math.round(d.daily.temperature_2m_min[0]);
-    const chuva=d.daily.precipitation_probability_max[0]||0;
-    const wcIc=wc===0?"☀️":wc<=3?"🌤️":wc<=45?"🌥️":wc<=67?"🌧️":wc<=77?"❄️":"⛈️";
-    const wcDesc=wc===0?"Céu limpo":wc<=3?"Parcialmente nublado":wc<=45?"Nublado":wc<=67?"Chuva":wc<=77?"Neve":"Tempestade";
-    const html=`${wcIc} ${wcDesc} · ${tmin}°–${tmax}°C · 🌧️ ${chuva}%`;
-    _climaCache[cidade]=html;
-    if(el)el.innerHTML=html;
-  }catch{if(el)el.innerHTML="";}
-}
-
 window.salvarNivel=window.salvarCargo=async()=>{
   const cargo=document.getElementById("m-cargo")?.value;
   if(!cargo){showToast("Selecione um nível.",true);return;}
@@ -3156,8 +2932,6 @@ window.excluirReuniao=async(reuniaoId)=>{
 };
 
 async function carregarPainelResumo(){
-  // Clima de Itajaí
-  window.atualizarClimaInicio();
   // Últimas saídas
   const elSaidas=document.getElementById("painel-ultimas-saidas");
   if(elSaidas){
