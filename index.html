@@ -1172,6 +1172,14 @@ function htmlSedePresenca(canEdit,isAdminOrDir){
       <div id="escala-hoje"><span class="spin">⟳</span></div>
     </div>
   </div>
+  <div class="card" style="padding:14px 16px">
+    <button onclick="window.togglePresencaRetro()" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;text-align:left">➕ Adicionar presença anterior</button>
+    <div id="presenca-retro-form" style="display:none;margin-top:12px">
+      <label>Data da sexta-feira que esteve presente</label>
+      <input type="text" id="presenca-retro-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
+      <button class="btn-primary" style="margin-top:8px" onclick="window.adicionarPresencaRetroativa()">✅ Confirmar presença</button>
+    </div>
+  </div>
   ${htmlHistoricoCard("presenca")}`;
 }
 
@@ -1412,7 +1420,7 @@ async function carregarSedePresencas(){
     snap.docs.forEach(d=>{
       const r=d.data();
       const tp=r.tipo||"presenca";
-      if(tp==="presenca"){
+      if(tp==="presenca"||tp==="sede"){
         const id=r.membroId;
         if(id)SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;
       }
@@ -3248,6 +3256,33 @@ window.confirmarSede=async(data,resposta,tipo)=>{
     render();
     setTimeout(carregarSedeInfo,200);
   }catch{showToast("Erro ao confirmar.",true);}
+};
+window.togglePresencaRetro=()=>{
+  const f=document.getElementById("presenca-retro-form");
+  if(!f)return;
+  f.style.display=f.style.display==="none"?"block":"none";
+};
+window.adicionarPresencaRetroativa=async()=>{
+  const inp=document.getElementById("presenca-retro-data");
+  const raw=inp?.value.trim();
+  if(!raw||raw.length<10){showToast("Informe a data no formato DD/MM/AAAA.",true);return;}
+  const data=nascForStorage(raw);
+  if(!data){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
+  const hoje=new Date().toISOString().slice(0,10);
+  if(data>=hoje){showToast("A data deve ser anterior a hoje.",true);return;}
+  const docId1=CU.uid+"_presenca_"+data;
+  const docId2=CU.uid+"_sede_"+data;
+  try{
+    const [snap1,snap2]=await Promise.all([getDoc(doc(db,"sede_confirmacoes",docId1)),getDoc(doc(db,"sede_confirmacoes",docId2))]);
+    if(snap1.exists()||snap2.exists()){showToast("Presença já registrada para esta data.",true);return;}
+    await setDoc(doc(db,"sede_confirmacoes",docId2),{membroId:CU.uid,apelido:UP.apelido,data,tipo:"sede",compareceu:true,resposta:"sim",updatedAt:serverTimestamp()});
+    SEDE_COUNTS[CU.uid]=(SEDE_COUNTS[CU.uid]||0)+1;
+    inp.value="";
+    const f=document.getElementById("presenca-retro-form");
+    if(f)f.style.display="none";
+    showToast("✅ Presença retroativa registrada!");
+    render();
+  }catch(e){console.error(e);showToast("Erro ao registrar presença.",true);}
 };
 window.atualizarHistorico=async(tipo)=>{
   const el=document.getElementById("hist-conteudo-"+tipo);
