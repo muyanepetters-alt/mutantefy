@@ -273,6 +273,7 @@ select option{background:#161616;color:var(--white)}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div id="splash" class="splash">
@@ -2160,6 +2161,25 @@ window.excluirRotaSugerida=async(id)=>{
 };
 
 // ═══════════════════════════════════════════════════
+// RELATÓRIO INDIVIDUAL DO MEMBRO
+// ═══════════════════════════════════════════════════
+function htmlRelatorioIndividual(){
+  if(!UP||(!UP.isAdmin&&!UP.isDiretor))return'';
+  const opts=MEMBROS
+    .filter(m=>m.apelido&&m.apelido!=='undefined')
+    .sort((a,b)=>a.apelido.localeCompare(b.apelido,undefined,{sensitivity:'base'}))
+    .map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join('');
+  return`<div class="card" style="margin-bottom:10px;border-color:rgba(255,102,0,.25)">
+    <div class="sec-title">${li("user",16)} Relatório Individual</div>
+    <select id="rel-sel" onchange="window.carregarRelMembro(this.value)"
+      style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;cursor:pointer">
+      <option value="">— Selecionar membro —</option>
+      ${opts}
+    </select>
+    <div id="rel-membro-area"></div>
+  </div>`;
+}
+
 // RELATÓRIO ANUAL
 // ═══════════════════════════════════════════════════
 function htmlRelatorio(){
@@ -2169,7 +2189,8 @@ function htmlRelatorio(){
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   const eventosRealizados=EVENTOS.filter(e=>new Date(e.data)<new Date()).length;
   const totalEventos=EVENTOS.length;
-  return`<div class="card" style="border-color:rgba(232,103,10,.3)">
+  return`${(UP?.isAdmin||UP?.isDiretor)?htmlRelatorioIndividual():''}
+  <div class="card" style="border-color:rgba(232,103,10,.3)">
     <div style="text-align:center;padding:8px 0 16px">
       <div style="font-size:28px">📊</div>
       <div style="font-size:18px;font-weight:700;margin-top:4px">Relatório ${ano}</div>
@@ -3629,6 +3650,316 @@ window.exportarRankingCSV=()=>{
   a.href=url;a.download="ranking_mutantes_"+new Date().getFullYear()+".csv";a.click();
   URL.revokeObjectURL(url);
   showToast("✅ Ranking exportado!");
+};
+
+// ── RELATÓRIO INDIVIDUAL ────────────────────────────
+window.carregarRelMembro=async(uid)=>{
+  const area=document.getElementById('rel-membro-area');
+  if(!area)return;
+  if(!uid){area.innerHTML='';return;}
+  area.innerHTML='<div style="text-align:center;padding:24px"><span class="spin">⟳</span></div>';
+  const m=MEMBROS.find(mb=>mb.uid===uid);
+  if(!m){area.innerHTML='<div style="font-size:13px;color:var(--muted);padding:12px 0">Membro não encontrado.</div>';return;}
+
+  // Fetch saved observations
+  let savedObs='',savedObsTs='';
+  try{
+    const snap=await getDoc(doc(db,'usuarios',uid));
+    if(snap.exists()){savedObs=snap.data().observacoes||'';savedObsTs=snap.data().observacoesData||'';}
+  }catch{}
+
+  // Km per month (last 12 months) from REGS
+  const memRegs=REGS.filter(r=>r.membroId===m.authUid||r.membroId===m.uid);
+  const nowD=new Date();
+  const meses=Array.from({length:12},(_,i)=>{
+    const d=new Date(nowD.getFullYear(),nowD.getMonth()-11+i,1);
+    return{label:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')+" '"+String(d.getFullYear()).slice(2),km:0,mes:d.getMonth(),ano:d.getFullYear()};
+  });
+  memRegs.forEach(r=>{
+    const rd=r.data?new Date(r.data+'T12:00:00'):(r.createdAt?.toDate?r.createdAt.toDate():r.createdAt?new Date(r.createdAt):null);
+    if(!rd)return;
+    const b=meses.find(b=>b.mes===rd.getMonth()&&b.ano===rd.getFullYear());
+    if(b)b.km+=(r.km||0);
+  });
+
+  // Event presences (compareceu) from Firestore
+  let evComp=0;
+  const evTotal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<=nowD).length;
+  try{
+    const pSnap=await getDocs(query(collection(db,'presencas'),where('membroId','==',m.authUid)));
+    evComp=pSnap.docs.filter(d=>d.data().resposta==='compareceu').length;
+  }catch{}
+
+  const sc=_sedeCount(m);
+  const kmRaw=m.totalKm||0;
+  const pct=Math.round((kmRaw/META)*100);
+  const pctColor=pct>=100?'var(--green)':pct>=60?'var(--orange)':'var(--danger)';
+  const badges=calcConquistas(m,REGS);
+
+  const maxKm=Math.max(...meses.map(b=>b.km),1);
+  const chartBars=meses.map(b=>{
+    const h=Math.round((b.km/maxKm)*56);
+    return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;flex:1;min-width:0;gap:2px">
+      <div style="font-size:8px;color:var(--muted);line-height:1;white-space:nowrap">${b.km>0?toInt(b.km):''}</div>
+      <div style="width:90%;background:${b.km>0?'var(--orange)':'rgba(255,255,255,.06)'};height:${Math.max(h,2)}px;border-radius:2px 2px 0 0;transition:height .4s"></div>
+      <div style="font-size:7.5px;color:#555;white-space:nowrap;text-align:center">${b.label}</div>
+    </div>`;
+  }).join('');
+
+  const nascDisplay=nascForDisplay(m.nascimento)||'—';
+  let cadastroDisplay='—';
+  try{if(m.createdAt){const cd=m.createdAt?.toDate?m.createdAt.toDate():new Date(m.createdAt);cadastroDisplay=cd.toLocaleDateString('pt-BR');}}catch{}
+
+  const obsDataDisplay=savedObsTs?new Date(savedObsTs).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+
+  area.innerHTML=`<div style="margin-top:14px">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.2);border-radius:12px;margin-bottom:14px">
+      ${avatarEl(m.fotoUrl,m.apelido,52)}
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--orange)">${m.apelido}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${m.nivel||'Membro'}</div>
+        ${m.isDiretor||m.isAdmin?'<div style="font-size:10px;color:var(--green);font-weight:700;margin-top:3px">DIRETORIA</div>':''}
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="metric"><div class="metric-label">${li("route",12)} Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(kmRaw)}</div></div>
+      <div class="metric"><div class="metric-label">${li("target",12)} Meta ${toInt(META)} km</div><div class="metric-value" style="color:${pctColor}">${pct}%</div></div>
+      <div class="metric"><div class="metric-label">📅 Eventos comparecidos</div><div class="metric-value">${evComp}/${evTotal}</div></div>
+      <div class="metric"><div class="metric-label">⛪ Presenças sede</div><div class="metric-value" style="color:#60b8ff">${sc}</div></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Km por mês — últimos 12 meses</div>
+      <div style="display:flex;align-items:flex-end;height:82px;gap:1px">${chartBars}</div>
+    </div>
+    <div style="margin-bottom:14px;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Dados pessoais</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px;line-height:1.6">
+        ${m.moto?`<div><span style="color:var(--muted)">Moto</span><br><b>${m.moto}</b></div>`:'<div></div>'}
+        <div><span style="color:var(--muted)">Aniversário</span><br><b>${nascDisplay}</b></div>
+        <div><span style="color:var(--muted)">Cadastro no clube</span><br><b>${cadastroDisplay}</b></div>
+        ${m.email?`<div><span style="color:var(--muted)">Email</span><br><b style="font-size:11px;word-break:break-all">${m.email}</b></div>`:'<div></div>'}
+      </div>
+    </div>
+    ${badges.length?`<div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Conquistas (${badges.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${badges.map(b=>`<span title="${b.desc}" style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:11px"><span style="font-size:16px">${b.ic}</span><span style="font-weight:600">${b.nome}</span></span>`).join('')}</div>
+    </div>`:''}
+    <div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Observações</div>
+        <button id="rel-voz-btn" onclick="window.ativarDitado()" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">🎤 Voz</button>
+      </div>
+      <textarea id="rel-obs" rows="4" placeholder="Anotações sobre o membro (ocorrências, histórico, etc.)..."
+        style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box">${savedObs}</textarea>
+      ${obsDataDisplay?`<div style="font-size:10px;color:#555;margin-top:3px">Última atualização: ${obsDataDisplay}</div>`:''}
+    </div>
+    <button onclick="window.gerarPdfMembro('${uid}')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📄 Gerar PDF</button>
+  </div>`;
+  window._relMembroUid=uid;
+  window._relMembroCtx={m,meses,evComp,evTotal,sc,badges,nascDisplay,cadastroDisplay};
+  lcr();
+};
+
+window.ativarDitado=()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Ditado não suportado. Use Chrome ou Android.',true);return;}
+  const ta=document.getElementById('rel-obs');
+  const btn=document.getElementById('rel-voz-btn');
+  if(!ta)return;
+  const rec=new SR();
+  rec.lang='pt-BR';rec.interimResults=false;rec.maxAlternatives=1;
+  rec.onstart=()=>{if(btn){btn.textContent='🔴 Ouvindo...';btn.style.color='var(--danger)';btn.style.borderColor='var(--danger)';}};
+  rec.onresult=e=>{const t=e.results[0][0].transcript;ta.value+=(ta.value?'\n':'')+t;};
+  rec.onerror=e=>{showToast('Erro no ditado: '+e.error,true);};
+  rec.onend=()=>{if(btn){btn.textContent='🎤 Voz';btn.style.color='';btn.style.borderColor='';}};
+  rec.start();
+};
+
+window.salvarObsMembro=async(uid,showMsg=true)=>{
+  const obs=document.getElementById('rel-obs')?.value||'';
+  const id=uid||window._relMembroUid;
+  if(!id)return;
+  try{
+    const ts=new Date().toISOString();
+    await setDoc(doc(db,'usuarios',id),{observacoes:obs,observacoesData:ts},{merge:true});
+    const m2=MEMBROS.find(mb=>mb.uid===id);
+    if(m2){m2.observacoes=obs;m2.observacoesData=ts;}
+    if(showMsg)showToast('✓ Observações salvas!');
+  }catch(e){if(showMsg)showToast('Erro: '+e.message,true);}
+};
+
+window.gerarPdfMembro=async(uid)=>{
+  const JsPDF=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  if(!JsPDF){showToast('jsPDF não carregado. Verifique conexão.',true);return;}
+  const ctx=window._relMembroCtx;
+  if(!ctx||ctx.m.uid!==uid){showToast('Selecione o membro primeiro.',true);return;}
+  await window.salvarObsMembro(uid,false);
+  showToast('Gerando PDF...');
+  const{m,meses,evComp,evTotal,sc,badges,nascDisplay,cadastroDisplay}=ctx;
+  const obs=document.getElementById('rel-obs')?.value||'';
+  const ano=new Date().getFullYear();
+  const kmRaw=Math.round(m.totalKm||0);
+  const pct=Math.round((kmRaw/META)*100);
+
+  // Fetch image as base64 via canvas (with optional circle clip)
+  const fetchImgB64=async(url,size=100,circle=false)=>{
+    if(!url)return null;
+    return new Promise(resolve=>{
+      const img=new Image();img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const c=document.createElement('canvas');c.width=c.height=size;
+        const ctx2=c.getContext('2d');
+        if(circle){ctx2.beginPath();ctx2.arc(size/2,size/2,size/2,0,Math.PI*2);ctx2.clip();}
+        ctx2.drawImage(img,0,0,size,size);
+        resolve(c.toDataURL(circle?'image/png':'image/jpeg',0.85));
+      };
+      img.onerror=()=>resolve(null);
+      img.src=url+(url.includes('?')?'&':'?')+'_nc='+Date.now();
+    });
+  };
+
+  const[logoB64,fotoB64]=await Promise.all([
+    fetchImgB64('logo.png',80,false),
+    m.fotoUrl?fetchImgB64(m.fotoUrl,120,true):Promise.resolve(null)
+  ]);
+
+  const pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297,ML=13,MR=13;
+  const CW=W-ML-MR;
+
+  const rgb=h=>{const v=h.replace('#','');return[parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)];};
+  const fill=h=>{const[r,g,b]=rgb(h);pdf.setFillColor(r,g,b);};
+  const txtC=h=>{const[r,g,b]=rgb(h);pdf.setTextColor(r,g,b);};
+  const stroke=h=>{const[r,g,b]=rgb(h);pdf.setDrawColor(r,g,b);};
+  const hline=(y2,lw=0.2)=>{stroke('#333333');pdf.setLineWidth(lw);pdf.line(ML,y2,W-MR,y2);};
+  const secTitle=(txt,y2)=>{txtC('#999999');pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.text(txt,ML,y2);};
+
+  // ── Background
+  fill('#0d0d0d');pdf.rect(0,0,W,H,'F');
+
+  // ── Header bar
+  fill('#ff6600');pdf.rect(0,0,W,33,'F');
+  fill('#b34700');pdf.rect(0,30,W,3,'F');
+  if(logoB64)pdf.addImage(logoB64,'JPEG',ML,4.5,24,24);
+  txtC('#ffffff');pdf.setFont('helvetica','bold');pdf.setFontSize(13);
+  pdf.text('Mutantes MC Itajai',logoB64?ML+28:ML,14);
+  pdf.setFont('helvetica','normal');pdf.setFontSize(9);
+  pdf.text('Relatorio Individual do Membro',logoB64?ML+28:ML,21);
+  txtC('#ffe0c0');pdf.setFontSize(8);pdf.text(String(ano),W-MR,16,{align:'right'});
+
+  // ── Member profile
+  let y=40;
+  if(fotoB64){
+    pdf.addImage(fotoB64,'PNG',ML,y,25,25);
+    stroke('#ff6600');pdf.setLineWidth(0.7);pdf.circle(ML+12.5,y+12.5,12.5,'S');
+  }else{
+    fill('#1a1a1a');pdf.roundedRect(ML,y,25,25,3,3,'F');
+    stroke('#ff6600');pdf.setLineWidth(0.5);pdf.roundedRect(ML,y,25,25,3,3,'S');
+    txtC('#ff6600');pdf.setFontSize(14);pdf.setFont('helvetica','bold');
+    pdf.text((m.apelido||'?').charAt(0).toUpperCase(),ML+12.5,y+16.5,{align:'center'});
+  }
+  const nameX=ML+29;
+  txtC('#ff6600');pdf.setFontSize(15);pdf.setFont('helvetica','bold');
+  pdf.text(m.apelido||'',nameX,y+9);
+  txtC('#aaaaaa');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+  pdf.text(m.nivel||'Membro',nameX,y+16);
+  if(m.isDiretor||m.isAdmin){txtC('#4caf7d');pdf.setFontSize(7.5);pdf.text('DIRETORIA',nameX,y+22);}
+  y+=31;hline(y);y+=6;
+
+  // ── Stats 2×2
+  const pctHex=pct>=100?'#4caf7d':pct>=60?'#ff6600':'#e05252';
+  const bW=(CW-5)/2,bH=15;
+  const statsData=[
+    {lbl:'Km rodados',val:kmRaw.toLocaleString('pt-BR')+' km',col:'#ff6600'},
+    {lbl:'Meta ('+Math.round(META/1000)+'k km)',val:pct+'%',col:pctHex},
+    {lbl:'Eventos comparecidos',val:evComp+'/'+evTotal,col:'#ffffff'},
+    {lbl:'Presencas na sede',val:String(sc),col:'#60b8ff'},
+  ];
+  statsData.forEach((s,i)=>{
+    const bx=ML+(i%2)*(bW+5),by=y+Math.floor(i/2)*(bH+4);
+    fill('#1a1a1a');stroke('#2a2a2a');pdf.setLineWidth(0.15);
+    pdf.roundedRect(bx,by,bW,bH,2,2,'FD');
+    txtC('#666666');pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.text(s.lbl,bx+4,by+5);
+    const[r2,g2,b2]=rgb(s.col);pdf.setTextColor(r2,g2,b2);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
+    pdf.text(s.val,bx+4,by+12);
+  });
+  y+=2*(bH+4)+5;
+
+  // ── Km bar chart
+  secTitle('Km por mes (ultimos 12 meses)',y);y+=5;
+  const chartH=26,maxKm2=Math.max(...meses.map(b=>b.km),1),slotW=CW/12;
+  meses.forEach((b,i)=>{
+    const bx=ML+i*slotW;
+    const bh=(b.km/maxKm2)*chartH;
+    if(b.km>0){
+      fill('#ff6600');pdf.rect(bx+0.6,y+chartH-bh,slotW-1.2,bh,'F');
+      txtC('#bbbbbb');pdf.setFontSize(4.5);
+      pdf.text(String(Math.round(b.km)),bx+slotW/2,y+chartH-bh-1,{align:'center'});
+    }else{
+      fill('#141414');pdf.rect(bx+0.6,y,slotW-1.2,chartH,'F');
+    }
+    txtC('#505050');pdf.setFontSize(5);
+    pdf.text(b.label,bx+slotW/2,y+chartH+4,{align:'center'});
+  });
+  y+=chartH+9;hline(y);y+=5;
+
+  // ── Personal data
+  secTitle('Dados Pessoais',y);y+=5;
+  const personalFields=[
+    m.moto?['Moto',m.moto]:null,
+    ['Aniversario',nascDisplay],
+    ['Cadastro no clube',cadastroDisplay],
+    m.email?['Email',m.email.substring(0,45)]:null,
+  ].filter(Boolean);
+  personalFields.forEach(([lbl,val])=>{
+    txtC('#666666');pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.text(lbl+':',ML,y);
+    txtC('#cccccc');pdf.text(String(val||'—'),ML+33,y);
+    y+=5.5;
+  });
+  y+=2;
+
+  // ── Achievements
+  if(badges.length){
+    if(y>252){pdf.addPage();fill('#0d0d0d');pdf.rect(0,0,W,H,'F');y=15;}
+    hline(y);y+=5;
+    secTitle('Conquistas ('+badges.length+')',y);y+=5;
+    txtC('#cccccc');pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+    badges.forEach((b,i)=>{
+      const bx=ML+(i%2)*(CW/2+3);
+      const by2=y+Math.floor(i/2)*6;
+      pdf.text(b.nome,bx,by2);
+    });
+    y+=Math.ceil(badges.length/2)*6+3;
+  }
+
+  // ── Observations
+  if(obs.trim()){
+    if(y>245){pdf.addPage();fill('#0d0d0d');pdf.rect(0,0,W,H,'F');y=15;}
+    hline(y);y+=5;
+    secTitle('Observacoes',y);y+=5;
+    const obsLines=pdf.splitTextToSize(obs,CW-8);
+    const obsBoxH=obsLines.length*5+8;
+    fill('#111111');stroke('#2a2a2a');pdf.setLineWidth(0.15);
+    pdf.roundedRect(ML,y-2,CW,obsBoxH,2,2,'FD');
+    txtC('#dddddd');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+    obsLines.forEach(l2=>{
+      if(y>275){pdf.addPage();fill('#0d0d0d');pdf.rect(0,0,W,H,'F');y=20;}
+      pdf.text(l2,ML+4,y);y+=5;
+    });
+    y+=8;
+  }
+
+  // ── Footer (last page)
+  fill('#0d0d0d');pdf.rect(0,H-14,W,14,'F');
+  stroke('#2a2a2a');pdf.setLineWidth(0.15);pdf.line(ML,H-12,W-MR,H-12);
+  txtC('#505050');pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');
+  const dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  pdf.text('Gerado por Mutantefy em '+dataHoje,ML,H-7);
+  pdf.text('Mutantes MC Itajai — Uso interno',W-MR,H-7,{align:'right'});
+
+  const fname='relatorio-'+(m.apelido||'membro').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-')+'-'+ano+'.pdf';
+  pdf.save(fname);
+  showToast('PDF salvo: '+fname);
 };
 
 window.exportarMensalidadesCSV=async()=>{
