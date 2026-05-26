@@ -4354,7 +4354,7 @@ window.fazerLogin=async()=>{
   try{
     if(apelido.toLowerCase()==="admin"){
       MY_DOC_ID="admin";localStorage.setItem("mutantes_docid","admin");
-      await signInWithEmailAndPassword(auth,"admin@mutantesmc.com",senha);return;
+      await signInWithEmailAndPassword(auth,"muyanewolf@gmail.com",senha);return;
     }
     const docId=apelido.toLowerCase();
     const snap=await getDoc(doc(db,"usuarios",docId));
@@ -4423,7 +4423,7 @@ window.cadastrarMembro=async()=>{
         showToast("⚠️ Sessão do admin não confirmada. Faça login novamente.",true);
         return;
       }
-      MY_DOC_ID=adminEmail==="admin@mutantesmc.com"?"admin":adminEmail.split("@")[0].toLowerCase();
+      MY_DOC_ID=adminEmail==="muyanewolf@gmail.com"?"admin":adminEmail.split("@")[0].toLowerCase();
       const savedDocId=localStorage.getItem("mutantes_docid");
       if(savedDocId)MY_DOC_ID=savedDocId;
     }catch(reLoginErr){
