@@ -4359,8 +4359,11 @@ window.fazerLogin=async()=>{
     const docId=apelido.toLowerCase();
     console.log("Apelido digitado:",apelido);
     console.log("ApelidoLower:",docId);
-    const snap=await getDoc(doc(db,"usuarios",docId));
-    console.log("Documento encontrado:",snap.exists()?snap.data():null);
+    const docRef=doc(db,"usuarios",docId);
+    const snap=await getDoc(docRef);
+    console.log("Path buscado:",docRef.path);
+    console.log("Documento existe?",snap.exists());
+    console.log("Dados:",snap.data());
     if(!snap.exists()){err.textContent="Apelido não encontrado.";err.style.display="block";btn.disabled=false;btn.textContent="Entrar";return;}
     MY_DOC_ID=docId;localStorage.setItem("mutantes_docid",docId);
     await signInWithEmailAndPassword(auth,snap.data().email,senha);
