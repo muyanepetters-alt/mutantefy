@@ -448,7 +448,7 @@ const toInt=n=>Math.round(n||0).toLocaleString("pt-BR");
 const brl=n=>Number(n||0).toFixed(2).replace(".",",");
 const brlNum=n=>Number(n||0).toFixed(2); // para inputs type=number (usa ponto)
 const fmtDate=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch{return d||""}};
-const initials=n=>(n||"MC").trim().split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join("");
+const initials=n=>{const parts=(n||"").trim().split(/\s+/).filter(Boolean).slice(0,2);return parts.length?parts.map(p=>p[0].toUpperCase()).join(""):"MC";};
 const avatarEl=(foto,apelido,size=32)=>foto
   ?`<img src="${foto}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid var(--orange);flex-shrink:0"/>`
   :`<div style="width:${size}px;height:${size}px;border-radius:50%;border:2px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.3)}px;font-weight:700;color:var(--orange);flex-shrink:0">${initials(apelido)}</div>`;
@@ -575,7 +575,7 @@ function showToast(msg,err=false){
   const b=document.getElementById("toast-bar");
   const ic=err?"❌ ":"✅ ";
   if(m)m.textContent=ic+msg;
-  if(b){b.style.background=err?"var(--danger)":"var(--green)";b.style.animation="none";b.offsetHeight;b.style.animation="toastBar 2.5s linear forwards";}
+  if(b){b.style.background=err?"var(--danger)":"var(--green)";b.style.animation="none";void b.offsetWidth;b.style.animation="toastBar 2.5s linear forwards";}
   t.className="toast"+(err?" err":"")+" show";
   clearTimeout(t._to);
   t._to=setTimeout(()=>t.classList.remove("show"),2500);
@@ -799,7 +799,7 @@ function htmlClubeCorpo(){
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
               <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
               ${avatarEl(m.fotoUrl,m.apelido,30)}
-              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">adm)</span>`:""}</span>
+              <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span>
               <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
             </div>
             <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
@@ -865,7 +865,7 @@ function htmlClubeCorpo(){
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
           ${avatarEl(m.fotoUrl,m.apelido,30)}
-          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">adm)</span>`:""}</span>
+          <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span>
           <span style="font-size:13px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%</span>
         </div>
         <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
@@ -877,7 +877,7 @@ function renderDiretor(el){
   const km=UP.totalKm||0;
   const pct=Math.min(100,Math.round((km/META)*100));
   const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
-  const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid):REGS;
+  const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid||r.membroId===MY_DOC_ID):REGS;
   const clubeLabel=UP.isAdmin?"⚙️ Admin":"🏆 Clube";
   const roleBadge=UP.nivel
     ?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`
@@ -1374,14 +1374,14 @@ async function carregarSedeInfo(){
     const vao=todos.filter(p=>p.resposta==="sim").sort((a,b)=>a.apelido.localeCompare(b.apelido));
     const nao=todos.filter(p=>p.resposta==="nao").sort((a,b)=>a.apelido.localeCompare(b.apelido));
     const responderam=new Set(todos.map(p=>p.membroId));
-    const semResposta=MEMBROS.filter(m=>!responderam.has(m.uid)).sort((a,b)=>a.apelido.localeCompare(b.apelido));
+    const semResposta=MEMBROS.filter(m=>!responderam.has(m.authUid)&&!responderam.has(m.uid)).sort((a,b)=>a.apelido.localeCompare(b.apelido));
     const el=document.getElementById("sede-lista");
     if(el)el.innerHTML=`
       <div style="margin-bottom:10px">
         <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">✅ ${isLimpeza?"Vão limpar":"Confirmados"} (${vao.length})</div>
         ${vao.length===0?`<div style="font-size:12px;color:#555;padding:4px 0">Nenhuma confirmação ainda</div>`
           :vao.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
-            ${avatarEl(MEMBROS.find(m=>m.uid===p.membroId)?.fotoUrl||"",p.apelido,26)}
+            ${avatarEl(findMembro(p.membroId)?.fotoUrl||"",p.apelido,26)}
             <span style="font-size:13px;font-weight:500">${p.apelido}</span>
           </div>`).join("")}
       </div>
@@ -1411,7 +1411,7 @@ async function carregarSedeInfo(){
         el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
           ${bar?`<div style="flex:1;min-width:110px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid rgba(232,103,10,.2)">
             <div style="font-size:10px;font-weight:600;color:var(--orange);margin-bottom:3px">🍺 BAR</div>
-            <div style="font-size:12px;font-weight:600">${bar.m1} & ${bar.m2}</div>
+            <div style="font-size:12px;font-weight:600">${bar?.m1||"?"} & ${bar?.m2||"?"}</div>
             ${bar.obs?`<div style="font-size:10px;color:var(--muted)">📝 ${bar.obs}</div>`:""}
           </div>`:""}
           ${chur?`<div style="flex:1;min-width:110px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid rgba(76,175,125,.2)">
@@ -1792,7 +1792,7 @@ function renderMembro(el){
           <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
           <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
         </div>
-        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev" }">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
       <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -2230,7 +2230,7 @@ function htmlRelatorio(){
     <div class="grid2" style="margin-bottom:14px">
       <div class="metric" style="padding:14px;text-align:center">
         <div class="metric-label">🏍️ Km do clube</div>
-        <div class="metric-value" style="color:var(--orange);font-size:22px">${toInt(totalKmClube).toLocaleString("pt-BR")}</div>
+        <div class="metric-value" style="color:var(--orange);font-size:22px">${toInt(totalKmClube)}</div>
       </div>
       <div class="metric" style="padding:14px;text-align:center">
         <div class="metric-label">👥 Membros</div>
@@ -2250,7 +2250,7 @@ function htmlRelatorio(){
       <div>
         <div style="font-size:11px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🥇 Mais km no ano</div>
         <div style="font-size:16px;font-weight:700">${membroTop.apelido}</div>
-        <div style="font-size:13px;color:var(--muted)">${toInt(membroTop.totalKm||0).toLocaleString("pt-BR")} km rodados</div>
+        <div style="font-size:13px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km rodados</div>
       </div>
     </div>`:""}
     <div class="sec-title">📈 Ranking completo</div>
@@ -2410,11 +2410,12 @@ function _galeriaBtnMais(){
 }
 
 function _galeriaQuery(cursor){
-  const base=[collection(db,"galeria"),orderBy("criadoEm","desc")];
-  if(_galeriaFiltro&&_galeriaFiltro!=="geral")base.splice(1,0,where("eventoId","==",_galeriaFiltro));
-  if(cursor)base.push(startAfter(cursor));
-  base.push(limit(GALERIA_POR_PAG));
-  return query(...base);
+  const parts=[collection(db,"galeria")];
+  if(_galeriaFiltro&&_galeriaFiltro!=="geral")parts.push(where("eventoId","==",_galeriaFiltro));
+  parts.push(orderBy("criadoEm","desc"));
+  if(cursor)parts.push(startAfter(cursor));
+  parts.push(limit(GALERIA_POR_PAG));
+  return query(...parts);
 }
 
 async function carregarGaleria(eventoId){
@@ -2525,7 +2526,7 @@ window.uploadFotoMoto=async(input)=>{
 // ═══════════════════════════════════════════════════
 function calcConquistas(membro,regs){
   const km=membro.totalKm||0;
-  const saidas=regs?regs.filter(r=>r.membroId===membro.uid).length:0;
+  const saidas=regs?regs.filter(r=>r.membroId===membro.authUid||r.membroId===membro.uid).length:0;
   const badges=[];
   if(saidas>=1)badges.push({ic:"🏁",nome:"Primeira Saída",desc:"Participou da primeira saída"});
   if(km>=500)badges.push({ic:"🛣️",nome:"500 km",desc:"500 km rodados"});
@@ -2625,7 +2626,7 @@ async function buscarClimaEvento(cidade,elId,dataEvento){
       }).join("")}
     </div>`;
     _climaCache[cacheKey]=html;
-    if(el)el.outerHTML=html;
+    if(el)el.innerHTML=html;
   }catch{if(el)el.innerHTML="";}
 }
 const CIDADES_CLIMA={
@@ -4655,6 +4656,7 @@ function findMembro(id){return MEMBROS.find(m=>m.uid===id)||MEMBROS.find(m=>m.au
 function resolveDocId(id){const m=findMembro(id);return m?m.uid:id;}
 // retorna o Firebase Auth UID — usar como membroId em registros/presencas/confirmacoes
 function resolveAuthUid(id){const m=findMembro(id);return m?m.authUid:id;}
+function resolveId(m){return m.apelidoLower||m.uid;}
 async function migrarParaApelidoLowerId(){
   const snap=await getDocs(collection(db,"usuarios"));
   const antigos=snap.docs.filter(d=>{
