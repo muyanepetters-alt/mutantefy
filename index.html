@@ -159,8 +159,8 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .header-info h2{font-size:16px;font-weight:700}
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:16px}
-.body>.card,.body>.desktop-grid{margin-bottom:0!important}
+.body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.body>.card,.body>.desktop-grid{margin-bottom:16px}
 .bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
@@ -2310,7 +2310,7 @@ function htmlRelatorioIndividual(){
 // ═══════════════════════════════════════════════════
 function htmlRelatorio(){
   const totalKmClube=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
-  const membrosAtivos=MEMBROS.filter(m=>(m.totalKm||0)>0).length;
+  const membrosAtivos=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined').length;
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   const hoje=new Date();
   const eventosRealizados=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).length;
