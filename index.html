@@ -159,7 +159,8 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .header-info h2{font-size:16px;font-weight:700}
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:16px}
+.body>.card,.body>.desktop-grid{margin-bottom:0!important}
 .bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
@@ -195,6 +196,11 @@ input::placeholder{color:#444}
 select option{background:#161616;color:var(--white)}
 .btn{padding:9px 16px;min-height:44px;border-radius:50px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:13px;font-family:inherit;color:var(--white);transition:border-color var(--transition),background var(--transition)}
 .btn-primary{width:100%;padding:14px;min-height:44px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6600,#ff8c2a);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(255,102,0,.36);transition:transform var(--transition),box-shadow var(--transition)}
+.btn-orange-glow{transition:box-shadow .2s,transform .1s}
+.btn-orange-glow:hover,.btn-orange-glow:focus{box-shadow:0 0 12px rgba(255,102,0,.5);outline:none}
+.btn-orange-glow:active{transform:scale(.97)}
+@keyframes progGrow{from{width:0%}to{width:var(--prog-target)}}
+.prog-fill-anim{animation:progGrow 1.5s cubic-bezier(.22,1,.36,1) forwards}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-outline{width:100%;padding:11px;min-height:44px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color var(--transition),background var(--transition)}
 .btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
@@ -234,10 +240,10 @@ select option{background:#161616;color:var(--white)}
 .senha-olho{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;padding:0;line-height:1;color:var(--muted);user-select:none;-webkit-user-select:none}
 .msg-ok{font-size:12px;color:var(--green);margin-bottom:10px;padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px}
 .hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--orange)}
-.app-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:8000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeInOv .18s ease}
+.app-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:8000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeInOv .2s ease}
 @keyframes fadeInOv{from{opacity:0}to{opacity:1}}
-.app-modal-sheet{background:#111;border:1px solid rgba(255,255,255,.09);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:20px 20px 32px;animation:slideUp .22s ease}
-@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.app-modal-sheet{background:#111;border:1px solid rgba(255,255,255,.09);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:20px 20px 32px;animation:slideUp .22s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slideUp{from{transform:translateY(60px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
 .reaction-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;display:inline-flex;align-items:center;gap:4px}
 .reaction-btn.active{border-color:var(--orange);background:rgba(255,102,0,.12);color:var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
@@ -834,6 +840,20 @@ function htmlRanking(){
       <button onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="sede"?"none":"1px solid var(--border)"};background:${aba==="sede"?"var(--orange)":"var(--bg3)"};color:${aba==="sede"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
     </div>
     ${aba==="km"?`
+      ${(()=>{
+        const myIdx=sorted.findIndex(m=>m.uid===UP?.uid||m.authUid===UP?.uid);
+        const myM=myIdx>=0?sorted[myIdx]:null;
+        const myP=myM?Math.round(((myM.totalKm||0)/META)*100):0;
+        const myB=myP>=100?"var(--green)":myP>=60?"var(--orange)":"var(--danger)";
+        return myM&&myIdx>2?`<div style="background:rgba(255,102,0,.07);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:13px;color:var(--muted);font-weight:700;flex-shrink:0">#${myIdx+1}</span>
+          ${avatarEl(myM.fotoUrl,myM.apelido,36)}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700">${myM.apelido} <span style="font-size:10px;color:var(--muted)">· você</span></div>
+            <div style="font-size:11px;color:${myB}">${toInt(myM.totalKm||0)} km · ${myP}%</div>
+          </div>
+        </div>`:''
+      })()}
       <div class="grid2" style="margin-bottom:12px">
         <div class="metric"><div class="metric-label">${li("users",12)} Integrantes</div><div class="metric-value">${membros.length}</div></div>
         <div class="metric"><div class="metric-label">${li("alert-triangle",12)} Abaixo da meta</div><div class="metric-value" style="color:${abaixo>0?"var(--danger)":"var(--green)"}">${abaixo}</div></div>
@@ -842,14 +862,28 @@ function htmlRanking(){
         const p2=Math.round(((m.totalKm||0)/META)*100);
         const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
         const sc=_sedeCount(m);const isSedeTop=sc>0&&sc===maxSede;
-        return`<div style="margin-bottom:14px">
+        const medals=['🥇','🥈','🥉'];
+        if(i<3){
+          const bg=i===0?'rgba(255,215,0,.07)':i===1?'rgba(192,192,192,.06)':'rgba(205,127,50,.06)';
+          const border=i===0?'rgba(255,215,0,.25)':i===1?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
+          return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px;flex-shrink:0">${medals[i]}</span>
+            <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,42)}</div>
+            <div style="flex:1;min-width:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.uid}')">
+              <div style="font-size:14px;font-weight:700">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</div>
+              <div style="font-size:12px;color:${b2};font-weight:600">${toInt(m.totalKm||0)} km · ${p2}%</div>
+              <div style="margin-top:5px;height:3px;background:rgba(255,255,255,.08);border-radius:2px"><div style="width:${Math.min(p2,100)}%;height:100%;background:${b2};border-radius:2px"></div></div>
+            </div>
+          </div>`;
+        }
+        return`<div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
+            <span style="font-size:11px;color:#555;width:18px;text-align:right;flex-shrink:0">${i+1}.</span>
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div>
             <span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
             <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
           </div>
-          <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
+          <div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
         </div>`;
       }).join("")}
     `:`
@@ -980,7 +1014,7 @@ function renderDiretor(el){
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
-        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} <span id="km-counter" data-km="${km}">0</span> km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">🏍️ Últimas saídas</div>
@@ -1089,7 +1123,7 @@ function renderDiretor(el){
     if(TA==="galeria")carregarGaleria();
   },100);
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");const ct=document.getElementById("km-counter");if(f){const p=parseFloat(f.dataset.pct||0);f.style.setProperty("--prog-target",p+"%");f.classList.add("prog-fill-anim");}if(ct){const tgt=parseInt(ct.dataset.km||0,10);const dur=1400;const t0=Date.now();const tick=()=>{const el=Math.min((Date.now()-t0)/dur,1);const v=Math.round(tgt*(1-Math.pow(1-el,3)));ct.textContent=toInt(v);if(el<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
@@ -1466,7 +1500,7 @@ function renderBarman(el){
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
-        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} <span id="km-counter" data-km="${km}">0</span> km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">🏍️ Últimas saídas</div>
@@ -1557,7 +1591,7 @@ function renderBarman(el){
       </div>`:""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");const ct=document.getElementById("km-counter");if(f){const p=parseFloat(f.dataset.pct||0);f.style.setProperty("--prog-target",p+"%");f.classList.add("prog-fill-anim");}if(ct){const tgt=parseInt(ct.dataset.km||0,10);const dur=1400;const t0=Date.now();const tick=()=>{const el=Math.min((Date.now()-t0)/dur,1);const v=Math.round(tgt*(1-Math.pow(1-el,3)));ct.textContent=toInt(v);if(el<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -1591,7 +1625,7 @@ function renderMembro(el){
           <span id="meta-expand-icon" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill-meta" style="width:0%;background:${bc}" data-pct="${Math.min(pct,100)}"></div></div>
-        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} ${toInt(km)} km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
+        <div class="prog-labels"><span>${pct>=100?"🏆":"✅"} <span id="km-counter" data-km="${km}">0</span> km rodados</span><span>${pct>=100?`⭐ +${toInt(km-META)} km extra`:`⏳ Faltam ${toInt(META-km)} km`}</span></div>
         <div id="painel-ultimas-saidas-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">🏍️ Últimas saídas</div>
@@ -1683,7 +1717,7 @@ function renderMembro(el){
     ${TM==="sede"?htmlSede(true):""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
-  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
+  if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");const ct=document.getElementById("km-counter");if(f){const p=parseFloat(f.dataset.pct||0);f.style.setProperty("--prog-target",p+"%");f.classList.add("prog-fill-anim");}if(ct){const tgt=parseInt(ct.dataset.km||0,10);const dur=1400;const t0=Date.now();const tick=()=>{const el=Math.min((Date.now()-t0)/dur,1);const v=Math.round(tgt*(1-Math.pow(1-el,3)));ct.textContent=toInt(v);if(el<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
@@ -1709,11 +1743,16 @@ function htmlVotacaoAdmin(){
 
 function htmlWhatsApp(ctx){
   const subAba=window._socialAba||"atividades";
+  const _onlineThresh=Date.now()-(2*60*60*1000);
+  const _isOnline=m=>{const ls=m.lastSeen;if(!ls)return false;const ms=ls?.toMillis?ls.toMillis():(ls?.seconds?ls.seconds*1000:0);return ms>_onlineThresh;};
   const stories=MEMBROS.filter(m=>m.apelido&&m.apelido!=="undefined").map(m=>`<div onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0">
-    <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange) 0%,#ff5500 100%)">
-      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--bg1)">
-        ${m.fotoUrl?`<img src="${m.fotoUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
+    <div style="position:relative;width:56px;height:56px">
+      <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange) 0%,#ff5500 100%)">
+        <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--bg1)">
+          ${m.fotoUrl?`<img src="${m.fotoUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
+        </div>
       </div>
+      ${_isOnline(m)?`<div style="position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#4caf7d;border:2px solid var(--bg1)"></div>`:''}
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:1px;width:90px">
       <span style="font-size:10px;color:var(--white);width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
@@ -1727,7 +1766,7 @@ function htmlWhatsApp(ctx){
     <div style="display:flex;gap:14px;padding:4px 2px;width:max-content">${stories}</div>
   </div>
   <div class="hide-scroll" style="overflow-x:auto;display:flex;gap:6px;margin-bottom:14px;padding-bottom:2px">${tabBtns}</div>
-  <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card"><div class="sec-title">⚡ Feed</div><div id="social-feed-atividades"><span class="spin">⟳</span></div></div></div>
+  <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card" style="padding-bottom:0"><div class="sec-title" style="margin-bottom:0;padding-bottom:12px;border-bottom:1px solid var(--border)">⚡ Feed</div><div id="social-feed-atividades" style="padding-bottom:2px"><div style="text-align:center;padding:20px 0"><span class="spin">⟳</span></div></div></div></div>
   <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${subAba==='mural'?htmlMural():''}</div>
   <div id="sub-msg-galeria" style="display:${subAba==='galeria'?'block':'none'}">${subAba==='galeria'?htmlGaleria():''}</div>
   <div id="sub-msg-votacoes" style="display:${subAba==='votacoes'?'block':'none'}">${subAba==='votacoes'?htmlVotacoesTab():''}</div>
@@ -1993,34 +2032,163 @@ window.enviarResposta=async(id)=>{
 // ═══════════════════════════════════════════════════
 // FEED DE ATIVIDADES (Social → Feed)
 // ═══════════════════════════════════════════════════
-async function registrarFeed(membroId,apelido,tipo,descricao){
-  try{await addDoc(collection(db,"feed"),{membroId,apelido,tipo,descricao,data:serverTimestamp()});}
+async function registrarFeed(membroId,apelido,tipo,descricao,extras={}){
+  try{await addDoc(collection(db,"feed"),{membroId,apelido,tipo,descricao,data:serverTimestamp(),...extras});}
   catch(e){console.warn("feed",e);}
 }
 
-async function carregarAtividades(){
-  const el=document.getElementById("social-feed-atividades");
-  if(!el)return;
-  try{
-    const snap=await getDocs(query(collection(db,"feed"),orderBy("data","desc"),limit(30)));
-    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma atividade ainda.</div>`;return;}
-    const agora=Date.now();
-    el.innerHTML=snap.docs.map(d=>{
-      const r=d.data();
-      const m=MEMBROS.find(x=>x.uid===r.membroId||x.id===r.membroId)||{apelido:r.apelido||"Membro",foto:null,id:"",uid:""};
-      const ts=r.data?.toMillis?r.data.toMillis():(r.data?.seconds?r.data.seconds*1000:agora);
-      const diff=agora-ts;
-      const rel=diff<60000?"agora":diff<3600000?Math.floor(diff/60000)+"min":diff<86400000?Math.floor(diff/3600000)+"h":fmtDate(new Date(ts).toISOString().slice(0,10));
-      return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}');event.stopPropagation()" style="cursor:pointer">
-        <div style="flex-shrink:0">${avatarEl(m.fotoUrl||"",m.apelido,36)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px">${r.descricao}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${rel}</div>
+let _feedLastDoc=null,_feedLoading=false;
+
+function _renderFeedItem({id,data:getData},agora){
+  const r=typeof getData==="function"?getData():getData;
+  const m=MEMBROS.find(x=>x.uid===r.membroId||x.id===r.membroId)||{apelido:r.apelido||"Membro",fotoUrl:null,id:"",uid:""};
+  const ts=r.data?.toMillis?r.data.toMillis():(r.data?.seconds?r.data.seconds*1000:agora);
+  const diff=agora-ts;
+  const rel=diff<60000?"agora":diff<3600000?Math.floor(diff/60000)+"min":diff<86400000?Math.floor(diff/3600000)+"h":fmtDate(new Date(ts).toISOString().slice(0,10));
+
+  let conteudo="";
+  if(r.tipo==="mural"){
+    conteudo=`<div style="font-size:13px;color:var(--fg);margin-top:4px;line-height:1.5;word-break:break-word">${r.mensagem||r.descricao||""}</div>`;
+  }else if(r.tipo==="km_lancado"){
+    conteudo=`<div style="margin-top:4px;font-size:12px;color:var(--fg)"><span style="font-size:18px">🏍</span> rodou <span style="color:var(--orange);font-weight:700">${r.kmExtra||"?"}km</span>${r.eventoNome?` em <span style="font-weight:600">${r.eventoNome}</span>`:""}</div>`;
+  }else if(r.tipo==="sede_presenca"){
+    conteudo=`<div style="margin-top:4px;font-size:12px;color:var(--fg)">✅ confirmou presença na sede${r.dataEvento?` de <span style="color:var(--orange);font-weight:600">${fmtDate(r.dataEvento)}</span>`:""}</div>`;
+  }else if(r.tipo==="graduacao"){
+    conteudo=`<div style="margin-top:6px;background:rgba(255,102,0,.12);border:1px solid rgba(255,102,0,.3);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px"><span style="font-size:20px">🏆</span><div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Novo nível</div><div style="font-size:14px;font-weight:700;color:var(--orange)">${r.nivelNovo||r.descricao||""}</div></div></div>`;
+  }else if(r.tipo==="conquista"){
+    conteudo=`<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,165,0,.1);border:1px solid rgba(255,165,0,.3);border-radius:20px;padding:4px 12px"><span style="font-size:14px">🎯</span><span style="font-size:12px;font-weight:600;color:#ffaa00">${r.conquista||r.descricao||""}</span></div>`;
+  }else{
+    conteudo=`<div style="font-size:12px;color:var(--fg);margin-top:4px">${r.descricao||""}</div>`;
+  }
+
+  const reacoes=r.reacoes||{};
+  const myUid=CU?.uid||"";
+  const cntR=e=>Object.values(reacoes).filter(v=>v===e).length;
+  const mineR=e=>reacoes[myUid]===e;
+  const btnR=e=>`<button onclick="window.reagirFeed('${id}','${e}')" style="background:${mineR(e)?"rgba(255,102,0,.15)":"transparent"};border:1px solid ${mineR(e)?"rgba(255,102,0,.45)":"var(--border)"};border-radius:20px;padding:3px 9px;cursor:pointer;font-size:12px;color:var(--fg);display:inline-flex;align-items:center;gap:4px;font-family:inherit">${e}${cntR(e)>0?`<span style="color:var(--muted);font-size:11px">${cntR(e)}</span>`:""}</button>`;
+
+  const respostas=r.respostas||[];
+  const showAll=!!r._showAllReplies;
+  const toShow=showAll?respostas:respostas.slice(-2);
+  const repliesHtml=respostas.length>0?`<div style="margin-top:8px;padding-left:12px;border-left:2px solid var(--border)">
+    ${toShow.map(rp=>`<div style="display:flex;gap:7px;align-items:center;padding:3px 0">
+      ${avatarEl(rp.fotoUrl||"",rp.apelido,26)}
+      <div style="flex:1;min-width:0;font-size:11px"><span style="font-weight:700;color:var(--fg)">${rp.apelido}</span> <span style="color:var(--muted)">${rp.texto}</span></div>
+    </div>`).join("")}
+    ${!showAll&&respostas.length>2?`<button onclick="window._expandRepliesFeed('${id}')" style="font-size:10px;color:var(--orange);background:none;border:none;cursor:pointer;padding:2px 0;font-family:inherit">Ver todas (${respostas.length})</button>`:""}
+  </div>`:"";
+
+  return`<div id="feed-item-${id}" style="padding:14px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div style="flex-shrink:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}');event.stopPropagation()">
+        ${avatarEl(m.fotoUrl||"",m.apelido,44)}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+          <span style="font-size:13px;font-weight:700;color:var(--fg);cursor:pointer" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')">${m.apelido}</span>
+          <span style="font-size:10px;color:var(--muted)">${rel}</span>
         </div>
-      </div>`;
-    }).join("");
-  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+        ${conteudo}
+        <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          ${btnR("🤘")}${btnR("😂")}
+          <button onclick="window.toggleReplyFeed('${id}')" style="background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:3px 6px;font-family:inherit">↩ Responder</button>
+        </div>
+        ${repliesHtml}
+        <div id="reply-feed-${id}" style="display:none;margin-top:8px">
+          <textarea id="reply-feed-ta-${id}" placeholder="Sua resposta..." rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-family:inherit;font-size:12px;padding:8px;box-sizing:border-box;resize:none;line-height:1.4"></textarea>
+          <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px">
+            <button onclick="window.toggleReplyFeed('${id}')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Cancelar</button>
+            <button onclick="window.enviarRespostaFeed('${id}')" style="padding:4px 10px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:11px;cursor:pointer;font-family:inherit">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
+
+async function carregarAtividades(append=false){
+  const el=document.getElementById("social-feed-atividades");
+  if(!el||_feedLoading)return;
+  _feedLoading=true;
+  if(!append){el.innerHTML=`<div style="text-align:center;padding:20px 0"><span class="spin">⟳</span></div>`;_feedLastDoc=null;}
+  document.getElementById("feed-ver-mais")?.remove();
+  try{
+    const q=append&&_feedLastDoc
+      ?query(collection(db,"feed"),orderBy("data","desc"),startAfter(_feedLastDoc),limit(10))
+      :query(collection(db,"feed"),orderBy("data","desc"),limit(10));
+    const snap=await getDocs(q);
+    const agora=Date.now();
+    if(snap.empty&&!append){
+      el.innerHTML=`<div style="font-size:12px;color:#555;text-align:center;padding:20px 0">Nenhuma atividade ainda.</div>`;
+      _feedLoading=false;return;
+    }
+    if(snap.docs.length>0)_feedLastDoc=snap.docs[snap.docs.length-1];
+    const _feedDayLabel=ts=>{const diff=Math.floor((agora-ts)/86400000);if(diff<1)return'Hoje';if(diff<2)return'Ontem';if(diff<7)return'Esta semana';return'Mais antigo';};
+    let _lastGroup='';
+    const html=snap.docs.map(d=>{
+      const r2=d.data();const ts2=r2.data?.toMillis?r2.data.toMillis():(r2.data?.seconds?r2.data.seconds*1000:agora);
+      const grp=_feedDayLabel(ts2);
+      let sep='';
+      if(!append&&grp!==_lastGroup){_lastGroup=grp;sep=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:12px 0 4px">${grp}</div>`;}
+      return sep+_renderFeedItem({id:d.id,data:d.data.bind(d)},agora);
+    }).join("");
+    if(!append)el.innerHTML=html;
+    else el.insertAdjacentHTML("beforeend",html);
+    if(snap.docs.length===10)el.insertAdjacentHTML("beforeend",`<div id="feed-ver-mais" style="text-align:center;padding:14px 0"><button onclick="carregarAtividades(true)" style="background:transparent;border:1px solid var(--border);border-radius:20px;padding:8px 20px;color:var(--orange);font-size:12px;cursor:pointer;font-family:inherit">Ver mais ↓</button></div>`);
+  }catch(e){
+    if(!append)el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;
+  }
+  _feedLoading=false;
+}
+window.reagirFeed=async(id,emoji)=>{
+  if(!CU)return;
+  const ref=doc(db,"feed",id);
+  try{
+    const snap=await getDoc(ref);
+    if(!snap.exists())return;
+    const reacoes={...(snap.data().reacoes||{})};
+    if(reacoes[CU.uid]===emoji)delete reacoes[CU.uid];
+    else reacoes[CU.uid]=emoji;
+    await updateDoc(ref,{reacoes});
+    const updated=await getDoc(ref);
+    const el=document.getElementById(`feed-item-${id}`);
+    if(el){const tmp=document.createElement("div");tmp.innerHTML=_renderFeedItem({id,data:updated.data.bind(updated)},Date.now());el.replaceWith(tmp.firstElementChild);}
+  }catch(e){showToast("Erro.",true);}
+};
+window.toggleReplyFeed=id=>{
+  const el=document.getElementById(`reply-feed-${id}`);
+  if(!el)return;
+  const open=el.style.display==="none";
+  el.style.display=open?"block":"none";
+  if(open)document.getElementById(`reply-feed-ta-${id}`)?.focus();
+};
+window.enviarRespostaFeed=async(id)=>{
+  if(!CU||!UP)return;
+  const ta=document.getElementById(`reply-feed-ta-${id}`);
+  const texto=ta?.value.trim();
+  if(!texto){showToast("Escreva algo antes de enviar.",true);return;}
+  try{
+    await updateDoc(doc(db,"feed",id),{respostas:arrayUnion({membroId:CU.uid,apelido:UP.apelido,fotoUrl:UP.fotoUrl||"",texto,data:new Date().toISOString()})});
+    if(ta)ta.value="";
+    window.toggleReplyFeed(id);
+    const updated=await getDoc(doc(db,"feed",id));
+    const el=document.getElementById(`feed-item-${id}`);
+    if(el){const tmp=document.createElement("div");tmp.innerHTML=_renderFeedItem({id,data:updated.data.bind(updated)},Date.now());el.replaceWith(tmp.firstElementChild);}
+  }catch(e){showToast("Erro ao enviar resposta.",true);}
+};
+window._expandRepliesFeed=async(id)=>{
+  try{
+    const snap=await getDoc(doc(db,"feed",id));
+    if(!snap.exists())return;
+    const el=document.getElementById(`feed-item-${id}`);
+    if(el){
+      const data={...snap.data(),_showAllReplies:true};
+      const tmp=document.createElement("div");
+      tmp.innerHTML=_renderFeedItem({id,data:()=>data},Date.now());
+      el.replaceWith(tmp.firstElementChild);
+    }
+  }catch(e){}
+};
 
 // ═══════════════════════════════════════════════════
 // STATUS PERSONALIZÁVEL
@@ -2071,38 +2239,49 @@ window.abrirPerfilPublico=async(uid)=>{
   ov.style.cssText="align-items:center;justify-content:center";
   ov.id="perfil-pub-ov";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
-  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:16px;width:90vw;max-width:440px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:15px;font-weight:700">👤 Perfil</div>
-      <button onclick="document.getElementById('perfil-pub-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+  const rankPos=[...MEMBROS].filter(m=>m.apelido&&m.apelido!=='undefined').sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).findIndex(m=>m.uid===membro.uid)+1;
+  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:92vw;max-width:440px;padding:0;overflow:hidden">
+    <button onclick="document.getElementById('perfil-pub-ov').remove()" style="position:absolute;top:12px;right:14px;z-index:1;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center">×</button>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 20px;background:linear-gradient(180deg,rgba(255,102,0,.12) 0%,transparent 100%)">
+      <div style="width:88px;height:88px;border-radius:50%;border:3px solid var(--orange);overflow:hidden;margin-bottom:12px;flex-shrink:0">
+        ${membro.fotoUrl?`<img src="${membro.fotoUrl}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:var(--orange)">${(membro.apelido||"?")[0].toUpperCase()}</div>`}
+      </div>
+      <div style="font-size:20px;font-weight:800;text-align:center">${membro.apelido}</div>
+      ${membro.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:3px">🎖️ ${membro.nivel}</div>`:""}
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Subsede Itajaí</div>
+      ${membro.status?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:6px;background:rgba(255,255,255,.05);border-radius:8px;padding:5px 12px;max-width:280px;text-align:center">"${membro.status}"</div>`:""}
     </div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      ${avatarEl(membro.fotoUrl,membro.apelido,56)}
-      <div>
-        <div style="font-size:18px;font-weight:700">${membro.apelido}</div>
-        ${membro.moto?`<div style="font-size:12px;color:var(--muted)">${membro.moto}</div>`:""}
-        ${membro.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${membro.nivel}</div>`:""}
-        ${membro.status?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:4px">"${membro.status}"</div>`:""}
+    ${membro.fotoMoto?`<div style="width:100%;height:130px;overflow:hidden;flex-shrink:0">
+      <img src="${membro.fotoMoto}" style="width:100%;height:100%;object-fit:cover">
+      ${membro.moto?`<div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)">🏍 ${membro.moto}</div>`:""}
+    </div>`:membro.moto?`<div style="background:rgba(255,255,255,.04);padding:10px 20px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">🏍</span>
+      <span style="font-size:13px;font-weight:600">${membro.moto}</span>
+    </div>`:""}
+    <div style="padding:16px 20px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="text-align:center;background:rgba(255,102,0,.08);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 6px">
+          <div style="font-size:18px;font-weight:700;color:var(--orange)">${toInt(km)}</div>
+          <div style="font-size:10px;color:var(--muted)">km rodados</div>
+        </div>
+        <div style="text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 6px">
+          <div style="font-size:18px;font-weight:700">#${rankPos||'—'}</div>
+          <div style="font-size:10px;color:var(--muted)">no ranking</div>
+        </div>
+        <div style="text-align:center;background:rgba(96,184,255,.06);border:1px solid rgba(96,184,255,.2);border-radius:12px;padding:10px 6px">
+          <div style="font-size:18px;font-weight:700;color:#60b8ff">${sc}</div>
+          <div style="font-size:10px;color:var(--muted)">na sede</div>
+        </div>
       </div>
+      <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:14px">${pct}% da meta</div>
+      ${grads.length>0?`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🎖️ Graduações</div>
+      ${grads.map((g,gi)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px${gi===grads.length-1?';color:var(--orange);font-weight:700':''}">${g.nivel}</span>
+        <span style="font-size:11px;color:var(--muted)">${fmtDate(g.data||"")}</span>
+      </div>`).join("")}`:""}
+      ${membro.dataIngresso?`<div style="font-size:11px;color:var(--muted);margin-top:12px">📅 Membro desde ${fmtDate(membro.dataIngresso)}</div>`:""}
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
-        <div style="font-size:20px;font-weight:700;color:var(--orange)">${toInt(km)}</div>
-        <div style="font-size:10px;color:var(--muted)">km rodados</div>
-      </div>
-      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
-        <div style="font-size:20px;font-weight:700">${pct}%</div>
-        <div style="font-size:10px;color:var(--muted)">da meta</div>
-      </div>
-      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
-        <div style="font-size:20px;font-weight:700;color:#60b8ff">${sc}</div>
-        <div style="font-size:10px;color:var(--muted)">presenças sede</div>
-      </div>
-    </div>
-    <div class="prog-bar" style="margin-bottom:16px"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
-    ${grads.length>0?`<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted)">🎖️ Histórico de graduações</div>
-    ${grads.map(g=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${g.nivel}</span><span style="font-size:11px;color:var(--muted)">${fmtDate(g.data||"")}</span></div>`).join("")}`:""}
-    ${membro.dataIngresso?`<div style="font-size:11px;color:var(--muted);margin-top:12px">📅 Membro desde ${fmtDate(membro.dataIngresso)}</div>`:""}
   </div>`;
   document.body.appendChild(ov);
 };
@@ -2150,10 +2329,10 @@ function htmlRelatorio(){
   REGS.forEach(r=>{const mi=parseInt((r.data||"").slice(5,7))-1;if(mi>=0&&mi<12)kmMes[mi]+=(r.km||0);});
   const maxKm=Math.max(...kmMes,1);
 
-  const mc=(label,val,color='')=>`<div class="metric" style="padding:10px 6px;text-align:center">
-    <div class="metric-label" style="font-size:9px;line-height:1.3">${label}</div>
-    <div class="metric-value" style="font-size:18px${color?`;color:${color}`:''}">$${val}</div>
-  </div>`.replace('$${val}',val);
+  const mc=(label,val,color='#ff6600')=>`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,102,0,.2);border-radius:10px;padding:12px 8px;text-align:center">
+    <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;line-height:1.3">${label}</div>
+    <div style="font-size:22px;font-weight:700;color:${color};line-height:1.1">${val}</div>
+  </div>`;
 
   return`<div class="card" style="border-color:rgba(232,103,10,.3)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -2162,34 +2341,39 @@ function htmlRelatorio(){
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:14px">
-      ${mc('🏁 Km do clube',toInt(totalKmClube),'var(--orange)')}
-      ${mc('👥 Membros ativos',membrosAtivos)}
-      ${mc('📅 Eventos',eventosRealizados+'/'+totalEventos)}
-      ${mc('🎯 Bateram meta',bateram,'var(--green)')}
-      ${mc('📊 Média presença',mediaPresenca+'%')}
-      ${membroTop?mc('🥇 Mais ativo',`<span style="font-size:11px;font-weight:700">${membroTop.apelido}</span>`,'var(--orange)'):'<div></div>'}
+      ${mc('Km do Clube',`${toInt(totalKmClube)}<span style="font-size:13px;font-weight:400;color:#999"> km</span>`)}
+      ${mc('Membros Ativos',membrosAtivos,'#ddd')}
+      ${mc('Eventos',`${eventosRealizados}<span style="font-size:13px;font-weight:400;color:#999">/${totalEventos}</span>`,'#ddd')}
+      ${mc('Bateram Meta',bateram,'var(--green)')}
+      ${mc('Média Presença',`${mediaPresenca}<span style="font-size:13px;font-weight:400;color:#999">%</span>`)}
+      ${membroTop?mc('Mais Ativo',`<span style="font-size:13px;line-height:1.3;display:block">${membroTop.apelido}</span>`):'<div></div>'}
     </div>
 
     <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📈 Km por mês</div>
-    <div style="display:flex;align-items:flex-end;gap:2px;height:68px;margin-bottom:14px">
-      ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
-        <div style="font-size:6px;color:var(--muted);line-height:1">${km>0?toInt(km):''}</div>
-        <div style="width:100%;background:${km>0?'var(--orange)':'rgba(255,255,255,.07)'};height:${Math.max(3,Math.round((km/maxKm)*48))}px;border-radius:2px 2px 0 0"></div>
-        <div style="font-size:6px;color:var(--muted)">${mesesLb[i]}</div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:150px;margin-bottom:14px">
+      ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="font-size:8px;color:var(--muted);line-height:1;min-height:10px">${km>0?toInt(km):''}</div>
+        <div style="width:100%;background:${km>0?'var(--orange)':'rgba(255,255,255,.07)'};height:${Math.max(4,Math.round((km/maxKm)*110))}px;border-radius:3px 3px 0 0"></div>
+        <div style="font-size:9px;color:var(--muted)">${mesesLb[i]}</div>
       </div>`).join("")}
     </div>
 
     <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏆 Ranking</div>
     ${sorted.map((m,i)=>{
       const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
-      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-size:10px">${i+1}.</span>`;
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-size:10px;color:var(--muted)">${i+1}</span>`;
       const bc2=pct>=100?'var(--green)':pct>=60?'var(--orange)':'var(--danger)';
-      return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-        <span style="width:20px;text-align:center;flex-shrink:0;font-size:${i<3?'13':'10'}px">${medal}</span>
-        ${avatarEl(m.fotoUrl,m.apelido,26)}
-        <span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.apelido}</span>
-        <span style="font-size:11px;font-weight:700;color:${bc2};flex-shrink:0">${toInt(m.totalKm||0)} km</span>
-        <span style="font-size:9px;color:var(--muted);width:28px;text-align:right;flex-shrink:0">${pct}%</span>
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="width:22px;text-align:center;flex-shrink:0;font-size:${i<3?'15':'11'}px">${medal}</span>
+        ${avatarEl(m.fotoUrl,m.apelido,32)}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.apelido}</div>
+          <div style="margin-top:3px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${bc2};border-radius:2px"></div></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:${bc2}">${toInt(m.totalKm||0)} km</div>
+          <div style="font-size:9px;color:var(--muted)">${pct}%</div>
+        </div>
       </div>`;
     }).join("")}
 
@@ -2344,6 +2528,144 @@ window.gerarRelPDF=()=>{
     pdf.setTextColor(...rCol);
     pdf.text(`${toInt(km2)} km · ${pct2}%`,W-15,y+1,{align:'right'});
     y+=6.5;
+  });
+
+  // ── Calcular total de sextas do ano até hoje
+  const _hj=new Date();const _anoG=_hj.getFullYear();
+  let totalSextasG=0;
+  for(let _mm=0;_mm<12;_mm++){const _dm=new Date(_anoG,_mm+1,0).getDate();for(let _dd=1;_dd<=_dm;_dd++){const _d2=new Date(_anoG,_mm,_dd);if(_d2>_hj)break;if(_d2.getDay()===5)totalSextasG++;}}
+
+  // ── Destaques da Temporada
+  if(y>220){newPage();y=14;}
+  pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
+  pdf.text('DESTAQUES DA TEMPORADA',14,y);y+=6;
+  {
+    const maxKmAll=Math.max(...sortedM.map(m=>m.totalKm||0),1);
+    const maxSedeAll=Math.max(...sortedM.map(m=>_sedeCount(m)||0),1);
+    const mvp=sortedM.map(m=>({m,sc:((m.totalKm||0)/maxKmAll)*0.6+((_sedeCount(m)||0)/maxSedeAll)*0.4})).sort((a,b)=>b.sc-a.sc)[0];
+    const tripCntMap={};
+    REGS.forEach(r=>{if(r.eventoId!=null){const k=String(r.eventoId);if(!tripCntMap[k])tripCntMap[k]=new Set();tripCntMap[k].add(r.membroId);}});
+    const popE=Object.entries(tripCntMap).map(([k,s])=>({id:k,cnt:s.size})).sort((a,b)=>b.cnt-a.cnt)[0];
+    const popTripEv=popE?EVENTOS.find(e=>String(e.id)===popE.id):null;
+    const maxMesKm=Math.max(...kmMes,0);const maxMesIdx=kmMes.indexOf(maxMesKm);
+    const passedIds=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<_hj).map(e=>e.id);
+    const neverMissed=passedIds.length?sortedM.filter(m=>passedIds.every(eid=>REGS.some(r=>(r.membroId===m.uid||r.membroId===m.authUid)&&String(r.eventoId)===String(eid)&&r.tipo==='rota'))):[];
+    const hlW=(W-30)/2,hlH=19;
+    const hls=[
+      {lb:'MVP DA TEMPORADA',val:mvp?mvp.m.apelido:'—',sub:mvp?toInt(mvp.m.totalKm||0)+' km · '+(_sedeCount(mvp.m)||0)+' presenças sede':''},
+      {lb:'VIAGEM MAIS POPULAR',val:popTripEv?popTripEv.nome:'—',sub:popE?popE.cnt+' participantes':''},
+      {lb:'MES MAIS ATIVO',val:maxMesKm>0?mesesLb[maxMesIdx]:'—',sub:maxMesKm>0?toInt(maxMesKm)+' km':''},
+      {lb:'NUNCA FALTARAM',val:neverMissed.length?neverMissed.slice(0,3).map(m=>m.apelido).join(', ')+(neverMissed.length>3?'...':''):'Nenhum',sub:neverMissed.length+' membro'+(neverMissed.length!==1?'s':'')},
+    ];
+    hls.forEach((hl,i)=>{
+      const hx=14+(i%2)*(hlW+2),hy=y+Math.floor(i/2)*(hlH+4);
+      pdf.setFillColor(22,22,22);pdf.roundedRect(hx,hy,hlW,hlH,2,2,'F');
+      pdf.setDrawColor(45,45,45);pdf.roundedRect(hx,hy,hlW,hlH,2,2,'S');
+      pdf.setFontSize(6);pdf.setFont('helvetica','normal');pdf.setTextColor(120,120,120);pdf.text(hl.lb,hx+4,hy+5.5);
+      pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
+      pdf.text(pdf.splitTextToSize(hl.val,hlW-8)[0]||hl.val,hx+4,hy+11.5);
+      if(hl.sub){pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(100,100,100);pdf.text(hl.sub,hx+4,hy+17);}
+    });
+    y+=Math.ceil(hls.length/2)*(hlH+4)+8;
+  }
+
+  // ── Mapa de Atividade (heatmap estilo GitHub)
+  if(y>230){newPage();y=14;}
+  pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
+  pdf.text('MAPA DE ATIVIDADE',14,y);y+=6;
+  {
+    const hW=(W-28)/53,hH=7;
+    const refD=new Date(_anoG,0,1);
+    const wkAct={};
+    REGS.forEach(r=>{
+      if(!r.data)return;const d=new Date(r.data+'T12:00:00');
+      if(d.getFullYear()!==_anoG)return;
+      const wk=Math.floor((d-refD)/(7*24*3600*1000));
+      wkAct[wk]=(wkAct[wk]||0)+(r.km||0);
+    });
+    mesesLb.forEach((lb,mm)=>{
+      const d=new Date(_anoG,mm,1);
+      const wk=Math.floor((d-refD)/(7*24*3600*1000));
+      pdf.setFontSize(4.5);pdf.setTextColor(100,100,100);
+      pdf.text(lb,14+wk*hW,y);
+    });
+    y+=3;
+    for(let w=0;w<53;w++){
+      const km=wkAct[w]||0;
+      if(km===0)pdf.setFillColor(25,25,25);
+      else if(km<300)pdf.setFillColor(38,115,50);
+      else pdf.setFillColor(255,102,0);
+      pdf.roundedRect(14+w*hW,y,hW-0.4,hH,0.3,0.3,'F');
+    }
+    y+=hH+3;
+    [{c:[25,25,25],t:'Sem atividade'},{c:[38,115,50],t:'Presença (<300km)'},{c:[255,102,0],t:'Viagem (300km+)'}].forEach((l,i)=>{
+      pdf.setFillColor(...l.c);pdf.roundedRect(14+i*40,y,4,3,0.5,0.5,'F');
+      pdf.setFontSize(5);pdf.setTextColor(100,100,100);pdf.text(l.t,20+i*40,y+2.5);
+    });
+    y+=8;
+  }
+
+  // ── Presenças na Sede
+  if(y>210){newPage();y=14;}
+  pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
+  pdf.text('PRESENÇAS NA SEDE',14,y);y+=6;
+  {
+    const sedeRows=[...sortedM].map(m=>({ap:m.apelido,cnt:_sedeCount(m)||0,pct:totalSextasG>0?Math.round((_sedeCount(m)||0)/totalSextasG*100):0})).sort((a,b)=>b.cnt-a.cnt);
+    const sCols=[14,90,130,165];
+    pdf.setFillColor(50,50,50);pdf.rect(14,y-3,W-28,6,'F');
+    pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
+    ['Membro','Presenças','% Presença','Barra'].forEach((h,i)=>pdf.text(h,sCols[i]+1,y));
+    y+=4;
+    sedeRows.forEach((row,i)=>{
+      if(y>280){newPage();y=14;}
+      pdf.setFillColor(i%2===0?20:16,i%2===0?20:16,i%2===0?20:16);pdf.rect(14,y-3,W-28,6.5,'F');
+      pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(200,200,200);
+      pdf.text(row.ap,sCols[0]+1,y+0.5);
+      pdf.text(String(row.cnt),sCols[1]+1,y+0.5);
+      const pC=row.pct>=80?[76,175,80]:row.pct>=50?[255,102,0]:[150,150,150];
+      pdf.setTextColor(...pC);pdf.setFont('helvetica','bold');pdf.text(row.pct+'%',sCols[2]+1,y+0.5);
+      const bW=28;pdf.setFillColor(35,35,35);pdf.rect(sCols[3]+1,y-1.5,bW,3,'F');
+      pdf.setFillColor(...pC);pdf.rect(sCols[3]+1,y-1.5,bW*row.pct/100,3,'F');
+      y+=6.5;
+    });
+    y+=6;
+  }
+
+  // ── Detalhamento por Membro
+  newPage();y=14;
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
+  pdf.text('DETALHAMENTO POR MEMBRO',14,y);y+=6;
+  sortedM.forEach((m,mi)=>{
+    if(y>265){newPage();y=14;}
+    pdf.setFillColor(22,22,22);pdf.rect(14,y-3,W-28,8,'F');
+    pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.3);pdf.line(14,y+5,W-14,y+5);
+    pdf.setFontSize(8.5);pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
+    pdf.text((mi+1)+'. '+m.apelido,16,y+2);
+    pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(180,180,180);
+    pdf.text(toInt(m.totalKm||0)+' km',W-16,y+2,{align:'right'});
+    y+=10;
+    const memTrips=REGS.filter(r=>(r.membroId===m.uid||r.membroId===m.authUid)&&r.tipo==='rota').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    if(memTrips.length){
+      memTrips.forEach((r,ri)=>{
+        if(y>282){newPage();y=14;}
+        pdf.setFillColor(ri%2===0?14:18,ri%2===0?14:18,ri%2===0?14:18);pdf.rect(14,y-2.5,W-28,5.5,'F');
+        const ev2=EVENTOS.find(e=>String(e.id)===String(r.eventoId));
+        pdf.setFontSize(7);pdf.setFont('helvetica','normal');pdf.setTextColor(120,120,120);
+        pdf.text(r.data?r.data.slice(8)+'/'+r.data.slice(5,7):'—',16,y+1.5);
+        pdf.setTextColor(190,190,190);
+        const nm2=pdf.splitTextToSize(ev2?.nome||r.desc||'—',82)[0];
+        pdf.text(nm2,35,y+1.5);
+        const lcl=[(ev2?.destino||''),(ev2?.estado||'')].filter(Boolean).join(' · ');
+        if(lcl){pdf.setTextColor(100,100,100);pdf.text(pdf.splitTextToSize(lcl,48)[0],118,y+1.5);}
+        pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
+        pdf.text(toInt(r.km||0)+' km',W-16,y+1.5,{align:'right'});
+        y+=5.5;
+      });
+    }else{pdf.setFontSize(7);pdf.setTextColor(80,80,80);pdf.text('Sem viagens registradas.',18,y+1);y+=6;}
+    y+=3;
   });
 
   // Footer on last page
@@ -3042,8 +3364,8 @@ window.adicionarGraduacao=async()=>{
   const grads=[...(UP.historicoGraduacoes||[]),{nivel,data}];
   try{
     await setDoc(doc(db,'usuarios',MY_DOC_ID),{historicoGraduacoes:grads},{merge:true});
-    registrarFeed(CU.uid,UP.apelido,"graduacao",`${UP.apelido} foi promovido para ${nivel}`);
-    UP.historicoGraduacoes=grads;showToast('✓ Graduação adicionada!');render();
+    registrarFeed(CU.uid,UP.apelido,"graduacao",`${UP.apelido} foi promovido para ${nivel}`,{nivelNovo:nivel});
+    UP.historicoGraduacoes=grads;showToast('✓ Graduação adicionada!');setTimeout(dispararConfete,400);render();
   }catch(e){showToast('Erro: '+e.message,true);}
 };
 
@@ -3356,6 +3678,7 @@ window.confirmarEventoSede=async(eventoId,resposta)=>{
   try{
     await setDoc(doc(db,"sede_confirmacoes",docId),{membroId:CU.uid,apelido:UP.apelido,eventoId,resposta,tipo:"evento_sede",data:new Date().toISOString().slice(0,10),updatedAt:serverTimestamp()});
     CONF_EVENTO_SEDE[eventoId]=resposta;
+    if(resposta==="confirmado")navigator.vibrate?.(50);
     showToast(resposta==="confirmado"?"✅ Presença confirmada!":"❌ Desistência registrada.");
     carregarEventosSede();
     render();
@@ -4147,7 +4470,6 @@ function htmlInstallBanner(){
 function htmlNotifBanner(){
   if(!('Notification' in window))return'';
   if(Notification.permission==='granted')return'';
-  if(localStorage.getItem('mutantes_notif_dismissed'))return'';
   return`<div id="notif-push-banner" style="background:rgba(0,0,0,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,102,0,.25);border-radius:14px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
     <span style="font-size:22px;flex-shrink:0">🔔</span>
     <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.4">Ative as notificações para não perder nada do clube!</div>
@@ -4165,17 +4487,14 @@ window.ativarNotificacoes=async()=>{
       document.getElementById('notif-push-banner')?.remove();
       showToast('✓ Notificações ativadas!');
     }else{
-      localStorage.setItem('mutantes_notif_dismissed','1');
       document.getElementById('notif-push-banner')?.remove();
     }
   }catch{
-    localStorage.setItem('mutantes_notif_dismissed','1');
     document.getElementById('notif-push-banner')?.remove();
   }
 };
 
 window.dispensarNotifBanner=()=>{
-  localStorage.setItem('mutantes_notif_dismissed','1');
   document.getElementById('notif-push-banner')?.remove();
 };
 
@@ -4507,7 +4826,15 @@ window.carregarRelMembro=async(uid)=>{
     <button onclick="window.gerarPdfMembro('${uid}')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📄 Gerar PDF</button>
   </div>`;
   window._relMembroUid=uid;
-  window._relMembroCtx={m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay};
+  const longestTrip=evHistorico.length?evHistorico.reduce((b,h)=>h.km>b.km?h:b,evHistorico[0]):null;
+  const memRegsSortedAsc=[...memRegs].sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const firstReg2=memRegsSortedAsc.length?{data:memRegsSortedAsc[0].data,display:nascForDisplay(memRegsSortedAsc[0].data)||memRegsSortedAsc[0].data}:null;
+  const lastReg2=memRegsSortedAsc.length?{data:memRegsSortedAsc[memRegsSortedAsc.length-1].data,display:nascForDisplay(memRegsSortedAsc[memRegsSortedAsc.length-1].data)||memRegsSortedAsc[memRegsSortedAsc.length-1].data}:null;
+  const clubAvgKm2=MEMBROS.length?Math.round(MEMBROS.reduce((a,mb)=>a+(mb.totalKm||0),0)/MEMBROS.length):0;
+  const passedEvsSorted2=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<=nowD).sort((a,b)=>a.data.localeCompare(b.data));
+  let _eStr=0,maxEvStreak=0;
+  passedEvsSorted2.forEach(ev=>{if(evHistorico.some(h=>h.data===ev.data)){_eStr++;maxEvStreak=Math.max(maxEvStreak,_eStr);}else _eStr=0;});
+  window._relMembroCtx={m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg:firstReg2,lastReg:lastReg2,clubAvgKm:clubAvgKm2,maxEvStreak};
   lcr();
 };
 
@@ -4545,7 +4872,7 @@ window.gerarPdfMembro=async(uid)=>{
   if(!ctx||ctx.m.uid!==uid){showToast('Selecione o membro primeiro.',true);return;}
   await window.salvarObsMembro(uid,false);
   showToast('Gerando PDF...');
-  const{m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay}=ctx;
+  const{m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg,lastReg,clubAvgKm,maxEvStreak}=ctx;
   const obs=document.getElementById('rel-obs')?.value||'';
   const ano=new Date().getFullYear();
   const kmRaw=Math.round(m.totalKm||0);
@@ -4674,6 +5001,83 @@ window.gerarPdfMembro=async(uid)=>{
     txtC('#444444');pdf.setFontSize(4.5);pdf.text(b.label,bx+slotW/2,y+chartH+3.5,{align:'center'});
   });
   y+=chartH+8;
+
+  // ── Cumulative km line chart
+  if(meses.some(b=>b.km>0)){
+    y=chk(y,42);sep(y);y+=5;
+    secTitle('Evolucao acumulada de km — ano atual',y);y+=6;
+    const cumH=26,slotCW=CW/12;
+    let _acc=0;const cumKm=meses.map(b=>{_acc+=b.km;return _acc;});
+    const maxCum=Math.max(...cumKm,1);
+    fill('#111111');stroke('#444444');pdf.setLineWidth(0.2);pdf.rect(ML,y,CW,cumH,'FD');
+    const pts=cumKm.map((v,i)=>({x:ML+i*slotCW+slotCW/2,y2:y+cumH-(v/maxCum)*(cumH-3)-1}));
+    stroke('#ff6600');pdf.setLineWidth(0.8);
+    for(let i=1;i<pts.length;i++){if(cumKm[i-1]>0||cumKm[i]>0)pdf.line(pts[i-1].x,pts[i-1].y2,pts[i].x,pts[i].y2);}
+    pts.forEach((p,i)=>{
+      if(cumKm[i]>0){
+        fill('#ff6600');pdf.circle(p.x,p.y2,0.9,'F');
+        if(i===0||i===pts.length-1||meses[i].km>0){
+          txtC('#ff6600');pdf.setFontSize(4.5);
+          pdf.text(cumKm[i]>=1000?Math.round(cumKm[i]/100)/10+'k':String(Math.round(cumKm[i])),p.x,p.y2-2.5,{align:'center'});
+        }
+      }
+    });
+    meses.forEach((b,i)=>{txtC('#444444');pdf.setFontSize(4.5);pdf.text(b.label,ML+i*slotCW+slotCW/2,y+cumH+3.5,{align:'center'});});
+    y+=cumH+9;
+  }
+
+  // ── Destaques individuais
+  {
+    y=chk(y,34);sep(y);y+=5;
+    secTitle('Destaques',y);y+=6;
+    const vsClube=clubAvgKm>0?Math.round(((kmRaw-clubAvgKm)/clubAvgKm)*100):0;
+    const dests=[
+      {lb:'Sequencia de eventos',val:maxEvStreak>0?String(maxEvStreak)+' seguido'+(maxEvStreak!==1?'s':''):'—'},
+      {lb:'Viagem mais longa',val:longestTrip?toInt(longestTrip.km)+' km — '+longestTrip.nome:'—'},
+      {lb:'Primeiro registro',val:firstReg?firstReg.display:'—'},
+      {lb:'Ultimo registro',val:lastReg?lastReg.display:'—'},
+      {lb:'vs Media do clube',val:clubAvgKm>0?(vsClube>=0?'+':'')+vsClube+'% (media: '+toInt(clubAvgKm)+' km)':'—'},
+    ];
+    const dCW=(CW-4)/2,dH=11;
+    dests.forEach((d,i)=>{
+      const dx=ML+(i%2)*(dCW+4),dy=y+Math.floor(i/2)*(dH+3);
+      fill('#1a1a1a');stroke('#333333');pdf.setLineWidth(0.2);pdf.roundedRect(dx,dy,dCW,dH,1.5,1.5,'FD');
+      txtC('#999999');pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.text(d.lb,dx+3,dy+4.5);
+      txtC('#ff6600');pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');
+      pdf.text(pdf.splitTextToSize(d.val,dCW-6)[0]||d.val,dx+3,dy+9.5);
+    });
+    y+=Math.ceil(dests.length/2)*(dH+3)+6;
+  }
+
+  // ── Viagens realizadas — tabela completa
+  if(evHistorico&&evHistorico.length){
+    y=chk(y,30);sep(y);y+=5;
+    secTitle('Viagens realizadas ('+evHistorico.length+')',y);y+=7;
+    const vCols=[{lbl:'Data',x:ML,w:22},{lbl:'Viagem',x:ML+23,w:68},{lbl:'Local',x:ML+92,w:60},{lbl:'Km',x:ML+153,w:27}];
+    fill('#333333');pdf.rect(ML,y-4,CW,6,'F');
+    vCols.forEach(c=>{txtC('#ff6600');pdf.setFontSize(8);pdf.setFont('helvetica','bold');pdf.text(c.lbl,c.x+1,y);});
+    y+=4;
+    let totalKmViagens=0;
+    evHistorico.forEach((h,i)=>{
+      y=chk(y,7);
+      fill(i%2===0?'#111111':'#1a1a1a');pdf.rect(ML,y-3.5,CW,6.5,'F');
+      txtC('#cccccc');pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+      pdf.text(h.dataDisplay||'—',vCols[0].x+1,y);
+      pdf.text(pdf.splitTextToSize(h.nome,vCols[1].w-2)[0]||'',vCols[1].x+1,y);
+      pdf.text(pdf.splitTextToSize(h.local||'—',vCols[2].w-2)[0]||'',vCols[2].x+1,y);
+      if(h.km){txtC('#ff6600');pdf.setFont('helvetica','bold');}else txtC('#666666');
+      pdf.text(h.km?toInt(h.km)+' km':'—',vCols[3].x+1,y);
+      totalKmViagens+=h.km||0;
+      y+=6.5;
+    });
+    // Total row
+    y=chk(y,8);
+    fill('#1a1a1a');pdf.rect(ML,y-3.5,CW,7,'F');
+    pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.3);pdf.line(ML,y-3.5,W-MR,y-3.5);
+    txtC('#aaaaaa');pdf.setFontSize(8);pdf.setFont('helvetica','bold');pdf.text('Total',vCols[0].x+1,y+0.5);
+    txtC('#ff6600');pdf.text(toInt(totalKmViagens)+' km',vCols[3].x+1,y+0.5);
+    y+=10;
+  }
 
   // ── Event history — table: Data · Evento · Local · Km
   if(evHistorico&&evHistorico.length){
@@ -4916,6 +5320,7 @@ window.confirmarPresenca=async(eventoId,status)=>{
     await setDoc(doc(db,"presencas",CU.uid+"_"+eventoId),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta:status,updatedAt:serverTimestamp()});
     await addDoc(collection(db,"notificacoes"),{membroId:CU.uid,apelido:UP.apelido,eventoId,nomeEvento:ev.nome,resposta:status,lida:false,createdAt:serverTimestamp()});
     CONF[eventoId]=status;
+    if(status==="confirmado")navigator.vibrate?.(50);
     const msgs={confirmado:"✅ Presença confirmada!",desistiu:"🔴 Ausência registrada."};
     showToast(msgs[status]||"✓ Atualizado.");render();
     const adminTokens=await getTokenAdmin();
@@ -6604,6 +7009,7 @@ onAuthStateChanged(auth,async user=>{
     }
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
+    setDoc(doc(db,'usuarios',MY_DOC_ID),{lastSeen:serverTimestamp()},{merge:true}).catch(()=>{});
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede(),carregarTemporada(),carregarViagensExtra()];
     if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());window._sedeCauntsLoaded=true;}
     await Promise.all(tarefas);
