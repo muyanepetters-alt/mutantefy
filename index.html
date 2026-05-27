@@ -234,6 +234,12 @@ select option{background:#161616;color:var(--white)}
 .senha-olho{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;padding:0;line-height:1;color:var(--muted);user-select:none;-webkit-user-select:none}
 .msg-ok{font-size:12px;color:var(--green);margin-bottom:10px;padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px}
 .hint-box{font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--orange)}
+.app-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:8000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeInOv .18s ease}
+@keyframes fadeInOv{from{opacity:0}to{opacity:1}}
+.app-modal-sheet{background:#111;border:1px solid rgba(255,255,255,.09);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:20px 20px 32px;animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.reaction-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;display:inline-flex;align-items:center;gap:4px}
+.reaction-btn.active{border-color:var(--orange);background:rgba(255,102,0,.12);color:var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes loginFadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
@@ -341,7 +347,7 @@ select option{background:#161616;color:var(--white)}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,query,where,orderBy,serverTimestamp,limit,startAfter}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,deleteDoc,updateDoc,query,where,orderBy,serverTimestamp,limit,startAfter,arrayUnion,arrayRemove}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
 const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-mc.firebaseapp.com",projectId:"mutantes-mc",storageBucket:"mutantes-mc.firebasestorage.app",messagingSenderId:"696991823272",appId:"1:696991823272:web:174f19e5178c495e2a999d"};
@@ -568,7 +574,7 @@ function evCardMembro(ev){
   </div>`;
 }
 
-let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={};
+let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
 let _presAba="massa";
 window._rankAba=window._rankAba||"km";
 const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
@@ -777,8 +783,8 @@ function htmlRanking(){
         return`<div style="margin-bottom:14px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
             <span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>
-            ${avatarEl(m.fotoUrl,m.apelido,30)}
-            <span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
+            <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div>
+            <span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
             <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
           </div>
           <div class="prog-bar" style="margin-left:24px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
@@ -789,7 +795,7 @@ function htmlRanking(){
         const ss=[...membros].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
         const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
         return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${tot}</div></div>`
-        +ss.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span>${avatarEl(m.fotoUrl,m.apelido,30)}<span style="font-size:13px;font-weight:600;flex:1">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?"#60b8ff":"var(--muted)"}">⛪ ${sc} presenças</span></div></div>`;}).join("");
+        +ss.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?"#60b8ff":"var(--muted)"}">⛪ ${sc} presenças</span></div></div>`;}).join("");
       })()}
     `}
   </div>`;
@@ -887,7 +893,7 @@ function renderDiretor(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -927,6 +933,7 @@ function renderDiretor(el){
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${PROXEVENTO_SEDE?`<div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><span style="font-size:18px">🎉</span><div><div style="font-size:13px;font-weight:600">${PROXEVENTO_SEDE.nome}</div><div style="font-size:11px;color:#888">${fmtDate(PROXEVENTO_SEDE.data)}${PROXEVENTO_SEDE.hora?" · "+PROXEVENTO_SEDE.hora:""} · Na sede</div></div></div>`:""}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1467,7 +1474,7 @@ function renderBarman(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1507,6 +1514,7 @@ function renderBarman(el){
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${PROXEVENTO_SEDE?`<div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><span style="font-size:18px">🎉</span><div><div style="font-size:13px;font-weight:600">${PROXEVENTO_SEDE.nome}</div><div style="font-size:11px;color:#888">${fmtDate(PROXEVENTO_SEDE.data)}${PROXEVENTO_SEDE.hora?" · "+PROXEVENTO_SEDE.hora:""} · Na sede</div></div></div>`:""}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1678,7 +1686,7 @@ function renderMembro(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px">"${FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1718,6 +1726,7 @@ function renderMembro(el){
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
         ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
+        ${PROXEVENTO_SEDE?`<div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><span style="font-size:18px">🎉</span><div><div style="font-size:13px;font-weight:600">${PROXEVENTO_SEDE.nome}</div><div style="font-size:11px;color:#888">${fmtDate(PROXEVENTO_SEDE.data)}${PROXEVENTO_SEDE.hora?" · "+PROXEVENTO_SEDE.hora:""} · Na sede</div></div></div>`:""}
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -2028,18 +2037,28 @@ async function carregarMural(){
     const snap=await getDocs(query(collection(db,"mural"),orderBy("criadoEm","desc")));
     const docs=snap.docs.slice(0,30).map(d=>({id:d.id,...d.data()}));
     if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum recado ainda. Seja o primeiro!</div>`;return;}
-    el.innerHTML=docs.map(r=>`
-      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px">
-        ${avatarEl(r.fotoUrl||"",r.autor,36)}
+    el.innerHTML=docs.map(r=>{
+      const reacoes=r.reacoes||[];
+      const meuId=CU?.uid||"";
+      const emojiList=["🤘","❤️","😂","🏍️"];
+      const reacBar=emojiList.map(emoji=>{
+        const lista=reacoes.filter(rx=>rx.emoji===emoji);
+        const jaTenho=lista.some(rx=>rx.membroId===meuId);
+        return`<button class="reaction-btn${jaTenho?" active":""}" onclick="window.reagirMural('${r.id}','${emoji}')">${emoji}${lista.length>0?` <span style="font-size:11px">${lista.length}</span>`:""}</button>`;
+      }).join("");
+      return`<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px">
+        <div onclick="window.abrirPerfilPublico('${r.autorId}')" style="cursor:pointer;flex-shrink:0">${avatarEl(r.fotoUrl||"",r.autor,36)}</div>
         <div style="flex:1">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <div style="font-size:12px;font-weight:700;color:var(--orange)">${r.autor}</div>
+            <div onclick="window.abrirPerfilPublico('${r.autorId}')" style="font-size:12px;font-weight:700;color:var(--orange);cursor:pointer">${r.autor}</div>
             <div style="font-size:10px;color:#555">${r.criadoEm?.toDate?fmtDate(r.criadoEm.toDate().toISOString().slice(0,10)):""}</div>
           </div>
           <div style="font-size:13px;line-height:1.4;word-break:break-word;overflow-wrap:anywhere">${r.msg}</div>
-          ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;margin-top:2px">✕ apagar</button>`:""}
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${reacBar}</div>
+          ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;margin-top:4px">✕ apagar</button>`:""}
         </div>
-      </div>`).join("");
+      </div>`;
+    }).join("");
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
 }
 
@@ -2057,6 +2076,105 @@ window.excluirMural=async(id)=>{
   try{await deleteDoc(doc(db,"mural",id));carregarMural();}catch{showToast("Erro.",true);}
 };
 
+window.reagirMural=async(docId,emoji)=>{
+  if(!CU)return;
+  try{
+    const ref=doc(db,"mural",docId);
+    const snap=await getDoc(ref);
+    const reacoes=(snap.data()?.reacoes)||[];
+    const jaIdx=reacoes.findIndex(rx=>rx.membroId===CU.uid&&rx.emoji===emoji);
+    if(jaIdx>=0){
+      await updateDoc(ref,{reacoes:arrayRemove(reacoes[jaIdx])});
+    }else{
+      await updateDoc(ref,{reacoes:arrayUnion({membroId:CU.uid,emoji})});
+    }
+    carregarMural();
+  }catch{showToast("Erro.",true);}
+};
+
+
+// ═══════════════════════════════════════════════════
+// STATUS PERSONALIZÁVEL
+// ═══════════════════════════════════════════════════
+window.editarStatus=()=>{
+  const el=document.getElementById("hdr-status");
+  if(!el)return;
+  const cur=UP?.status||"";
+  const div=document.createElement("div");
+  div.style.cssText="display:flex;gap:5px;align-items:center;margin-top:2px";
+  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="${FRASE}" maxlength="100"
+    style="flex:1;font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--orange);background:var(--bg3);color:#fff;font-family:inherit"
+    onkeydown="if(event.key==='Enter')window.salvarStatus();if(event.key==='Escape')window.cancelarStatus()"/>
+  <button onclick="window.salvarStatus()" style="padding:3px 7px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✓</button>
+  <button onclick="window.cancelarStatus()" style="padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✕</button>`;
+  el.replaceWith(div);
+  setTimeout(()=>document.getElementById("hdr-status-inp")?.focus(),50);
+};
+window.salvarStatus=async()=>{
+  const inp=document.getElementById("hdr-status-inp");
+  if(!inp)return;
+  const novo=inp.value.trim();
+  try{
+    const docId=MY_DOC_ID||UP.apelido.toLowerCase();
+    await setDoc(doc(db,"usuarios",docId),{status:novo},{merge:true});
+    UP.status=novo;
+    showToast("✓ Status atualizado!");
+  }catch{showToast("Erro.",true);}
+  render();
+};
+window.cancelarStatus=()=>render();
+
+// ═══════════════════════════════════════════════════
+// PERFIL PÚBLICO
+// ═══════════════════════════════════════════════════
+window.abrirPerfilPublico=async(uid)=>{
+  if(!uid)return;
+  const membro=MEMBROS.find(m=>m.uid===uid||m.authUid===uid);
+  if(!membro)return;
+  const km=membro.totalKm||0;
+  const pct=Math.min(100,Math.round((km/META)*100));
+  const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
+  const grads=(membro.historicoGraduacoes||[]);
+  const sc=_sedeCount(membro)||0;
+  const ov=document.createElement("div");
+  ov.className="app-modal-overlay";
+  ov.id="perfil-pub-ov";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700">👤 Perfil</div>
+      <button onclick="document.getElementById('perfil-pub-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      ${avatarEl(membro.fotoUrl,membro.apelido,56)}
+      <div>
+        <div style="font-size:18px;font-weight:700">${membro.apelido}</div>
+        ${membro.moto?`<div style="font-size:12px;color:var(--muted)">${membro.moto}</div>`:""}
+        ${membro.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${membro.nivel}</div>`:""}
+        ${membro.status?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:4px">"${membro.status}"</div>`:""}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
+        <div style="font-size:20px;font-weight:700;color:var(--orange)">${toInt(km)}</div>
+        <div style="font-size:10px;color:var(--muted)">km rodados</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
+        <div style="font-size:20px;font-weight:700">${pct}%</div>
+        <div style="font-size:10px;color:var(--muted)">da meta</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;border:1px solid var(--border)">
+        <div style="font-size:20px;font-weight:700;color:#60b8ff">${sc}</div>
+        <div style="font-size:10px;color:var(--muted)">presenças sede</div>
+      </div>
+    </div>
+    <div class="prog-bar" style="margin-bottom:16px"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
+    ${grads.length>0?`<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted)">🎖️ Histórico de graduações</div>
+    ${grads.map(g=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${g.nivel}</span><span style="font-size:11px;color:var(--muted)">${fmtDate(g.data||"")}</span></div>`).join("")}`:""}
+    ${membro.dataIngresso?`<div style="font-size:11px;color:var(--muted);margin-top:12px">📅 Membro desde ${fmtDate(membro.dataIngresso)}</div>`:""}
+  </div>`;
+  document.body.appendChild(ov);
+};
 
 // ═══════════════════════════════════════════════════
 // RELATÓRIO INDIVIDUAL DO MEMBRO
@@ -2268,7 +2386,7 @@ const GALERIA_POR_PAG=30;
 let _galeriaCursor=null,_galeriaFiltro=null;
 
 function _fotoHtml(f){
-  return`<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer" onclick="window.open('${f.url}','_blank')">
+  return`<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer" onclick="window.abrirFotoModal('${f.id}','${f.url}')">
     <img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>
     ${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}
   </div>`;
@@ -2322,7 +2440,7 @@ window.carregarMaisGaleria=async()=>{
     fotos.forEach(f=>{
       const div=document.createElement("div");
       div.style.cssText="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer";
-      div.onclick=()=>window.open(f.url,"_blank");
+      div.onclick=()=>window.abrirFotoModal(f.id,f.url);
       div.innerHTML=`<img src="${f.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>${UP&&(UP.isAdmin||f.autorId===CU.uid)?`<button onclick="event.stopPropagation();window.excluirFotoGaleria('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`:""}`;
       el.appendChild(div);
     });
@@ -2351,7 +2469,7 @@ window.uploadFotosGaleria=async(input)=>{
         if(vazio)grid.innerHTML="";
         const div=document.createElement("div");
         div.style.cssText="position:relative;aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer";
-        div.onclick=()=>window.open(url,"_blank");
+        div.onclick=()=>window.abrirFotoModal(ref.id,url);
         div.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/><button onclick="event.stopPropagation();window.excluirFotoGaleria('${ref.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer">✕</button>`;
         grid.insertBefore(div,grid.firstChild);
       }
@@ -2363,6 +2481,58 @@ window.uploadFotosGaleria=async(input)=>{
 window.excluirFotoGaleria=async(id)=>{
   if(!confirm("Excluir esta foto?"))return;
   try{await deleteDoc(doc(db,"galeria",id));showToast("Excluída.");carregarGaleria();}catch{showToast("Erro.",true);}
+};
+
+window.abrirFotoModal=async(fotoId,url)=>{
+  const ov=document.createElement("div");
+  ov.className="app-modal-overlay";
+  ov.id="foto-modal-ov";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700">📸 Foto</div>
+      <button onclick="document.getElementById('foto-modal-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <img src="${url}" style="width:100%;border-radius:12px;max-height:55vh;object-fit:contain;background:#000;margin-bottom:14px"/>
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">💬 Comentários</div>
+    <div id="foto-coment-lista"><span class="spin">⟳</span></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input id="foto-coment-inp" type="text" placeholder="Escreva um comentário..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.enviarComentFoto('${fotoId}')"/>
+      <button onclick="window.enviarComentFoto('${fotoId}')" style="padding:10px 14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">→</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  carregarComentFoto(fotoId);
+};
+
+async function carregarComentFoto(fotoId){
+  const el=document.getElementById("foto-coment-lista");
+  if(!el)return;
+  try{
+    const snap=await getDoc(doc(db,"galeria",fotoId));
+    const comentarios=(snap.data()?.comentarios)||[];
+    if(comentarios.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Sem comentários ainda.</div>`;return;}
+    el.innerHTML=comentarios.map(c=>`
+      <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <div onclick="window.abrirPerfilPublico('${c.membroId||""}')" style="cursor:pointer;flex-shrink:0">${avatarEl(c.fotoUrl||"",c.apelido,28)}</div>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--orange)">${c.apelido}</div>
+          <div style="font-size:12px;line-height:1.4;word-break:break-word">${c.texto}</div>
+          <div style="font-size:10px;color:#555">${fmtDate(c.data||"")}</div>
+        </div>
+      </div>`).join("");
+  }catch{el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
+}
+
+window.enviarComentFoto=async(fotoId)=>{
+  const inp=document.getElementById("foto-coment-inp");
+  const texto=inp?.value.trim();
+  if(!texto||!CU)return;
+  const comentario={membroId:CU.uid,apelido:UP.apelido,fotoUrl:UP.fotoUrl||"",texto,data:new Date().toISOString().slice(0,10)};
+  try{
+    await updateDoc(doc(db,"galeria",fotoId),{comentarios:arrayUnion(comentario)});
+    inp.value="";carregarComentFoto(fotoId);
+  }catch{showToast("Erro.",true);}
 };
 
 // ═══════════════════════════════════════════════════
@@ -2703,6 +2873,22 @@ function htmlEventosSede(){
   </div>`;
 }
 
+async function carregarProxEventoSede(){
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const snap=await getDocs(query(collection(db,"eventos_sede"),orderBy("data","asc")));
+    const futuros=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.data>=hoje);
+    PROXEVENTO_SEDE=futuros[0]||null;
+  }catch{PROXEVENTO_SEDE=null;}
+}
+
+async function carregarConfEventosSede(){
+  try{
+    const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("membroId","==",CU.uid),where("tipo","==","evento_sede")));
+    snap.docs.forEach(d=>{const r=d.data();CONF_EVENTO_SEDE[r.eventoId]=r.resposta;});
+  }catch{}
+}
+
 async function carregarEventosSede(){
   const el=document.getElementById("eventos-sede-lista");
   if(!el)return;
@@ -2714,23 +2900,50 @@ async function carregarEventosSede(){
     const passados=docs.filter(e=>e.data<hoje).slice(-3).reverse();
     if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum evento cadastrado.</div>`;return;}
     const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
+
+    // Carregar contagem de confirmados por evento
+    const confSnap=await getDocs(query(collection(db,"sede_confirmacoes"),where("tipo","==","evento_sede")));
+    const confCounts={};
+    confSnap.docs.forEach(d=>{
+      const r=d.data();
+      if(!confCounts[r.eventoId])confCounts[r.eventoId]={confirmado:0,compareceu:0};
+      if(r.resposta==="confirmado")confCounts[r.eventoId].confirmado++;
+      if(r.resposta==="compareceu")confCounts[r.eventoId].compareceu++;
+    });
+
     const renderEv=(e,passado=false)=>{
       const hoje2=new Date();hoje2.setHours(0,0,0,0);
       const evData=new Date(e.data+"T00:00:00");
       const dias=Math.round((evData-hoje2)/(1000*60*60*24));
       const diasLabel=dias===0?"🔴 Hoje!":dias===1?"🟠 Amanhã":dias>0?`🕐 ${dias} dias`:"";
-      return`<div style="padding:12px 0;border-bottom:1px solid var(--border);opacity:${passado?".6":"1"}">
+      const meuStatus=CONF_EVENTO_SEDE[e.id]||"sem_resposta";
+      const counts=confCounts[e.id]||{};
+      const confirmadosNum=(counts.confirmado||0)+(counts.compareceu||0);
+      const acoesHtml=!passado?`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        ${meuStatus==="confirmado"||meuStatus==="compareceu"
+          ?`<button onclick="window.confirmarEventoSede('${e.id}','desistiu')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button>
+             <span style="font-size:11px;color:var(--green);align-self:center">${meuStatus==="compareceu"?"🏁 Compareceu":"✅ Confirmado"}</span>`
+          :meuStatus==="desistiu"
+          ?`<button onclick="window.confirmarEventoSede('${e.id}','confirmado')" style="padding:6px 12px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ Confirmar presença</button>
+             <span style="font-size:11px;color:var(--danger);align-self:center">🔴 Desistiu</span>`
+          :`<button onclick="window.confirmarEventoSede('${e.id}','confirmado')" style="padding:6px 12px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ Confirmar presença</button>`}
+        ${isAdmin&&meuStatus==="confirmado"?`<button onclick="window.marcarCompareceuEventoSede('${e.id}')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🏁 Compareceu</button>`:""}
+        ${isAdmin?`<button onclick="window.verConfsEventoSede('${e.id}','${e.nome}')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">👥 Ver lista</button>`:""}
+      </div>`:"";
+      return`<div id="evs-card-${e.id}" style="padding:12px 0;border-bottom:1px solid var(--border);opacity:${passado?".6":"1"}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div>
+          <div style="flex:1">
             <div style="font-size:14px;font-weight:700">${e.nome}</div>
             <div style="font-size:12px;color:var(--muted)">${fmtDate(e.data)}${e.hora?` · ${e.hora}`:""}</div>
             ${e.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.desc}</div>`:""}
+            ${confirmadosNum>0?`<div style="font-size:11px;color:var(--green);margin-top:3px">✅ ${confirmadosNum} confirmado${confirmadosNum!==1?"s":""}</div>`:""}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             ${diasLabel?`<span style="font-size:10px;font-weight:700;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:2px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
             ${isAdmin?`<button onclick="window.excluirEventoSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`:""}
           </div>
         </div>
+        ${acoesHtml}
       </div>`;
     };
     el.innerHTML=(futuros.length===0?`<div style="font-size:12px;color:#555;margin-bottom:10px">Nenhum evento futuro.</div>`:"")
@@ -2755,6 +2968,64 @@ window.salvarEventoSede=async()=>{
 window.excluirEventoSede=async(id)=>{
   if(!confirm("Excluir este evento?"))return;
   try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Excluído.");carregarEventosSede();}catch{showToast("Erro.",true);}
+};
+
+window.confirmarEventoSede=async(eventoId,resposta)=>{
+  if(!CU||!UP)return;
+  const docId=CU.uid+"_evento_sede_"+eventoId;
+  try{
+    await setDoc(doc(db,"sede_confirmacoes",docId),{membroId:CU.uid,apelido:UP.apelido,eventoId,resposta,tipo:"evento_sede",data:new Date().toISOString().slice(0,10),updatedAt:serverTimestamp()});
+    CONF_EVENTO_SEDE[eventoId]=resposta;
+    showToast(resposta==="confirmado"?"✅ Presença confirmada!":"❌ Desistência registrada.");
+    carregarEventosSede();
+  }catch{showToast("Erro.",true);}
+};
+
+window.marcarCompareceuEventoSede=async(eventoId)=>{
+  if(!CU||!UP)return;
+  const docId=CU.uid+"_evento_sede_"+eventoId;
+  try{
+    await setDoc(doc(db,"sede_confirmacoes",docId),{resposta:"compareceu",updatedAt:serverTimestamp()},{merge:true});
+    CONF_EVENTO_SEDE[eventoId]="compareceu";
+    showToast("🏁 Comparecimento marcado!");
+    carregarEventosSede();
+  }catch{showToast("Erro.",true);}
+};
+
+window.verConfsEventoSede=async(eventoId,nomeEvento)=>{
+  const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("eventoId","==",eventoId),where("tipo","==","evento_sede")));
+  const lista=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const statusCfg={confirmado:{label:"✅ Confirmado",cor:"var(--green)"},desistiu:{label:"🔴 Desistiu",cor:"var(--danger)"},compareceu:{label:"🏁 Compareceu",cor:"var(--orange)"}};
+  const ov=document.createElement("div");
+  ov.className="app-modal-overlay";
+  ov.id="evs-lista-ov";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700">👥 ${nomeEvento}</div>
+      <button onclick="document.getElementById('evs-lista-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    ${lista.length===0?`<div style="font-size:12px;color:#555">Ninguém confirmou ainda.</div>`:lista.map(c=>{
+      const cfg=statusCfg[c.resposta]||{label:"⚪ "+c.resposta,cor:"var(--muted)"};
+      const m=MEMBROS.find(mb=>mb.uid===c.membroId)||{apelido:c.apelido||"?",fotoUrl:null};
+      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        ${avatarEl(m.fotoUrl,m.apelido,32)}
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.apelido}</div></div>
+        <span style="font-size:11px;font-weight:700;color:${cfg.cor}">${cfg.label}</span>
+        <button onclick="window.excluirConfEventoSede('${c.id}','${eventoId}','${nomeEvento}')" style="font-size:11px;color:var(--danger);background:transparent;border:none;cursor:pointer;padding:4px">✕</button>
+      </div>`;
+    }).join("")}
+  </div>`;
+  document.body.appendChild(ov);
+};
+
+window.excluirConfEventoSede=async(docId,eventoId,nomeEvento)=>{
+  try{
+    await deleteDoc(doc(db,"sede_confirmacoes",docId));
+    showToast("✓ Confirmação removida.");
+    document.getElementById("evs-lista-ov")?.remove();
+    window.verConfsEventoSede(eventoId,nomeEvento);
+  }catch{showToast("Erro.",true);}
 };
 
 function htmlReunioes(){
@@ -3233,7 +3504,7 @@ window.trocarAbaSede=(aba)=>{
   if(aba==="presenca")el.innerHTML=htmlSedePresenca(canEdit,isAdminOrDir);
   else if(aba==="limpeza")el.innerHTML=htmlSedeLimpeza(canEdit,isAdminOrDir);
   else if(aba==="reunioes"){el.innerHTML=htmlReunioes();setTimeout(carregarReunioes,50);}
-  else if(aba==="eventosSede"){el.innerHTML=htmlEventosSede();setTimeout(carregarEventosSede,50);}
+  else if(aba==="eventosSede"){el.innerHTML=htmlEventosSede();setTimeout(async()=>{await carregarConfEventosSede();carregarEventosSede();},50);}
   else if(aba==="aniversariosSede"){el.innerHTML=htmlAniversarios();}
   else{window._barAba=aba;el.innerHTML=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
   if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
@@ -3457,7 +3728,7 @@ window.toggleKmAvulso=()=>{
   wrap.style.display=fechando?"none":"block";
   if(ic)ic.textContent=fechando?"▼":"▲";
 };
-window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&MEMBROS.length===0){render();await Promise.all([carregarMembros(),carregarSedePresencas()]);}render();setTimeout(()=>{const active=document.querySelector('.bnav-item.nav-active');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},50);};
+window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&!window._sedeCauntsLoaded){render();await carregarSedePresencas();window._sedeCauntsLoaded=true;}render();setTimeout(()=>{const active=document.querySelector('.bnav-item.nav-active');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},50);};
 
 // ── BANNER DE INSTALAÇÃO PWA ────────────────────────
 window._pwaDeferred=null;
@@ -5770,8 +6041,8 @@ onAuthStateChanged(auth,async user=>{
     }
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
-    const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarMembros(),carregarSedePresencas());}
+    const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede()];
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());window._sedeCauntsLoaded=true;}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
