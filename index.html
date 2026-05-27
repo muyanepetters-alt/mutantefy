@@ -827,7 +827,10 @@ function htmlClubeCorpo(){
             <div style="font-size:11px;color:var(--muted);margin-top:1px">${m.sub}</div>
           </div>
         </button>`).join("")}
-      </div>`;
+      </div>
+      ${UP.isAdmin?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <button onclick="window.zerarTemporada()" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(224,82,82,.4);background:rgba(224,82,82,.08);color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">${li("alert-triangle",16)} Zerar Temporada</button>
+      </div>`:""}`;
     }
     const cur=dirMenus.find(m=>m.id===TA);
     return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
@@ -904,7 +907,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
+    ${htmlBnav([["painel",li("house",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("bike",20),"Viagens"],["msgs",li("road",20),"Social"],["perfil",li("user-pen",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -962,14 +965,16 @@ function renderDiretor(el){
         <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-sm"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
-      <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
         <button id="ev-view-lista" onclick="window.setEvView('lista')" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">☰ Lista</button>
         <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
+        ${UP.isAdmin?`<button onclick="window.abrirNovaViagemModal()" style="padding:9px 14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Nova</button>`:""}
       </div>
       <div id="ev-lista-wrap">
         ${htmlEventosSplit(true)}
       </div>
-      <div id="ev-cal-wrap" style="display:none"></div>`:""}
+      <div id="ev-cal-wrap" style="display:none"></div>
+      <div id="viagens-extra-wrap" style="margin-top:4px"></div>`:""}
     ${TM==="perfil"?`
       <div class="card">
         <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
@@ -1022,6 +1027,7 @@ function renderDiretor(el){
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -1385,7 +1391,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("house",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("bike",20),"Viagens"],["msgs",li("road",20),"Social"],["perfil",li("user-pen",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1508,7 +1514,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("house",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("bike",20),"Viagens"],["msgs",li("road",20),"Social"],["perfil",li("user-pen",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1566,14 +1572,16 @@ function renderMembro(el){
         <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
-      <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
         <button id="ev-view-lista" onclick="window.setEvView('lista')" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">☰ Lista</button>
         <button id="ev-view-cal" onclick="window.setEvView('cal')" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📅 Calendário</button>
+        ${UP.isAdmin?`<button onclick="window.abrirNovaViagemModal()" style="padding:9px 14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Nova</button>`:""}
       </div>
       <div id="ev-lista-wrap">
         ${htmlEventosSplit(true)}
       </div>
-      <div id="ev-cal-wrap" style="display:none"></div>`:""}
+      <div id="ev-cal-wrap" style="display:none"></div>
+      <div id="viagens-extra-wrap" style="margin-top:4px"></div>`:""}
     ${TM==="perfil"?`
       <div class="card">
         <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
@@ -1609,6 +1617,7 @@ function renderMembro(el){
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -4491,9 +4500,7 @@ window.excluirComparecimento=async(membroId,apelido,eventoId,registroId,km)=>{
   const m=findMembro(membroId);
   try{
     if(registroId)await deleteDoc(doc(db,"registros",registroId));
-    const nt=Math.max(0,(m?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"confirmado",compareceu:false,registroId:null,kmLancado:0},{merge:true});
     showToast("✓ Lançamento excluído.");
     await _recarregarPanelPresenca(eventoId);
@@ -4505,10 +4512,7 @@ window.editarComparecimento=async(membroId,apelido,eventoId,registroId,kmAtual)=
   const m=findMembro(membroId);
   try{
     if(registroId)await setDoc(doc(db,"registros",registroId),{km:novoKm},{merge:true});
-    const diff=novoKm-kmAtual;
-    const nt=Math.max(0,(m?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{kmLancado:novoKm},{merge:true});
     showToast("✓ Km atualizado para "+toInt(novoKm)+"!");
     await carregarPresencasAdmin();
@@ -4542,10 +4546,7 @@ window.salvarFormComp=async(uid,apelido,evId)=>{
     if(info.mode==="editar"){
       const m=findMembro(uid);
       if(info.regId)await setDoc(doc(db,"registros",info.regId),{km},{merge:true});
-      const diff=km-(info.kmOld||0);
-      const nt=Math.max(0,(m?.totalKm||0)+diff);
-      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-      if(m)m.totalKm=nt;
+      await recalcularKmMembro(uid);
       await setDoc(doc(db,"presencas",uid+"_"+evId),{kmLancado:km},{merge:true});
       showToast("✓ Km atualizado para "+toInt(km)+"!");
     }else{
@@ -4614,6 +4615,140 @@ window.recalcularTotalKm=async()=>{
     render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
+// ═══════════════════════════════════════════════════
+// NOVA VIAGEM (Admin — salva em eventos_sede com categoria:"viagem")
+// ═══════════════════════════════════════════════════
+window.abrirNovaViagemModal=()=>{
+  document.getElementById("nova-viagem-modal")?.remove();
+  const ov=document.createElement("div");
+  ov.id="nova-viagem-modal";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const sheet=document.createElement("div");
+  sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
+  sheet.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:17px;font-weight:700">${li("bike",18)} Nova Viagem</div>
+      <button onclick="document.getElementById('nova-viagem-modal')?.remove()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div id="nv-err" class="msg-err" style="display:none"></div>
+      <label>Nome do evento</label><input type="text" id="nv-nome" placeholder="Ex: Acampamento Sul 2026" autocomplete="off"/>
+      <label>Data</label><input type="text" id="nv-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
+      <label>Local (cidade + estado)</label><input type="text" id="nv-local" placeholder="Ex: Florianópolis - SC" autocomplete="off"/>
+      <label>Distância ida (km) — ida+volta calculada automaticamente</label><input type="number" id="nv-dist" placeholder="Ex: 150" min="0" step="1" autocomplete="off"/>
+      <label>Tipo</label>
+      <select id="nv-tipo" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:10px">
+        <option value="Passeio">Passeio</option>
+        <option value="Acampamento">Acampamento</option>
+        <option value="Festa">Festa</option>
+        <option value="Reunião">Reunião</option>
+        <option value="Outro">Outro</option>
+      </select>
+      <label>Descrição (opcional)</label><input type="text" id="nv-desc" placeholder="Detalhes do evento..." autocomplete="off"/>
+      <button class="btn-primary" onclick="window.salvarNovaViagem()" style="margin-top:6px">Salvar viagem</button>
+    </div>`;
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+};
+
+window.salvarNovaViagem=async()=>{
+  const nome=document.getElementById("nv-nome")?.value.trim();
+  const dataRaw=document.getElementById("nv-data")?.value.trim();
+  const local=document.getElementById("nv-local")?.value.trim();
+  const distIda=parseFloat(document.getElementById("nv-dist")?.value)||0;
+  const tipo=document.getElementById("nv-tipo")?.value||"Passeio";
+  const desc=document.getElementById("nv-desc")?.value.trim()||"";
+  const err=document.getElementById("nv-err");
+  if(err)err.style.display="none";
+  if(!nome||!dataRaw||!local){if(err){err.textContent="Preencha nome, data e local.";err.style.display="block";}return;}
+  if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataRaw)){if(err){err.textContent="Data inválida. Use DD/MM/AAAA.";err.style.display="block";}return;}
+  const [dd,mm,yyyy]=dataRaw.split("/");
+  const dataISO=`${yyyy}-${mm}-${dd}`;
+  try{
+    await addDoc(collection(db,"eventos_sede"),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,categoria:"viagem",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    showToast("✓ Viagem salva!");
+    document.getElementById("nova-viagem-modal")?.remove();
+    await carregarViagensExtra();
+  }catch(e){if(err){err.textContent="Erro: "+e.message;err.style.display="block";}}
+};
+
+async function carregarViagensExtra(){
+  const el=document.getElementById("viagens-extra-wrap");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"eventos_sede"),where("categoria","==","viagem"),orderBy("data","asc")));
+    if(snap.empty){el.innerHTML="";return;}
+    const hoje=new Date().toISOString().slice(0,10);
+    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const proximas=docs.filter(v=>v.data>=hoje);
+    const passadas=docs.filter(v=>v.data<hoje).reverse();
+    if(!proximas.length&&!passadas.length){el.innerHTML="";return;}
+    el.innerHTML=`<div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📋 VIAGENS REGISTRADAS NO APP (${docs.length})</div>
+      ${docs.map(v=>`<div class="card" style="margin-bottom:10px;border-color:rgba(255,102,0,.2)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <div>
+            <div style="font-size:14px;font-weight:700">${v.nome}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmtDate(v.data)} · ${v.destino}</div>
+            ${v.dist>0?`<div style="font-size:11px;color:var(--orange);margin-top:2px">📍 ${toInt(v.dist*2)} km ida+volta</div>`:""}
+            ${v.tipo?`<span class="badge" style="font-size:10px;background:rgba(255,102,0,.15);color:var(--orange);border:1px solid rgba(255,102,0,.3)">${v.tipo}</span>`:""}
+            ${v.desc?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${v.desc}</div>`:""}
+          </div>
+          ${UP?.isAdmin?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
+        </div>
+      </div>`).join("")}`;
+  }catch(e){el.innerHTML="";}
+}
+
+window.excluirViagemExtra=async(id)=>{
+  if(!confirm("Excluir esta viagem?"))return;
+  try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Viagem excluída.");await carregarViagensExtra();}catch(e){showToast("Erro.",true);}
+};
+
+window.zerarTemporada=async()=>{
+  if(!UP?.isAdmin)return;
+  if(!confirm("⚠️ Tem certeza?\n\nIsso zerará o totalKm de todos os membros e arquivará todos os registros de km.\n\nEssa ação não pode ser desfeita."))return;
+  const confirmText=prompt("Para confirmar, digite CONFIRMAR:");
+  if(confirmText!=="CONFIRMAR"){showToast("Operação cancelada.",true);return;}
+  showToast("Zerando temporada...");
+  try{
+    const ano=new Date().getFullYear();
+    const regSnap=await getDocs(collection(db,"registros"));
+    // Arquiva todos os registros
+    for(const d of regSnap.docs){
+      await setDoc(doc(db,`registros_arquivo/${ano}/registros`,d.id),d.data());
+      await deleteDoc(doc(db,"registros",d.id));
+    }
+    // Zera totalKm de todos os membros
+    const userSnap=await getDocs(collection(db,"usuarios"));
+    for(const d of userSnap.docs){
+      await setDoc(doc(db,"usuarios",d.id),{totalKm:0},{merge:true});
+    }
+    MEMBROS.forEach(m=>{m.totalKm=0;});
+    if(UP)UP.totalKm=0;
+    // Audit log
+    await addDoc(collection(db,"audit_log"),{tipo:"zerar_temporada",autor:UP.apelido,autorId:CU.uid,ano,registrosArquivados:regSnap.docs.length,criadoEm:serverTimestamp()});
+    await carregarRegistros();
+    showToast(`✓ Temporada zerada! ${regSnap.docs.length} registros arquivados em registros_arquivo/${ano}.`);
+    render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+async function recalcularKmMembro(membroId){
+  const m=findMembro(membroId);
+  const docId=resolveDocId(membroId)||membroId;
+  const ids=[...new Set([membroId,m?.uid,m?.authUid].filter(Boolean))];
+  let total=0;
+  for(const id of ids){
+    const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",id)));
+    snap.docs.forEach(d=>{total+=d.data().km||0;});
+  }
+  const rounded=Math.round(total);
+  await setDoc(doc(db,"usuarios",docId),{totalKm:rounded},{merge:true});
+  if(m)m.totalKm=rounded;
+  if(UP&&(UP.uid===docId||resolveDocId(membroId)===MY_DOC_ID))UP.totalKm=rounded;
+  return rounded;
+}
 window.toggleFicha=async(uid)=>{
   const el=document.getElementById("ficha-"+uid);
   if(!el)return;
@@ -5171,8 +5306,7 @@ window.salvarEdicao=async(id,membroId,kmAntigo)=>{
   if(!desc||!data||!km)return;
   try{
     await setDoc(doc(db,"registros",id),{desc,data,km},{merge:true});
-    const diff=km-kmAntigo;
-    if(diff!==0){const m=findMembro(membroId);if(m){const nt=Math.max(0,(m.totalKm||0)+diff);await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});m.totalKm=nt;}}
+    await recalcularKmMembro(membroId);
     await carregarRegistros();showToast("✓ Atualizado!");
     registrarLog("km_editado",`editou lançamento para ${toInt(km)} km`,"");
     render();
@@ -5182,8 +5316,7 @@ window.excluirKm=async(id,membroId,km)=>{
   if(!confirm("Excluir este lançamento?"))return;
   try{
     await deleteDoc(doc(db,"registros",id));
-    const m=findMembro(membroId);
-    if(m){const nt=Math.max(0,(m.totalKm||0)-km);await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});m.totalKm=nt;}
+    await recalcularKmMembro(membroId);
     await carregarRegistros();showToast("Lançamento excluído");
     registrarLog("km_excluido",`excluiu lançamento de ${toInt(km)} km`,m?.apelido||"");
     render();
@@ -5309,7 +5442,7 @@ function _presCardMembro(p,ev,status){
   };
   const cfg=statusCfg[status]||statusCfg.pendente;
   const acoes=status==="compareceu"
-    ?`<button onclick="window.mostrarFormComp('${uid}',${evId},'editar','${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit" title="Editar km">${li("pencil",14)}</button>
+    ?`<button onclick="window.mostrarFormComp('${uid}',${evId},'editar','${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit" title="Editar km">${li("pencil",14)} Editar km</button>
        <button onclick="window.excluirComparecimento('${uid}','${m.apelido}',${evId},'${p.registroId||""}',${p.kmLancado||0})" style="padding:7px 10px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit" title="Excluir">✕</button>`
     :`<button id="btn-comp-${uid}-${evId}" onclick="window.mostrarFormComp('${uid}',${evId},'novo','',${kmDefault})" style="padding:10px 14px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✓ Compareceu</button>`;
   const kmFormVal=status==="compareceu"?(p.kmLancado||0):kmDefault;
@@ -5485,7 +5618,7 @@ async function carregarCorpoEventoAnt(evId){
             <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
           </div>
           <div id="ant-btns-${r.id}" style="display:flex;gap:4px">
-            <button onclick="window.mostrarAntEdit('${r.id}',${r.km},${evId})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)}</button>
+            <button onclick="window.mostrarAntEdit('${r.id}',${r.km},${evId})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)} Editar km</button>
             <button onclick="window.excluirAntReg('${r.id}','${r.membroId}',${r.km},${evId})" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
           </div>
         </div>
@@ -5541,11 +5674,7 @@ window.salvarAntEdit=async(regId,membroId,kmAtual,evId)=>{
   inp.disabled=true;
   try{
     await setDoc(doc(db,"registros",regId),{km},{merge:true});
-    const diff=km-kmAtual;
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast(`✓ Km atualizado para ${toInt(km)}!`);
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -5554,10 +5683,7 @@ window.excluirAntReg=async(regId,membroId,km,evId)=>{
   if(!confirm("Excluir este registro?"))return;
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast("✓ Registro excluído.");
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5645,9 +5771,9 @@ window.lancarKmMassa=async(evId)=>{
     for(const m of selecionados){
       const km=kms[m.uid];
       await addDoc(collection(db,"registros"),{membroId:m.authUid,apelido:m.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:ev.id,createdAt:serverTimestamp()});
-      const nt=(m.totalKm||0)+km;
-      await setDoc(doc(db,"usuarios",m.uid),{totalKm:nt},{merge:true});
-      m.totalKm=nt;
+    }
+    for(const m of selecionados){
+      await recalcularKmMembro(m.uid);
     }
     showToast(`✓ ${selecionados.length} lançamento(s) salvos!`);
     selecionados.forEach(m=>{const el=document.getElementById("chk-"+m.uid);if(el)el.checked=false;});
@@ -5735,11 +5861,7 @@ window.editarKmGestao=async(regId,membroId,kmAtual,evId)=>{
   if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
   try{
     await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const diff=novoKm-kmAtual;
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
     await window.carregarGestaoEvento(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5748,10 +5870,7 @@ window.excluirRegistroGestao=async(regId,membroId,km,evId)=>{
   if(!confirm("Excluir este registro?"))return;
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast("✓ Registro excluído.");
     await window.carregarGestaoEvento(evId);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5862,10 +5981,7 @@ window.excluirRegistroPresenca=async(regId,membroId,km,evId)=>{
   const ev=EVENTOS.find(e=>e.id===evId);
   try{
     await deleteDoc(doc(db,"registros",regId));
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)-km);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast("✓ Registro excluído.");
     if(ev)await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);}
@@ -5876,11 +5992,7 @@ window.editarKmPresenca=async(regId,membroId,kmAtual,evId)=>{
   const ev=EVENTOS.find(e=>e.id===evId);
   try{
     await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
-    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(membroId)));
-    const diff=novoKm-kmAtual;
-    const nt=Math.max(0,(mSnap.data()?.totalKm||0)+diff);
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    const m=findMembro(membroId);if(m)m.totalKm=nt;
+    await recalcularKmMembro(membroId);
     showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
     if(ev)await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);}
