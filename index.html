@@ -373,23 +373,37 @@ const VAPID_KEY="BIv0H3QbgJJPrYx7ydxWD9VGfEDeIx30ZVnfE0fPBhA_SCy9YD_ZHcA5_oecYIZ
 let messaging=null;
 try{messaging=getMessaging(fireApp);}catch{}
 
-async function registrarTokenPush(){
-  if(!messaging||!CU)return;
+async function registrarTokenPush(solicitarPermissao=false){
+  if(!messaging||!CU||!MY_DOC_ID){console.warn('[FCM] pré-requisitos ausentes: messaging=',!!messaging,'CU=',!!CU,'MY_DOC_ID=',MY_DOC_ID);return;}
+  if(!('serviceWorker' in navigator)){console.warn('[FCM] serviceWorker não suportado neste browser');return;}
   try{
-    // Detecta o caminho base automaticamente
-    const swPath=location.pathname.replace(/\/[^/]*$/,"/")+"firebase-messaging-sw.js";
-    const sw=await navigator.serviceWorker.register(swPath);
-    const perm=await Notification.requestPermission();
-    if(perm!=="granted"){console.warn("Permissão de notificação negada.");return;}
-    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:sw});
-    if(token){
-      await setDoc(doc(db,"usuarios",MY_DOC_ID),{fcmToken:token},{merge:true});
-      onMessage(messaging,payload=>{
-        const {title,body}=payload.notification||{};
-        showToast((title?title+": ":"")+body,false);
-      });
+    if(solicitarPermissao){
+      const perm=await Notification.requestPermission();
+      console.log('[FCM] permissão solicitada →',perm);
+      if(perm!=='granted')return;
     }
-  }catch(e){console.warn("Push não disponível:",e.message);}
+    if(Notification.permission!=='granted'){console.log('[FCM] permissão não concedida, saindo silenciosamente');return;}
+    const swPath=location.pathname.replace(/\/[^/]*$/,'/')+'firebase-messaging-sw.js';
+    console.log('[FCM] registrando SW em',swPath);
+    await navigator.serviceWorker.register(swPath);
+    const swReg=await navigator.serviceWorker.ready;
+    console.log('[FCM] SW ativo:',swReg.active?.scriptURL);
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:swReg});
+    if(token){
+      console.log('[FCM] token obtido:',token.slice(0,24)+'…');
+      await setDoc(doc(db,'usuarios',MY_DOC_ID),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
+      console.log('[FCM] token salvo em usuarios/'+MY_DOC_ID);
+      if(!window._onMsgRegistered){
+        window._onMsgRegistered=true;
+        onMessage(messaging,payload=>{
+          const{title,body}=payload.notification||{};
+          showToast((title?title+': ':'')+body,false);
+        });
+      }
+    }else{
+      console.warn('[FCM] getToken retornou vazio — verifique VAPID key e configuração Firebase Console');
+    }
+  }catch(e){console.warn('[FCM] erro:',e.message,e);}
 }
 
 async function dispararPush(titulo,corpo,tokens){
@@ -4531,7 +4545,27 @@ function htmlInstallBanner(){
 function htmlNotifBanner(){
   if(!('Notification' in window))return'';
   if(Notification.permission==='granted')return'';
-  return`<div id="notif-push-banner" style="background:rgba(0,0,0,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,102,0,.25);border-radius:14px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+  const _base='background:rgba(0,0,0,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+  const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const _isStandalone=window.matchMedia('(display-mode:standalone)').matches||!!window.navigator.standalone;
+  // iOS fora do standalone — push requer app instalado na tela inicial
+  if(_isIOS&&!_isStandalone){
+    return`<div id="notif-push-banner" style="${_base};border:1px solid rgba(255,193,7,.3)">
+      <span style="font-size:22px;flex-shrink:0">🍎</span>
+      <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.4">No iPhone/iPad, <strong style="color:#fff">instale o app na tela inicial</strong> primeiro para receber notificações push.</div>
+      <button onclick="window.dispensarNotifBanner()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0 2px;flex-shrink:0">✕</button>
+    </div>`;
+  }
+  // Permissão explicitamente bloqueada — orientar nas configurações do browser
+  if(Notification.permission==='denied'){
+    return`<div id="notif-push-banner" style="${_base};border:1px solid rgba(224,82,82,.3)">
+      <span style="font-size:22px;flex-shrink:0">🔕</span>
+      <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.4">Notificações <strong style="color:var(--danger)">bloqueadas</strong>. Para ativar, abra as configurações do navegador e permita notificações para este site.</div>
+      <button onclick="window.dispensarNotifBanner()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0 2px;flex-shrink:0">✕</button>
+    </div>`;
+  }
+  // Estado 'default' — ainda não decidiu
+  return`<div id="notif-push-banner" style="${_base};border:1px solid rgba(255,102,0,.25)">
     <span style="font-size:22px;flex-shrink:0">🔔</span>
     <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.4">Ative as notificações para não perder nada do clube!</div>
     <button id="notif-ativar-btn" onclick="window.ativarNotificacoes()" style="padding:7px 12px;min-height:34px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">Ativar agora</button>
@@ -4543,13 +4577,10 @@ window.ativarNotificacoes=async()=>{
   const btn=document.getElementById('notif-ativar-btn');
   if(btn){btn.disabled=true;btn.textContent='Aguarde...';}
   try{
-    await registrarTokenPush();
-    if(Notification.permission==='granted'){
-      document.getElementById('notif-push-banner')?.remove();
-      showToast('✓ Notificações ativadas!');
-    }else{
-      document.getElementById('notif-push-banner')?.remove();
-    }
+    await registrarTokenPush(true);
+    document.getElementById('notif-push-banner')?.remove();
+    if(Notification.permission==='granted')showToast('✓ Notificações ativadas!');
+    else render();
   }catch{
     document.getElementById('notif-push-banner')?.remove();
   }
@@ -7079,7 +7110,7 @@ onAuthStateChanged(auth,async user=>{
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede(),carregarTemporada(),carregarViagensExtra()];
     if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());}
     await Promise.all(tarefas);
-    registrarTokenPush();
+    registrarTokenPush(false);
   }catch(e){console.error(e);}
   // Birthday push notification
   (async()=>{

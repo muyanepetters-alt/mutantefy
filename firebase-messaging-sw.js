@@ -1,4 +1,4 @@
-// v6
+// v7
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js');
 
@@ -13,12 +13,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+console.log('[SW] Mutantes MC — service worker carregado (v7)');
+
 // Ativa o novo SW imediatamente, sem esperar o tab fechar
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+self.addEventListener('install', e => {
+  console.log('[SW] install event — skipWaiting');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  console.log('[SW] activate event — clients.claim');
+  e.waitUntil(clients.claim());
+});
 
 // Notificações recebidas com o app em background / fechado
 messaging.onBackgroundMessage(payload => {
+  console.log('[SW] onBackgroundMessage recebido:', JSON.stringify(payload).slice(0, 120));
   const { title, body } = payload.notification || {};
   const iconUrl = payload.data?.icon || self.registration.scope + 'icon-192.png';
   self.registration.showNotification(title || 'Mutantes MC', {
@@ -33,6 +43,7 @@ messaging.onBackgroundMessage(payload => {
 
 // Clique na notificação abre o app
 self.addEventListener('notificationclick', e => {
+  console.log('[SW] notificationclick — abrindo app');
   e.notification.close();
   e.waitUntil(clients.openWindow(self.registration.scope));
 });
