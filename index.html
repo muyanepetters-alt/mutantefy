@@ -362,7 +362,7 @@ const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-
 const fireApp=initializeApp(FC);
 const auth=getAuth(fireApp);
 const db=getFirestore(fireApp);
-const CLOUD="dqrmeibp1",PRESET="vofjfpio",META=5000;
+const CLOUD="dqrmeibp1",PRESET="vofjfpio";let META=5000;
 const NIVEIS=['PP','Meio Escudo','Meio Escudo Maior','Escudo','Sub Diretor','Diretor','Diretor Regional'];
 const nivelOpts=(cur='')=>NIVEIS.map(n=>`<option value="${n}"${cur===n?' selected':''}>${n}</option>`).join('');
 
@@ -1009,7 +1009,7 @@ function renderDiretor(el){
   const km=UP.totalKm||0;
   const pct=Math.min(100,Math.round((km/META)*100));
   const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
-  const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===CU.uid||r.membroId===MY_DOC_ID):REGS;
+  const meuRegs=UP.isAdmin?REGS.filter(r=>r.membroId===(CU?.uid)||r.membroId===MY_DOC_ID):REGS;
   const clubeLabel=UP.isAdmin?`${li("wrench",14)} Admin`:"🏆 Clube";
   const roleBadge=UP.nivel
     ?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`
@@ -1464,7 +1464,8 @@ async function carregarSedePresencas(){
     const evSnap=await getDocs(collection(db,"eventos_sede"));
     const anoStr=String(ANO_ATIVO);
     TOTAL_EVENTOS_SEDE=evSnap.docs.filter(d=>{const ev=d.data();return(ev.data||'').startsWith(anoStr)&&ev.categoria!=='viagem';}).length;
-  }catch(e){console.error("carregarSedePresencas:",e);}
+    window._sedeCountsLoaded=true;
+  }catch(e){console.error("carregarSedePresencas:",e);window._sedeCountsLoaded=false;}
 }
 async function carregarEscalaLista(){
   try{
@@ -2265,6 +2266,7 @@ window.abrirPerfilPublico=async(uid)=>{
   ov.className="app-modal-overlay";
   ov.style.cssText="align-items:center;justify-content:center";
   ov.id="perfil-pub-ov";
+  document.getElementById('perfil-pub-ov')?.remove();
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const rankPos=[...MEMBROS].filter(m=>m.apelido&&m.apelido!=='undefined').sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).findIndex(m=>m.uid===membro.uid)+1;
   ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:92vw;max-width:440px;padding:0;overflow:hidden">
@@ -2351,7 +2353,7 @@ function htmlRelatorio(){
 
   // Média presença nos eventos (via REGS tipo=rota)
   const evRealizadosIds=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).map(e=>e.id);
-  const totalPossivel=MEMBROS.length*evRealizadosIds.length;
+  const totalPossivel=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined').length*evRealizadosIds.length;
   const presUnicas=new Set(REGS.filter(r=>r.tipo==='rota'&&evRealizadosIds.includes(r.eventoId||parseInt(r.eventoId))).map(r=>`${r.membroId}_${r.eventoId}`)).size;
   const mediaPresenca=totalPossivel>0?Math.round((presUnicas/totalPossivel)*100):0;
 
@@ -2578,7 +2580,7 @@ window.gerarRelPDF=()=>{
     const popE=Object.entries(tripCntMap).map(([k,s])=>({id:k,cnt:s.size})).sort((a,b)=>b.cnt-a.cnt)[0];
     const popTripEv=popE?EVENTOS.find(e=>String(e.id)===popE.id):null;
     const maxMesKm=Math.max(...kmMes,0);const maxMesIdx=kmMes.indexOf(maxMesKm);
-    const passedIds=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<_hj).map(e=>e.id);
+    const passedIds=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<new Date()).map(e=>e.id);
     const neverMissed=passedIds.length?sortedM.filter(m=>passedIds.every(eid=>REGS.some(r=>(r.membroId===m.uid||r.membroId===m.authUid)&&String(r.eventoId)===String(eid)&&r.tipo==='rota'))):[];
     const hlW=(W-30)/2,hlH=19;
     const hls=[
@@ -3049,6 +3051,7 @@ window.abrirFotoModal=async(fotoId,url)=>{
   const ov=document.createElement("div");
   ov.className="app-modal-overlay";
   ov.id="foto-modal-ov";
+  document.getElementById('foto-modal-ov')?.remove();
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   ov.innerHTML=`<div class="app-modal-sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -3171,6 +3174,7 @@ window.abrirPerfilModal=(tipo)=>{
   }
   const ov=document.createElement("div");
   ov.id="perfil-modal-overlay";
+  document.getElementById('perfil-modal-overlay')?.remove();
   ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const sheet=document.createElement("div");
@@ -3488,7 +3492,7 @@ function htmlAniversarios(){
   ${MEMBROS.filter(m=>!m.nascimento).length>0?`<div class="hint-box">⚠️ ${MEMBROS.filter(m=>!m.nascimento).length} membros ainda não preencheram a data de nascimento no Perfil.</div>`:""}`;
 }
 
-async function carregarAniversarios(){}
+async function carregarAniversarios(){/* dados vêm de MEMBROS já carregados — sem fetch adicional necessário */}
 
 // ═══════════════════════════════════════════════════
 // ANIVERSÁRIOS DO MÊS (card na tela Início)
@@ -3760,6 +3764,7 @@ window.verConfsEventoSede=async(eventoId,nomeEvento)=>{
   const ov=document.createElement("div");
   ov.className="app-modal-overlay";
   ov.id="evs-lista-ov";
+  document.getElementById('evs-lista-ov')?.remove();
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   ov.innerHTML=`<div class="app-modal-sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -4497,7 +4502,7 @@ window.toggleKmAvulso=()=>{
   wrap.style.display=fechando?"none":"block";
   if(ic)ic.textContent=fechando?"▼":"▲";
 };
-window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&!window._sedeCauntsLoaded){render();await carregarSedePresencas();window._sedeCauntsLoaded=true;}render();setTimeout(()=>{const active=document.querySelector('.bnav-item.nav-active');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},50);};
+window.setTM=async t=>{TM=t;if(t==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))TA="home";if(t==="ranking"&&!window._sedeCountsLoaded){render();await carregarSedePresencas();}render();setTimeout(()=>{const active=document.querySelector('.bnav-item.nav-active');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},50);};
 
 // ── BANNER DE INSTALAÇÃO PWA ────────────────────────
 window._pwaDeferred=null;
@@ -4772,7 +4777,8 @@ window.carregarRelMembro=async(uid)=>{
   const evTotal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<=nowD).length;
   try{
     const pSnap=await getDocs(query(collection(db,'presencas'),where('membroId','==',m.authUid)));
-    const presCompareceu=pSnap.docs.filter(d=>d.data().resposta==='compareceu').map(d=>d.data());
+    const pSnap2=(m.uid&&m.uid!==m.authUid)?await getDocs(query(collection(db,'presencas'),where('membroId','==',m.uid))):null;
+    const presCompareceu=[...pSnap.docs,...(pSnap2?.docs||[])].filter(d=>d.data().resposta==='compareceu').map(d=>d.data());
     evComp=presCompareceu.length;
     evHistorico=presCompareceu.map(p=>{
       const ev=EVENTOS.find(e=>e.id===p.eventoId);
@@ -4782,7 +4788,7 @@ window.carregarRelMembro=async(uid)=>{
     }).sort((a,b)=>b.data.localeCompare(a.data));
   }catch{}
 
-  if(!window._sedeCauntsLoaded){await carregarSedePresencas();window._sedeCauntsLoaded=true;}
+  if(!window._sedeCountsLoaded){await carregarSedePresencas();}
   const sc=_sedeCount(m);
   const scEv=_sedeCountEv(m);
   const totalSextas=contarSextasDoAno(ANO_ATIVO);
@@ -4926,7 +4932,7 @@ window.gerarPdfMembro=async(uid)=>{
   showToast('Gerando PDF...');
   const{m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,scEv,totalSextas,totalEvSede,pctSede,pctEvSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg,lastReg,clubAvgKm,maxEvStreak}=ctx;
   const obs=document.getElementById('rel-obs')?.value||'';
-  const ano=new Date().getFullYear();
+  const ano=ANO_ATIVO;
   const kmRaw=Math.round(m.totalKm||0);
   const pct=Math.round((kmRaw/META)*100);
 
@@ -6047,7 +6053,7 @@ window.fazerLogin=async()=>{
     await signInWithEmailAndPassword(auth,userEmail,senha);
   }catch(e){console.error("ERRO COMPLETO:",e.code,e.message);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
-window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};CONF_SEDE={};SEDE_COUNTS={};SEDE_COUNTS_EV={};TOTAL_EVENTOS_SEDE=0;window._sedeCauntsLoaded=false;TA="home";TM="painel";};
+window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};CONF_SEDE={};SEDE_COUNTS={};SEDE_COUNTS_EV={};TOTAL_EVENTOS_SEDE=0;window._sedeCountsLoaded=false;TA="home";TM="painel";};
 window.cadastrarEmLote=async()=>{
   const btn=document.getElementById("lote-btn");
   const prog=document.getElementById("lote-progress");
@@ -6999,7 +7005,13 @@ window.confirmarTodosPresentes=async(eventoId)=>{
 };
 
 async function carregarTemporada(){
-  try{const s=await getDoc(doc(db,"config","temporada"));if(s.exists()&&s.data().anoAtivo)ANO_ATIVO=s.data().anoAtivo;}catch{}
+  try{
+    const s=await getDoc(doc(db,"config","temporada"));
+    if(s.exists()){
+      if(s.data().anoAtivo)ANO_ATIVO=s.data().anoAtivo;
+      if(s.data().meta)META=s.data().meta;
+    }
+  }catch{}
 }
 
 window.abrirEmojiPicker=async function(targetId){
@@ -7065,7 +7077,7 @@ onAuthStateChanged(auth,async user=>{
     // Fase 2: todo o resto em paralelo
     setDoc(doc(db,'usuarios',MY_DOC_ID),{lastSeen:serverTimestamp()},{merge:true}).catch(()=>{});
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede(),carregarTemporada(),carregarViagensExtra()];
-    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());window._sedeCauntsLoaded=true;}
+    if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
