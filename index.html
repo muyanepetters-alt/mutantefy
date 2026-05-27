@@ -1652,7 +1652,7 @@ function htmlWhatsApp(ctx){
       ${m.status?`<span style="font-size:9px;color:rgba(255,255,255,.45);width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center">${m.status}</span>`:""}
     </div>
   </div>`).join("");
-  const tabs=[["atividades","Feed"],["mural","Mural"],["galeria","Galeria"],["votacoes","Votações"],["aniversarios","Aniver."]];
+  const tabs=[["atividades","Feed"],["mural","Mensagens"],["galeria","Galeria"],["votacoes","Votações"],["aniversarios","Aniver."]];
   const tabBtns=tabs.map(([id,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex-shrink:0;padding:0 14px;height:36px;min-height:36px;border-radius:999px;border:${subAba===id?'none':'1px solid rgba(255,255,255,.1)'};background:${subAba===id?'#ff6600':'transparent'};color:${subAba===id?'#fff':'rgba(255,255,255,.5)'};font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap">${lb}</button>`).join("");
   return`<div style="overflow:hidden;max-width:100%">
   <div class="hide-scroll" style="overflow-x:auto;padding-bottom:12px;margin-bottom:4px">
@@ -1783,14 +1783,16 @@ function dispararConfete(){
 // ═══════════════════════════════════════════════════
 function htmlMural(){
   return`<div class="card">
-    <div class="sec-title">${li("message-square",16)} Mural do clube</div>
+    <div class="sec-title">${li("message-square",16)} Mensagens</div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input type="text" id="mural-msg" placeholder="Escreva seu recado..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.postarMural()"/>
-      <button onclick="window.postarMural()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Postar</button>
+      <input type="text" id="mural-msg" placeholder="Escreva sua mensagem..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.postarMural()"/>
+      <button onclick="window.postarMural()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Enviar</button>
     </div>
     <div id="mural-lista"><span class="spin">⟳</span></div>
   </div>`;
 }
+
+const _EMOJIS_RESP=['😂','🤘','🏍️','❤️','🔥','👊','😎','🍺','💀','👍'];
 
 async function carregarMural(){
   const el=document.getElementById("mural-lista");
@@ -1798,26 +1800,54 @@ async function carregarMural(){
   try{
     const snap=await getDocs(query(collection(db,"mural"),orderBy("criadoEm","desc")));
     const docs=snap.docs.slice(0,30).map(d=>({id:d.id,...d.data()}));
-    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum recado ainda. Seja o primeiro!</div>`;return;}
+    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma mensagem ainda. Seja o primeiro!</div>`;return;}
     el.innerHTML=docs.map(r=>{
       const reacoes=r.reacoes||[];
       const meuId=CU?.uid||"";
+      const respostas=r.respostas||[];
       const emojiList=["🤘","😂"];
       const reacBar=emojiList.map(emoji=>{
         const lista=reacoes.filter(rx=>rx.emoji===emoji);
         const jaTenho=lista.some(rx=>rx.membroId===meuId);
         return`<button class="reaction-btn${jaTenho?" active":""}" onclick="window.reagirMural('${r.id}','${emoji}')">${emoji}${lista.length>0?` <span style="font-size:11px">${lista.length}</span>`:""}</button>`;
       }).join("");
+      const repliesHtml=respostas.length?`<div id="replies-${r.id}" style="display:none;margin-top:8px;padding-left:12px;border-left:2px solid rgba(255,102,0,.25)">
+        ${respostas.map(rep=>{
+          const mRep=MEMBROS.find(m=>m.uid===rep.membroId||m.authUid===rep.membroId);
+          return`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+            ${avatarEl(mRep?.fotoUrl||"",rep.apelido,26)}
+            <div style="flex:1">
+              <div style="font-size:11px;font-weight:700;color:var(--orange)">${rep.apelido}<span style="font-size:10px;color:#555;margin-left:6px;font-weight:400">${rep.data?fmtDate((rep.data||"").slice(0,10)):""}</span></div>
+              <div style="font-size:12px;line-height:1.4;margin-top:2px;word-break:break-word">${rep.texto}</div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>`:"";
+      const emojiBarResp=_EMOJIS_RESP.map(e=>`<button onclick="window.inserirEmojiResposta('${r.id}','${e}')" type="button" style="background:transparent;border:none;font-size:16px;cursor:pointer;padding:2px 3px;border-radius:4px;line-height:1">${e}</button>`).join("");
+      const replyForm=`<div id="reply-form-${r.id}" style="display:none;margin-top:8px;padding:8px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+        <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px">${emojiBarResp}</div>
+        <textarea id="reply-ta-${r.id}" placeholder="Escreva sua resposta..." style="width:100%;min-height:80px;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;resize:vertical;margin:0;display:block"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button onclick="window.enviarResposta('${r.id}')" style="padding:8px 16px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Enviar</button>
+          <button onclick="window.cancelarResposta('${r.id}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Cancelar</button>
+        </div>
+      </div>`;
       return`<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px">
         <div onclick="window.abrirPerfilPublico('${r.autorId}')" style="cursor:pointer;flex-shrink:0">${avatarEl(r.fotoUrl||"",r.autor,36)}</div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <div onclick="window.abrirPerfilPublico('${r.autorId}')" style="font-size:12px;font-weight:700;color:var(--orange);cursor:pointer">${r.autor}</div>
             <div style="font-size:10px;color:#555">${r.criadoEm?.toDate?fmtDate(r.criadoEm.toDate().toISOString().slice(0,10)):""}</div>
           </div>
           <div style="font-size:13px;line-height:1.4;word-break:break-word;overflow-wrap:anywhere">${r.msg}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${reacBar}</div>
-          ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;margin-top:4px">✕ apagar</button>`:""}
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px">
+            ${reacBar}
+            <button onclick="window.abrirResposta('${r.id}')" style="padding:3px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px">↩ Responder</button>
+            ${respostas.length?`<button onclick="window.toggleRespostas('${r.id}')" style="padding:3px 8px;border-radius:20px;border:1px solid rgba(255,102,0,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit">💬 ${respostas.length} resposta${respostas.length>1?"s":""}</button>`:""}
+            ${UP&&(UP.isAdmin||r.autorId===CU.uid)?`<button onclick="window.excluirMural('${r.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer;padding:3px">✕ apagar</button>`:""}
+          </div>
+          ${repliesHtml}
+          ${replyForm}
         </div>
       </div>`;
     }).join("");
@@ -1830,7 +1860,7 @@ window.postarMural=async()=>{
   if(!msg)return;
   try{
     await addDoc(collection(db,"mural"),{msg,autor:UP.apelido,autorId:CU.uid,fotoUrl:UP.fotoUrl||"",criadoEm:serverTimestamp()});
-    registrarFeed(CU.uid,UP.apelido,"mural",`${UP.apelido} postou no mural`);
+    registrarFeed(CU.uid,UP.apelido,"mural",`${UP.apelido} postou uma mensagem`);
     input.value="";carregarMural();
   }catch{showToast("Erro ao postar.",true);}
 };
@@ -1855,6 +1885,41 @@ window.reagirMural=async(docId,emoji)=>{
   }catch{showToast("Erro.",true);}
 };
 
+
+window.abrirResposta=(id)=>{
+  const form=document.getElementById("reply-form-"+id);
+  if(form){form.style.display="block";const ta=document.getElementById("reply-ta-"+id);if(ta)ta.focus();}
+};
+window.cancelarResposta=(id)=>{
+  const form=document.getElementById("reply-form-"+id);
+  if(form)form.style.display="none";
+  const ta=document.getElementById("reply-ta-"+id);if(ta)ta.value="";
+};
+window.toggleRespostas=(id)=>{
+  const el=document.getElementById("replies-"+id);
+  if(!el)return;
+  el.style.display=el.style.display==="none"?"block":"none";
+};
+window.inserirEmojiResposta=(id,emoji)=>{
+  const ta=document.getElementById("reply-ta-"+id);
+  if(!ta)return;
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  ta.value=ta.value.slice(0,s)+emoji+ta.value.slice(e);
+  ta.selectionStart=ta.selectionEnd=s+[...emoji].length;
+  ta.focus();
+};
+window.enviarResposta=async(id)=>{
+  if(!CU||!UP)return;
+  const ta=document.getElementById("reply-ta-"+id);
+  const texto=ta?.value.trim();
+  if(!texto){showToast("Escreva algo antes de enviar.",true);return;}
+  try{
+    await updateDoc(doc(db,"mural",id),{respostas:arrayUnion({membroId:CU.uid,apelido:UP.apelido,fotoUrl:UP.fotoUrl||"",texto,data:new Date().toISOString()})});
+    if(ta)ta.value="";
+    if(document.getElementById("reply-form-"+id))document.getElementById("reply-form-"+id).style.display="none";
+    carregarMural();
+  }catch(e){showToast("Erro ao enviar resposta.",true);}
+};
 
 // ═══════════════════════════════════════════════════
 // FEED DE ATIVIDADES (Social → Feed)
@@ -2375,15 +2440,14 @@ window.abrirPerfilModal=(tipo)=>{
         </div>
         <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${CU.email}</div></div>
       </div>
+      <div id="pm-dados-err" class="msg-err" style="display:none"></div>
       <label>🎖️ Nível no clube</label>
       <select id="pm-cargo" style="margin-bottom:8px"><option value="">Selecione seu nível...</option>${nivelOpts(UP.nivel)}</select>
-      <button class="btn-primary" style="margin-bottom:14px" onclick="window.salvarNivelModal()">Salvar nível</button>
       <label>🎂 Data de nascimento</label>
       <input type="text" id="pm-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-      <button class="btn-primary" style="margin-bottom:14px" onclick="window.salvarNascimentoModal()">Salvar nascimento</button>
       <label>📅 Data de ingresso no clube</label>
       <input type="text" id="pm-ingresso" value="${UP.dataIngresso||''}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-      <button class="btn-primary" onclick="window.salvarIngressoModal()">Salvar ingresso</button>`;
+      <button class="btn-primary" style="margin-top:6px" onclick="window.salvarDadosModal()">Salvar</button>`;
   } else if(tipo==="graduacoes"){
     titulo=`${li("award",18)} Graduações`;
     conteudo=`
@@ -2398,9 +2462,10 @@ window.abrirPerfilModal=(tipo)=>{
     conteudo=`
       <div id="pm-err" class="msg-err" style="display:none"></div>
       <div id="pm-ok" class="msg-ok" style="display:none"></div>
+      <label>Email</label><input type="email" id="pm-email" value="${CU.email||""}" autocomplete="email"/>
       <label>Senha atual</label><div class="senha-wrap"><input type="password" id="pm-atual" autocomplete="current-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-atual')">👁️</button></div>
       <label>Nova senha</label><div class="senha-wrap"><input type="password" id="pm-nova" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-nova')">👁️</button></div>
-      <label>Confirmar</label><div class="senha-wrap"><input type="password" id="pm-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-conf')">👁️</button></div>
+      <label>Confirmar nova senha</label><div class="senha-wrap"><input type="password" id="pm-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-conf')">👁️</button></div>
       <button class="btn-primary" onclick="window.trocarSenhaModal()">Salvar nova senha</button>`;
   }
   const ov=document.createElement("div");
@@ -2431,32 +2496,26 @@ window.salvarGaragemModal=async()=>{
   }catch{showToast("Erro ao salvar.",true);}
 };
 
-window.salvarNivelModal=async()=>{
-  const cargo=document.getElementById("pm-cargo")?.value;
-  if(!cargo){showToast("Selecione um nível.",true);return;}
+window.salvarDadosModal=async()=>{
+  const cargo=document.getElementById("pm-cargo")?.value||"";
+  const rawNasc=document.getElementById("pm-nascimento")?.value||"";
+  const ingresso=document.getElementById("pm-ingresso")?.value.trim()||"";
+  const err=document.getElementById("pm-dados-err");
+  if(err)err.style.display="none";
+  const nasc=rawNasc?nascForStorage(rawNasc):"";
+  if(rawNasc&&!nasc){if(err){err.textContent="Data de nascimento inválida. Use DD/MM/AAAA.";err.style.display="block";}return;}
+  if(ingresso&&!/^\d{2}\/\d{2}\/\d{4}$/.test(ingresso)){if(err){err.textContent="Data de ingresso inválida. Use DD/MM/AAAA.";err.style.display="block";}return;}
+  const updates={};
+  if(cargo)updates.nivel=cargo;
+  if(nasc)updates.nascimento=nasc;
+  updates.dataIngresso=ingresso;
   try{
-    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nivel:cargo},{merge:true});
-    UP.nivel=cargo;showToast("✓ Nível salvo!");document.getElementById("perfil-modal-overlay")?.remove();render();
-  }catch(e){showToast("Erro: "+e.message,true);}
-};
-
-window.salvarNascimentoModal=async()=>{
-  const raw=document.getElementById("pm-nascimento")?.value;
-  const nasc=nascForStorage(raw||"");
-  if(!nasc){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
-  try{
-    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nascimento:nasc},{merge:true});
-    UP.nascimento=nasc;showToast("✓ Data de nascimento salva!");
-  }catch{showToast("Erro.",true);}
-};
-
-window.salvarIngressoModal=async()=>{
-  const val=document.getElementById("pm-ingresso")?.value.trim()||"";
-  if(val&&!/^\d{2}\/\d{2}\/\d{4}$/.test(val)){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
-  try{
-    await setDoc(doc(db,"usuarios",MY_DOC_ID),{dataIngresso:val},{merge:true});
-    UP.dataIngresso=val;showToast("✓ Data de ingresso salva!");
-  }catch(e){showToast("Erro: "+e.message,true);}
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),updates,{merge:true});
+    if(cargo)UP.nivel=cargo;
+    if(nasc)UP.nascimento=nasc;
+    UP.dataIngresso=ingresso;
+    showToast("✓ Dados salvos!");document.getElementById("perfil-modal-overlay")?.remove();render();
+  }catch(e){if(err){err.textContent="Erro: "+e.message;err.style.display="block";}}
 };
 
 window.adicionarGraduacaoModal=async()=>{
@@ -2475,17 +2534,18 @@ window.adicionarGraduacaoModal=async()=>{
 };
 
 window.trocarSenhaModal=async()=>{
+  const email=document.getElementById("pm-email")?.value.trim()||CU.email;
   const atual=document.getElementById("pm-atual")?.value;
   const nova=document.getElementById("pm-nova")?.value;
   const conf=document.getElementById("pm-conf")?.value;
   const err=document.getElementById("pm-err");
   const ok=document.getElementById("pm-ok");
   if(err)err.style.display="none";if(ok)ok.style.display="none";
-  if(!atual||!nova||!conf){if(err){err.textContent="Preencha todos os campos.";err.style.display="block";}return;}
+  if(!email||!atual||!nova||!conf){if(err){err.textContent="Preencha todos os campos.";err.style.display="block";}return;}
   if(nova.length<6){if(err){err.textContent="Mínimo 6 caracteres.";err.style.display="block";}return;}
   if(nova!==conf){if(err){err.textContent="As senhas não coincidem.";err.style.display="block";}return;}
   try{
-    const cred=EmailAuthProvider.credential(CU.email,atual);
+    const cred=EmailAuthProvider.credential(email,atual);
     await reauthenticateWithCredential(CU,cred);
     await updatePassword(CU,nova);
     if(ok){ok.textContent="✓ Senha alterada!";ok.style.display="block";}
