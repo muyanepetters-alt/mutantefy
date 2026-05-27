@@ -592,7 +592,7 @@ function evCardMembro(ev){
   </div>`;
 }
 
-let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
+let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},SEDE_COUNTS_EV={},TOTAL_EVENTOS_SEDE=0,PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
 let ANO_ATIVO=new Date().getFullYear();
 let _presAba="massa";
 let VIAGENS_EXTRA=[];
@@ -777,7 +777,13 @@ window.toggleEventosAnteriores=()=>{
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
 };
 function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
+function _sedeCountEv(m){return SEDE_COUNTS_EV[m.authUid]||SEDE_COUNTS_EV[m.uid]||0;}
 function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
+function contarSextasDoAno(ano){
+  const hoje=new Date();let total=0;
+  for(let mm=0;mm<12;mm++){const dias=new Date(ano,mm+1,0).getDate();for(let dd=1;dd<=dias;dd++){const d=new Date(ano,mm,dd);if(d>hoje)break;if(d.getDay()===5)total++;}}
+  return total;
+}
 function htmlTemporada(){
   const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
   const meta100=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
@@ -836,8 +842,9 @@ function htmlRanking(){
     <div class="sec-title">${li("trophy",16)} Ranking</div>
     <div style="font-size:11px;color:var(--orange);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">🏁 Temporada ${ANO_ATIVO}</div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
-      <button onclick="window.setRankAba('km')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="km"?"none":"1px solid var(--border)"};background:${aba==="km"?"var(--orange)":"var(--bg3)"};color:${aba==="km"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
-      <button onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="sede"?"none":"1px solid var(--border)"};background:${aba==="sede"?"var(--orange)":"var(--bg3)"};color:${aba==="sede"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
+      <button onclick="window.setRankAba('km')" style="flex:1;padding:8px 4px;border-radius:20px;border:${aba==="km"?"none":"1px solid var(--border)"};background:${aba==="km"?"var(--orange)":"var(--bg3)"};color:${aba==="km"?"#fff":"var(--muted)"};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
+      <button onclick="window.setRankAba('sextas')" style="flex:1;padding:8px 4px;border-radius:20px;border:${aba==="sextas"?"none":"1px solid var(--border)"};background:${aba==="sextas"?"var(--orange)":"var(--bg3)"};color:${aba==="sextas"?"#fff":"var(--muted)"};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Sextas</button>
+      <button onclick="window.setRankAba('sede_ev')" style="flex:1;padding:8px 4px;border-radius:20px;border:${aba==="sede_ev"?"none":"1px solid var(--border)"};background:${aba==="sede_ev"?"var(--orange)":"var(--bg3)"};color:${aba==="sede_ev"?"#fff":"var(--muted)"};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Eventos Sede</button>
     </div>
     ${aba==="km"?`
       ${(()=>{
@@ -886,12 +893,24 @@ function htmlRanking(){
           <div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
         </div>`;
       }).join("")}
-    `:`
+    `:aba==="sextas"?`
       ${(()=>{
+        const totalSex=contarSextasDoAno(ANO_ATIVO);
         const ss=[...membros].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
         const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
-        return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">⛪ Total presenças na sede</div><div class="metric-value">${tot}</div></div>`
-        +ss.map((m,i)=>{const sc=_sedeCount(m);return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</span><span style="font-size:12px;font-weight:700;color:${sc>0?"#60b8ff":"var(--muted)"}">⛪ ${sc} presenças</span></div></div>`;}).join("");
+        return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">📅 Sextas do ano até hoje</div><div class="metric-value">${totalSex}</div></div>`
+        +ss.map((m,i)=>{const sc=_sedeCount(m);const p=totalSex>0?Math.round(sc/totalSex*100):0;const col=p>=80?'var(--green)':p>=50?'var(--orange)':'#60b8ff';
+          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totalSex} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
+        }).join("");
+      })()}
+    `:`
+      ${(()=>{
+        const totEv=TOTAL_EVENTOS_SEDE;
+        const ss=[...membros].sort((a,b)=>(_sedeCountEv(b)||0)-(_sedeCountEv(a)||0));
+        return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">🎉 Eventos na sede este ano</div><div class="metric-value">${totEv}</div></div>`
+        +ss.map((m,i)=>{const sc=_sedeCountEv(m);const p=totEv>0?Math.round(sc/totEv*100):0;const col=p>=80?'var(--green)':p>=50?'var(--orange)':'#60b8ff';
+          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totEv} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
+        }).join("");
       })()}
     `}
   </div>`;
@@ -1429,17 +1448,16 @@ function meuSedeCount(){
 }
 async function carregarSedePresencas(){
   try{
-    // Carrega TODOS os "sim" — documentos antigos não têm campo "tipo" (defaultam para presenca)
     const snap=await getDocs(query(collection(db,"sede_confirmacoes"),where("resposta","==","sim")));
-    SEDE_COUNTS={};
+    SEDE_COUNTS={};SEDE_COUNTS_EV={};
     snap.docs.forEach(d=>{
-      const r=d.data();
-      const tp=r.tipo||"presenca";
-      if(tp==="presenca"||tp==="sede"){
-        const id=r.membroId;
-        if(id)SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;
-      }
+      const r=d.data();const tp=r.tipo||"presenca";const id=r.membroId;if(!id)return;
+      if(tp==="presenca"||tp==="sede"){SEDE_COUNTS[id]=(SEDE_COUNTS[id]||0)+1;}
+      else if(tp==="evento_sede"){SEDE_COUNTS_EV[id]=(SEDE_COUNTS_EV[id]||0)+1;}
     });
+    const evSnap=await getDocs(collection(db,"eventos_sede"));
+    const anoStr=String(ANO_ATIVO);
+    TOTAL_EVENTOS_SEDE=evSnap.docs.filter(d=>{const ev=d.data();return(ev.data||'').startsWith(anoStr)&&ev.categoria!=='viagem';}).length;
   }catch(e){console.error("carregarSedePresencas:",e);}
 }
 async function carregarEscalaLista(){
@@ -2234,6 +2252,9 @@ window.abrirPerfilPublico=async(uid)=>{
   const bc=pct>=100?"var(--green)":pct>=60?"var(--orange)":"var(--danger)";
   const grads=(membro.historicoGraduacoes||[]);
   const sc=_sedeCount(membro)||0;
+  const scEv=_sedeCountEv(membro)||0;
+  const totalSex=contarSextasDoAno(ANO_ATIVO);
+  const totEv=TOTAL_EVENTOS_SEDE;
   const ov=document.createElement("div");
   ov.className="app-modal-overlay";
   ov.style.cssText="align-items:center;justify-content:center";
@@ -2259,7 +2280,7 @@ window.abrirPerfilPublico=async(uid)=>{
       <span style="font-size:13px;font-weight:600">${membro.moto}</span>
     </div>`:""}
     <div style="padding:16px 20px">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
         <div style="text-align:center;background:rgba(255,102,0,.08);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 6px">
           <div style="font-size:18px;font-weight:700;color:var(--orange)">${toInt(km)}</div>
           <div style="font-size:10px;color:var(--muted)">km rodados</div>
@@ -2269,8 +2290,12 @@ window.abrirPerfilPublico=async(uid)=>{
           <div style="font-size:10px;color:var(--muted)">no ranking</div>
         </div>
         <div style="text-align:center;background:rgba(96,184,255,.06);border:1px solid rgba(96,184,255,.2);border-radius:12px;padding:10px 6px">
-          <div style="font-size:18px;font-weight:700;color:#60b8ff">${sc}</div>
-          <div style="font-size:10px;color:var(--muted)">na sede</div>
+          <div style="font-size:16px;font-weight:700;color:#60b8ff">${sc} de ${totalSex}</div>
+          <div style="font-size:10px;color:var(--muted)">sextas (${totalSex>0?Math.round(sc/totalSex*100):0}%)</div>
+        </div>
+        <div style="text-align:center;background:rgba(96,184,255,.06);border:1px solid rgba(96,184,255,.2);border-radius:12px;padding:10px 6px">
+          <div style="font-size:16px;font-weight:700;color:#60b8ff">${scEv} de ${totEv}</div>
+          <div style="font-size:10px;color:var(--muted)">eventos (${totEv>0?Math.round(scEv/totEv*100):0}%)</div>
         </div>
       </div>
       <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div>
@@ -2607,11 +2632,11 @@ window.gerarRelPDF=()=>{
     y+=8;
   }
 
-  // ── Presenças na Sede
+  // ── Presenças nas Sextas
   if(y>210){newPage();y=14;}
   pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
   pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
-  pdf.text('PRESENÇAS NA SEDE',14,y);y+=6;
+  pdf.text('PRESENCAS NAS SEXTAS  ('+totalSextasG+' sextas ate hoje)',14,y);y+=6;
   {
     const sedeRows=[...sortedM].map(m=>({ap:m.apelido,cnt:_sedeCount(m)||0,pct:totalSextasG>0?Math.round((_sedeCount(m)||0)/totalSextasG*100):0})).sort((a,b)=>b.cnt-a.cnt);
     const sCols=[14,90,130,165];
@@ -2620,6 +2645,32 @@ window.gerarRelPDF=()=>{
     ['Membro','Presenças','% Presença','Barra'].forEach((h,i)=>pdf.text(h,sCols[i]+1,y));
     y+=4;
     sedeRows.forEach((row,i)=>{
+      if(y>280){newPage();y=14;}
+      pdf.setFillColor(i%2===0?20:16,i%2===0?20:16,i%2===0?20:16);pdf.rect(14,y-3,W-28,6.5,'F');
+      pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(200,200,200);
+      pdf.text(row.ap,sCols[0]+1,y+0.5);
+      pdf.text(String(row.cnt),sCols[1]+1,y+0.5);
+      const pC=row.pct>=80?[76,175,80]:row.pct>=50?[255,102,0]:[150,150,150];
+      pdf.setTextColor(...pC);pdf.setFont('helvetica','bold');pdf.text(row.pct+'%',sCols[2]+1,y+0.5);
+      const bW=28;pdf.setFillColor(35,35,35);pdf.rect(sCols[3]+1,y-1.5,bW,3,'F');
+      pdf.setFillColor(...pC);pdf.rect(sCols[3]+1,y-1.5,bW*row.pct/100,3,'F');
+      y+=6.5;
+    });
+    y+=8;
+  }
+  // ── Presenças nos Eventos da Sede
+  if(y>220){newPage();y=14;}
+  pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
+  pdf.text('PRESENCAS NOS EVENTOS DA SEDE  ('+TOTAL_EVENTOS_SEDE+' eventos este ano)',14,y);y+=6;
+  {
+    const evRows=[...sortedM].map(m=>({ap:m.apelido,cnt:_sedeCountEv(m)||0,pct:TOTAL_EVENTOS_SEDE>0?Math.round((_sedeCountEv(m)||0)/TOTAL_EVENTOS_SEDE*100):0})).sort((a,b)=>b.cnt-a.cnt);
+    const sCols=[14,90,130,165];
+    pdf.setFillColor(50,50,50);pdf.rect(14,y-3,W-28,6,'F');
+    pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
+    ['Membro','Compareceu','% Presença','Barra'].forEach((h,i)=>pdf.text(h,sCols[i]+1,y));
+    y+=4;
+    evRows.forEach((row,i)=>{
       if(y>280){newPage();y=14;}
       pdf.setFillColor(i%2===0?20:16,i%2===0?20:16,i%2===0?20:16);pdf.rect(14,y-3,W-28,6.5,'F');
       pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(200,200,200);
@@ -4726,18 +4777,13 @@ window.carregarRelMembro=async(uid)=>{
     }).sort((a,b)=>b.data.localeCompare(a.data));
   }catch{}
 
+  if(!window._sedeCauntsLoaded){await carregarSedePresencas();window._sedeCauntsLoaded=true;}
   const sc=_sedeCount(m);
-  const anoAtual=nowD.getFullYear();
-  let totalSextas=0;
-  for(let mm=0;mm<12;mm++){
-    const dias=new Date(anoAtual,mm+1,0).getDate();
-    for(let dd=1;dd<=dias;dd++){
-      const d2=new Date(anoAtual,mm,dd);
-      if(d2>nowD)break;
-      if(d2.getDay()===5)totalSextas++;
-    }
-  }
+  const scEv=_sedeCountEv(m);
+  const totalSextas=contarSextasDoAno(ANO_ATIVO);
+  const totalEvSede=TOTAL_EVENTOS_SEDE;
   const pctSede=totalSextas>0?Math.round((sc/totalSextas)*100):0;
+  const pctEvSede=totalEvSede>0?Math.round((scEv/totalEvSede)*100):0;
   const pctEv=evTotal>0?Math.round((evComp/evTotal)*100):0;
 
   const kmRaw=m.totalKm||0;
@@ -4773,7 +4819,8 @@ window.carregarRelMembro=async(uid)=>{
       <div class="metric"><div class="metric-label">${li("route",12)} Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(kmRaw)}</div></div>
       <div class="metric"><div class="metric-label">${li("target",12)} Meta ${toInt(META)} km</div><div class="metric-value" style="color:${pctColor}">${pct}%</div></div>
       <div class="metric"><div class="metric-label">📅 Eventos</div><div class="metric-value">${evComp}/${evTotal} <span style="font-size:11px;color:var(--muted)">(${pctEv}%)</span></div></div>
-      <div class="metric"><div class="metric-label">⛪ Sede</div><div class="metric-value" style="color:#60b8ff">${sc} <span style="font-size:11px;color:var(--muted)">(${pctSede}%)</span></div></div>
+      <div class="metric"><div class="metric-label">🗓️ Sextas sede</div><div class="metric-value" style="color:#60b8ff">${sc}/${totalSextas} <span style="font-size:11px;color:var(--muted)">(${pctSede}%)</span></div></div>
+      <div class="metric"><div class="metric-label">🎉 Eventos sede</div><div class="metric-value" style="color:#60b8ff">${scEv}/${totalEvSede} <span style="font-size:11px;color:var(--muted)">(${pctEvSede}%)</span></div></div>
     </div>
     <div style="margin-bottom:14px">
       <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Km por mês — últimos 12 meses</div>
@@ -4834,7 +4881,7 @@ window.carregarRelMembro=async(uid)=>{
   const passedEvsSorted2=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<=nowD).sort((a,b)=>a.data.localeCompare(b.data));
   let _eStr=0,maxEvStreak=0;
   passedEvsSorted2.forEach(ev=>{if(evHistorico.some(h=>h.data===ev.data)){_eStr++;maxEvStreak=Math.max(maxEvStreak,_eStr);}else _eStr=0;});
-  window._relMembroCtx={m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg:firstReg2,lastReg:lastReg2,clubAvgKm:clubAvgKm2,maxEvStreak};
+  window._relMembroCtx={m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,scEv,totalSextas,totalEvSede,pctSede,pctEvSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg:firstReg2,lastReg:lastReg2,clubAvgKm:clubAvgKm2,maxEvStreak};
   lcr();
 };
 
@@ -4872,7 +4919,7 @@ window.gerarPdfMembro=async(uid)=>{
   if(!ctx||ctx.m.uid!==uid){showToast('Selecione o membro primeiro.',true);return;}
   await window.salvarObsMembro(uid,false);
   showToast('Gerando PDF...');
-  const{m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,totalSextas,pctSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg,lastReg,clubAvgKm,maxEvStreak}=ctx;
+  const{m,meses,evComp,evTotal,evHistorico,kmAvulso,sc,scEv,totalSextas,totalEvSede,pctSede,pctEvSede,pctEv,badges,nascDisplay,cadastroDisplay,longestTrip,firstReg,lastReg,clubAvgKm,maxEvStreak}=ctx;
   const obs=document.getElementById('rel-obs')?.value||'';
   const ano=new Date().getFullYear();
   const kmRaw=Math.round(m.totalKm||0);
@@ -4969,12 +5016,14 @@ window.gerarPdfMembro=async(uid)=>{
   const pctHex=pct>=100?'#4caf7d':pct>=60?'#ff6600':'#e05252';
   const pctEvHex=pctEv>=80?'#4caf7d':pctEv>=50?'#60b8ff':'#aaaaaa';
   const pctSedeHex=pctSede>=80?'#4caf7d':pctSede>=50?'#60b8ff':'#aaaaaa';
+  const pctEvSedeHex=pctEvSede>=80?'#4caf7d':pctEvSede>=50?'#60b8ff':'#aaaaaa';
   const cW=(CW-5)/2,cH=22;
   const cards=[
     {lbl:'Km rodados',val:kmRaw.toLocaleString('pt-BR')+' km',col:'#ff6600'},
     {lbl:'Meta ('+Math.round(META/1000)+'k km)',val:pct+'%',col:pctHex},
     {lbl:'Eventos comparecidos',val:evComp+'/'+evTotal+' ('+pctEv+'%)',col:pctEvHex},
-    {lbl:'Presencas na sede',val:sc+'/'+totalSextas+' ('+pctSede+'%)',col:pctSedeHex},
+    {lbl:'Sextas na sede',val:sc+'/'+totalSextas+' ('+pctSede+'%)',col:pctSedeHex},
+    {lbl:'Eventos na sede',val:scEv+'/'+totalEvSede+' ('+pctEvSede+'%)',col:pctEvSedeHex},
   ];
   cards.forEach((c,i)=>{
     const cx=ML+(i%2)*(cW+5),cy=y+Math.floor(i/2)*(cH+4);
@@ -4983,7 +5032,7 @@ window.gerarPdfMembro=async(uid)=>{
     const[r2,g2,b2]=rgb(c.col);pdf.setTextColor(r2,g2,b2);pdf.setFontSize(18);pdf.setFont('helvetica','bold');
     pdf.text(c.val,cx+5,cy+19);
   });
-  y+=2*(cH+4)+6;
+  y+=3*(cH+4)+6;
 
   // ── Bar chart — full width, #111 bg, #ff6600 bars, #444 axis
   y=chk(y,42);sep(y);y+=5;
@@ -5993,7 +6042,7 @@ window.fazerLogin=async()=>{
     await signInWithEmailAndPassword(auth,userEmail,senha);
   }catch(e){console.error("ERRO COMPLETO:",e.code,e.message);err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Entrar";}
 };
-window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};CONF_SEDE={};SEDE_COUNTS={};TA="home";TM="painel";};
+window.fazerLogout=async()=>{localStorage.removeItem("mutantes_docid");MY_DOC_ID=null;await signOut(auth);UP=null;REGS=[];MEMBROS=[];CONF={};CONF_SEDE={};SEDE_COUNTS={};SEDE_COUNTS_EV={};TOTAL_EVENTOS_SEDE=0;window._sedeCauntsLoaded=false;TA="home";TM="painel";};
 window.cadastrarEmLote=async()=>{
   const btn=document.getElementById("lote-btn");
   const prog=document.getElementById("lote-progress");
