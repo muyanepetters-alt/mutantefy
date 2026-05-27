@@ -142,7 +142,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 }
 .splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s,transform .6s}
 .splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
-.splash-logo{width:130px;height:130px;border-radius:50%;border:3px solid var(--orange);object-fit:contain;background:#111;animation:splashPulse 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(232,103,10,.4)}
+.splash-logo{width:160px;object-fit:contain;animation:splashPulse 1.5s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(255,102,0,.4))}
 @keyframes splashPulse{0%,100%{box-shadow:0 0 20px rgba(232,103,10,.3)}50%{box-shadow:0 0 40px rgba(232,103,10,.7)}}
 .splash-title{font-size:20px;font-weight:700;letter-spacing:2px;margin-top:20px;color:var(--white)}
 .splash-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px}
@@ -160,7 +160,7 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-.bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
+.bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
 .bnav::-webkit-scrollbar{display:none}
 @media(max-width:767px){.bnav-logo{display:none}}
 .bnav-item{flex:0 0 auto;min-width:64px;scroll-snap-align:start;min-height:48px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:transparent;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;border-radius:10px;transition:background .18s,box-shadow .18s}
@@ -281,11 +281,11 @@ select option{background:#161616;color:var(--white)}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
 </head>
 <body>
 <div id="splash" class="splash">
-  <img id="splash-logo" src="" class="splash-logo" onerror="this.style.display='none'" style="display:none"/>
-  <div id="splash-logo-fb" style="width:130px;height:130px;border-radius:50%;border:3px solid var(--orange);background:#111;display:flex;align-items:center;justify-content:center;font-size:48px;animation:splashPulse 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(232,103,10,.4)">🏍️</div>
+  <img src="logo.png" class="splash-logo"/>
   <div class="splash-title">MUTANTES MC ITAJAÍ</div>
   <div class="splash-sub">KM TRACKER</div>
   <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
@@ -398,6 +398,16 @@ async function getTokenAdmin(){
     const snap=await getDocs(query(collection(db,"usuarios"),where("isAdmin","==",true)));
     return snap.docs.map(d=>d.data().fcmToken).filter(Boolean);
   }catch{return[];}
+}
+async function getAllMemberTokens(){
+  const tokens=MEMBROS.map(m=>m.fcmToken).filter(Boolean);
+  if(tokens.length===0){
+    try{
+      const snap=await getDocs(collection(db,"usuarios"));
+      snap.docs.forEach(d=>{if(d.data().fcmToken)tokens.push(d.data().fcmToken);});
+    }catch{}
+  }
+  return[...new Set(tokens)];
 }
 
 const LOTE=[
@@ -577,7 +587,9 @@ function evCardMembro(ev){
 }
 
 let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
+let ANO_ATIVO=new Date().getFullYear();
 let _presAba="massa";
+let VIAGENS_EXTRA=[];
 window._rankAba=window._rankAba||"km";
 const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
 function lcr(){setTimeout(()=>{if(typeof lucide!=="undefined")lucide.createIcons();},30);}
@@ -700,7 +712,7 @@ function renderLogin(el){
   const saved=localStorage.getItem("mutantes_logo");
   el.innerHTML=`<div class="login-wrap">
     <img src="logo.png" class="login-logo-img" alt="Mutantes MC Itajaí"/>
-    <div style="width:100%;max-width:340px">
+    <div style="width:100%;max-width:340px;background:rgba(0,0,0,.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:16px;padding:24px;border:1px solid rgba(255,255,255,.1)">
       <div id="l-err" class="msg-err" style="display:none"></div>
       <label>Apelido</label><input type="text" id="l-apelido" placeholder="Seu apelido no clube" autocomplete="off"/>
       <label>Senha</label><div class="senha-wrap"><input type="password" id="l-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')window.fazerLogin()"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('l-senha')">👁️</button></div>
@@ -760,6 +772,53 @@ window.toggleEventosAnteriores=()=>{
 };
 function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
 function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
+function htmlTemporada(){
+  const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const meta100=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
+  return`<div class="card">
+    <div class="sec-title">📅 Temporada ${ANO_ATIVO}</div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="metric"><div class="metric-label">🏁 Km do clube</div><div class="metric-value" style="color:var(--orange)">${toInt(totalKm)}</div></div>
+      <div class="metric"><div class="metric-label">👥 Membros ativos</div><div class="metric-value">${MEMBROS.filter(m=>(m.totalKm||0)>0).length}</div></div>
+      <div class="metric"><div class="metric-label">🎯 Bateram a meta</div><div class="metric-value" style="color:var(--green)">${meta100}</div></div>
+      <div class="metric"><div class="metric-label">📅 Ano ativo</div><div class="metric-value">${ANO_ATIVO}</div></div>
+    </div>
+    ${UP?.isAdmin?`<div style="margin-top:4px">
+      <button onclick="window.novaTemporada()" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">🏁 Nova Temporada</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Inicia uma nova temporada: arquiva todos os registros de km, zera o km de todos os membros e atualiza o ano ativo. Essa ação é irreversível.</div>
+    </div>`:""}
+  </div>`;
+}
+window.novaTemporada=async()=>{
+  if(!UP?.isAdmin)return;
+  const novoAnoStr=prompt(`Ano da nova temporada (atual: ${ANO_ATIVO}):`);
+  const novoAno=parseInt(novoAnoStr);
+  if(!novoAno||novoAno<=ANO_ATIVO){showToast("Ano inválido.",true);return;}
+  if(!confirm(`⚠️ Iniciar temporada ${novoAno}?\n\nIsso irá:\n• Arquivar todos os registros de km\n• Zerar o km de todos os membros\n• Atualizar o ano ativo para ${novoAno}\n\nEssa ação não pode ser desfeita.`))return;
+  const confirmText=prompt("Para confirmar, digite CONFIRMAR:");
+  if(confirmText!=="CONFIRMAR"){showToast("Operação cancelada.",true);return;}
+  try{
+    showToast("Arquivando temporada...");
+    const anoAnterior=ANO_ATIVO;
+    const snap=await getDocs(collection(db,"registros"));
+    for(const d of snap.docs){
+      await setDoc(doc(db,"registros_arquivo",String(anoAnterior),"registros",d.id),d.data());
+      await deleteDoc(doc(db,"registros",d.id));
+    }
+    for(const m of MEMBROS){
+      const docId=resolveDocId(m.uid)||m.uid;
+      await setDoc(doc(db,"usuarios",docId),{totalKm:0},{merge:true});
+      m.totalKm=0;
+    }
+    if(UP)UP.totalKm=0;
+    REGS=[];
+    ANO_ATIVO=novoAno;
+    await setDoc(doc(db,"config","temporada"),{anoAtivo:novoAno,atualizadoEm:serverTimestamp(),atualizadoPor:UP.apelido},{merge:true});
+    registrarLog("nova_temporada",`iniciou temporada ${novoAno}`,`anterior: ${anoAnterior}`);
+    showToast(`✓ Temporada ${novoAno} iniciada!`);
+    render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
 function htmlRanking(){
   if(MEMBROS.length===0)return`<div class="card" style="text-align:center;padding:40px 20px"><span class="spin">⟳</span><div style="margin-top:10px;font-size:13px;color:var(--muted)">Carregando ranking...</div></div>`;
   const membros=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined');
@@ -769,6 +828,7 @@ function htmlRanking(){
   const aba=window._rankAba||"km";
   return`<div class="card">
     <div class="sec-title">${li("trophy",16)} Ranking</div>
+    <div style="font-size:11px;color:var(--orange);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">🏁 Temporada ${ANO_ATIVO}</div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
       <button onclick="window.setRankAba('km')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="km"?"none":"1px solid var(--border)"};background:${aba==="km"?"var(--orange)":"var(--bg3)"};color:${aba==="km"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Km Rodado</button>
       <button onclick="window.setRankAba('sede')" style="flex:1;padding:9px;border-radius:20px;border:${aba==="sede"?"none":"1px solid var(--border)"};background:${aba==="sede"?"var(--orange)":"var(--bg3)"};color:${aba==="sede"?"#fff":"var(--muted)"};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Presença na Sede</button>
@@ -817,6 +877,7 @@ function htmlClubeCorpo(){
       {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:li("file-text",28),lb:"Registro",sub:"Histórico de ações"},
       {id:"msgs_rapidas",ic:"📲",lb:"Mensagens Rápidas",sub:"Enviar para o grupo"},
+      {id:"temporada",ic:"📅",lb:"Temporada",sub:"Gerenciar temporada ativa"},
     ];
     if(!TA||TA==="home"){
       return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -880,6 +941,7 @@ function htmlClubeCorpo(){
       ${TA==="relatorio"?htmlRelatorio():""}
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
       ${TA==="msgs_rapidas"?htmlWhatsAppConteudo("clube"):""}
+      ${TA==="temporada"?htmlTemporada():""}
     `;
   }
   return htmlRanking();
@@ -1784,7 +1846,8 @@ function dispararConfete(){
 function htmlMural(){
   return`<div class="card">
     <div class="sec-title">${li("message-square",16)} Mensagens</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="display:flex;gap:6px;margin-bottom:14px;align-items:center">
+      <button type="button" onclick="window.abrirEmojiPicker('mural-msg')" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1">😊</button>
       <input type="text" id="mural-msg" placeholder="Escreva sua mensagem..." autocomplete="off" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')window.postarMural()"/>
       <button onclick="window.postarMural()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Enviar</button>
     </div>
@@ -1825,7 +1888,7 @@ async function carregarMural(){
       </div>`:"";
       const emojiBarResp=_EMOJIS_RESP.map(e=>`<button onclick="window.inserirEmojiResposta('${r.id}','${e}')" type="button" style="background:transparent;border:none;font-size:16px;cursor:pointer;padding:2px 3px;border-radius:4px;line-height:1">${e}</button>`).join("");
       const replyForm=`<div id="reply-form-${r.id}" style="display:none;margin-top:8px;padding:8px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
-        <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px">${emojiBarResp}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px;align-items:center">${emojiBarResp}<button type="button" onclick="window.abrirEmojiPicker('reply-ta-${r.id}')" style="margin-left:4px;padding:3px 5px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:14px;cursor:pointer;line-height:1">😊</button></div>
         <textarea id="reply-ta-${r.id}" placeholder="Escreva sua resposta..." style="width:100%;min-height:80px;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;resize:vertical;margin:0;display:block"></textarea>
         <div style="display:flex;gap:8px;margin-top:6px">
           <button onclick="window.enviarResposta('${r.id}')" style="padding:8px 16px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Enviar</button>
@@ -1962,7 +2025,8 @@ window.editarStatus=()=>{
   const cur=UP?.status||"";
   const div=document.createElement("div");
   div.style.cssText="display:flex;gap:5px;align-items:center;margin-top:2px";
-  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="O que você quer compartilhar hoje?" maxlength="100"
+  div.innerHTML=`<button type="button" onclick="window.abrirEmojiPicker('hdr-status-inp')" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:14px;cursor:pointer;line-height:1;flex-shrink:0">😊</button>
+  <input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="O que você quer compartilhar hoje?" maxlength="100"
     style="flex:1;font-size:12px;padding:10px 8px;min-height:48px;border-radius:6px;border:1px solid var(--orange);background:var(--bg3);color:#fff;font-family:inherit"
     onkeydown="if(event.key==='Enter')window.salvarStatus();if(event.key==='Escape')window.cancelarStatus()"/>
   <button onclick="window.salvarStatus()" style="padding:3px 7px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✓</button>
@@ -2070,7 +2134,7 @@ function htmlRelatorio(){
   <div class="card" style="border-color:rgba(232,103,10,.3)">
     <div style="text-align:center;padding:8px 0 16px">
       <div style="font-size:28px">📊</div>
-      <div style="font-size:18px;font-weight:700;margin-top:4px">Relatório ${ano}</div>
+      <div style="font-size:18px;font-weight:700;margin-top:4px">Relatório Temporada ${ANO_ATIVO}</div>
       <div style="font-size:12px;color:var(--muted)">Mutantes MC Itajaí</div>
     </div>
     <div class="grid2" style="margin-bottom:14px">
@@ -2099,8 +2163,26 @@ function htmlRelatorio(){
         <div style="font-size:13px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km rodados</div>
       </div>
     </div>`:""}
+    ${(()=>{
+      const mesesLb=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      const kmMes=Array(12).fill(0);
+      REGS.forEach(r=>{const m=parseInt((r.data||"").slice(5,7))-1;if(m>=0&&m<12)kmMes[m]+=(r.km||0);});
+      const maxKm=Math.max(...kmMes,1);
+      return`<div class="sec-title">📊 Km por mês</div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:80px;margin-bottom:4px;padding:0 2px">
+        ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
+          <div style="font-size:7px;color:var(--muted);line-height:1">${km>0?toInt(km):""}</div>
+          <div style="width:100%;background:${km>0?"var(--orange)":"rgba(255,255,255,.08)"};height:${Math.max(4,Math.round((km/maxKm)*56))}px;border-radius:3px 3px 0 0"></div>
+          <div style="font-size:7px;color:var(--muted)">${mesesLb[i]}</div>
+        </div>`).join("")}
+      </div>`;
+    })()}
+    <div style="height:1px;background:rgba(255,255,255,.07);margin:12px 0"></div>
     <div class="sec-title">📈 Ranking completo</div>
-    <button onclick="window.exportarRankingCSV()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px">📥 Exportar ranking (.CSV)</button>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button onclick="window.exportarRankingCSV()" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📥 CSV</button>
+      <button onclick="window.gerarRelPDF()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📄 PDF</button>
+    </div>
     ${MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).map((m,i)=>{
       const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
       const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
@@ -2124,6 +2206,30 @@ function htmlRelatorio(){
     <div style="font-size:11px;color:var(--muted);line-height:1.5">Soma todos os registros de km do Firestore e corrige o contador de cada membro. Use após migrações ou se os totais estiverem incorretos.</div>
   </div>`:""}`;
 }
+
+window.gerarRelPDF=()=>{
+  if(!window.jspdf){showToast("Aguarde, carregando PDF...",true);return;}
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF();
+  pdf.setFontSize(18);pdf.text(`Relatório Temporada ${ANO_ATIVO}`,20,20);
+  pdf.setFontSize(11);pdf.text("Mutantes MC Itajaí",20,30);
+  pdf.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`,20,38);
+  pdf.line(20,42,190,42);
+  let y=50;
+  const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  pdf.setFontSize(11);
+  pdf.text(`Total km do clube: ${toInt(totalKm)} km`,20,y);y+=8;
+  pdf.text(`Membros: ${MEMBROS.length} | Bateram a meta: ${MEMBROS.filter(m=>(m.totalKm||0)>=META).length}`,20,y);y+=14;
+  pdf.setFontSize(13);pdf.text("Ranking de Km",20,y);y+=6;pdf.line(20,y,190,y);y+=6;
+  pdf.setFontSize(10);
+  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  sorted.forEach((m,i)=>{
+    if(y>270){pdf.addPage();y=20;}
+    const pct=Math.round(((m.totalKm||0)/META)*100);
+    pdf.text(`${i+1}. ${m.apelido} — ${toInt(m.totalKm||0)} km (${pct}%)`,20,y);y+=6;
+  });
+  pdf.save(`Relatorio_Mutantes_${ANO_ATIVO}.pdf`);
+};
 
 // ═══════════════════════════════════════════════════
 // CALENDÁRIO VISUAL DE EVENTOS
@@ -3466,6 +3572,7 @@ function htmlLancarKm(){
       <select id="km-evento" onchange="window.preencherEvento()">
         <option value="">Selecione...</option>
         ${EVENTOS.map(e=>`<option value="${e.id}" data-data="${e.data}" data-dist="${e.dist*2}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
+        ${VIAGENS_EXTRA.map(v=>`<option value="ve_${v.id}" data-data="${v.data}" data-dist="${v.distIdaVolta||v.dist*2||0}">${v.nome} · ${fmtDate(v.data)}</option>`).join("")}
       </select>
     </div>
     <div id="km-desc-wrap" style="display:none">
@@ -4705,7 +4812,11 @@ window.abrirNovaViagemModal=()=>{
         <option value="Reunião">Reunião</option>
         <option value="Outro">Outro</option>
       </select>
-      <label>Descrição (opcional)</label><input type="text" id="nv-desc" placeholder="Detalhes do evento..." autocomplete="off"/>
+      <label>Descrição (opcional)</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="nv-desc" placeholder="Detalhes do evento..." autocomplete="off" style="flex:1;margin:0"/>
+        <button type="button" onclick="window.abrirEmojiPicker('nv-desc')" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1">😊</button>
+      </div>
       <button class="btn-primary" onclick="window.salvarNovaViagem()" style="margin-top:6px">Salvar viagem</button>
     </div>`;
   ov.appendChild(sheet);
@@ -4734,17 +4845,18 @@ window.salvarNovaViagem=async()=>{
 };
 
 async function carregarViagensExtra(){
-  const el=document.getElementById("viagens-extra-wrap");
-  if(!el)return;
   try{
     const snap=await getDocs(query(collection(db,"eventos_sede"),where("categoria","==","viagem"),orderBy("data","asc")));
-    if(snap.empty){el.innerHTML="";return;}
-    const hoje=new Date().toISOString().slice(0,10);
-    const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const proximas=docs.filter(v=>v.data>=hoje);
-    const passadas=docs.filter(v=>v.data<hoje).reverse();
-    if(!proximas.length&&!passadas.length){el.innerHTML="";return;}
-    el.innerHTML=`<div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    VIAGENS_EXTRA=snap.docs.map(d=>({id:d.id,...d.data()}));
+    _renderViagensExtra();
+  }catch(e){VIAGENS_EXTRA=[];}
+}
+function _renderViagensExtra(){
+  const el=document.getElementById("viagens-extra-wrap");
+  if(!el)return;
+  if(!VIAGENS_EXTRA.length){el.innerHTML="";return;}
+  const docs=VIAGENS_EXTRA;
+  el.innerHTML=`<div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📋 VIAGENS REGISTRADAS NO APP (${docs.length})</div>
       ${docs.map(v=>`<div class="card" style="margin-bottom:10px;border-color:rgba(255,102,0,.2)">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
@@ -4758,7 +4870,6 @@ async function carregarViagensExtra(){
           ${UP?.isAdmin?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
         </div>
       </div>`).join("")}`;
-  }catch(e){el.innerHTML="";}
 }
 
 window.excluirViagemExtra=async(id)=>{
@@ -6138,14 +6249,43 @@ window.confirmarTodosPresentes=async(eventoId)=>{
     await window.registrarComparecimento(p.membroId,p.apelido,eventoId);
   }
 };
-      
-onAuthStateChanged(auth,async user=>{
-  // Mostrar splash com logo
-  const splashLogo=document.getElementById("splash-logo");
-  const splashFb=document.getElementById("splash-logo-fb");
-  const logoSalva=localStorage.getItem("mutantes_logo");
-  if(splashLogo&&logoSalva){splashLogo.src=logoSalva;splashLogo.style.display="block";if(splashFb)splashFb.style.display="none";}
 
+async function carregarTemporada(){
+  try{const s=await getDoc(doc(db,"config","temporada"));if(s.exists()&&s.data().anoAtivo)ANO_ATIVO=s.data().anoAtivo;}catch{}
+}
+
+window.abrirEmojiPicker=async function(targetId){
+  document.getElementById("em-picker-wrap")?.remove();
+  document.getElementById("em-backdrop")?.remove();
+  const picker=document.createElement("em-emoji-picker");
+  picker.setAttribute("theme","dark");
+  picker.setAttribute("locale","pt");
+  picker.style.cssText="--border-radius:12px;--shadow:0 8px 32px rgba(0,0,0,.6)";
+  picker.addEventListener("emoji-click",ev=>{
+    const ta=document.getElementById(targetId);
+    if(!ta)return;
+    const native=ev.detail.emoji.native;
+    const s=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+    const e=ta.selectionEnd!=null?ta.selectionEnd:s;
+    ta.value=ta.value.slice(0,s)+native+ta.value.slice(e);
+    ta.selectionStart=ta.selectionEnd=s+[...native].length;
+    ta.focus();
+    document.getElementById("em-picker-wrap")?.remove();
+    document.getElementById("em-backdrop")?.remove();
+  });
+  const wrap=document.createElement("div");
+  wrap.id="em-picker-wrap";
+  wrap.style.cssText="position:fixed;z-index:9990;bottom:70px;right:10px;max-width:352px";
+  wrap.appendChild(picker);
+  const bd=document.createElement("div");
+  bd.id="em-backdrop";
+  bd.style.cssText="position:fixed;inset:0;z-index:9989";
+  bd.onclick=()=>{wrap.remove();bd.remove();};
+  document.body.appendChild(bd);
+  document.body.appendChild(wrap);
+};
+
+onAuthStateChanged(auth,async user=>{
   CU=user;TA="home";TM="painel";CONF={};
   const esconderSplash=()=>{const s=document.getElementById("splash");if(s){s.classList.add("hide");setTimeout(()=>{s.style.display="none";},650);}};
   if(!user){UP=null;REGS=[];MEMBROS=[];render();setTimeout(esconderSplash,600);return;}
@@ -6175,11 +6315,33 @@ onAuthStateChanged(auth,async user=>{
     }
     if(logoSnap.exists()){const url=logoSnap.data().url;localStorage.setItem("mutantes_logo",url);atualizarIconePWA(url);UP.logoUrl=url;}
     // Fase 2: todo o resto em paralelo
-    const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede()];
+    const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede(),carregarTemporada(),carregarViagensExtra()];
     if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());window._sedeCauntsLoaded=true;}
     await Promise.all(tarefas);
     registrarTokenPush();
   }catch(e){console.error(e);}
+  // Birthday push notification
+  (async()=>{
+    try{
+      const hoje=new Date();
+      const dia=hoje.getDate(),mes=hoje.getMonth()+1;
+      const aniv=MEMBROS.filter(m=>{
+        if(!m.nascimento)return false;
+        const [,mm,dd]=m.nascimento.split("-").map(Number);
+        return mm===mes&&dd===dia;
+      });
+      if(aniv.length>0){
+        const key="aniv_push_"+hoje.toDateString();
+        if(!localStorage.getItem(key)){
+          localStorage.setItem(key,"1");
+          const tokens=await getAllMemberTokens();
+          for(const a of aniv){
+            await dispararPush("🎂 Aniversário hoje!",`Hoje é aniversário de ${a.apelido}! Manda um abraço! 🎉`,tokens);
+          }
+        }
+      }
+    }catch{}
+  })();
   render();
   // Esconder splash
   setTimeout(esconderSplash,800);
