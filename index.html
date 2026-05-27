@@ -784,6 +784,11 @@ function contarSextasDoAno(ano){
   for(let mm=0;mm<12;mm++){const dias=new Date(ano,mm+1,0).getDate();for(let dd=1;dd<=dias;dd++){if(new Date(ano,mm,dd).getDay()===5)total++;}}
   return total;
 }
+function sextaAtual(ano){
+  const hoje=new Date();hoje.setHours(23,59,59,999);let total=0;
+  for(let mm=0;mm<12;mm++){const dias=new Date(ano,mm+1,0).getDate();for(let dd=1;dd<=dias;dd++){const d=new Date(ano,mm,dd);if(d>hoje)return total;if(d.getDay()===5)total++;}}
+  return total;
+}
 function htmlTemporada(){
   const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
   const meta100=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
@@ -898,7 +903,8 @@ function htmlRanking(){
         const totalSex=contarSextasDoAno(ANO_ATIVO);
         const ss=[...membros].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
         const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
-        return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">📅 Sextas do ano até hoje</div><div class="metric-value">${totalSex}</div></div>`
+        const sexAtual=sextaAtual(ANO_ATIVO);const faltam=totalSex-sexAtual;
+        return`<div style="background:rgba(255,102,0,.07);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:14px;font-weight:700;color:var(--orange)">📅 Sexta ${sexAtual} de ${totalSex}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Temporada ${ANO_ATIVO} · faltam ${faltam} sexta${faltam!==1?'s':''}</div></div><div style="font-size:11px;color:var(--muted);text-align:right">${Math.round(sexAtual/totalSex*100)}%<br>do ano</div></div>`
         +ss.map((m,i)=>{const sc=_sedeCount(m);const p=totalSex>0?Math.round(sc/totalSex*100):0;const col=p>=80?'var(--green)':p>=50?'var(--orange)':'#60b8ff';
           return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totalSex} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
         }).join("");
@@ -2634,7 +2640,8 @@ window.gerarRelPDF=()=>{
   if(y>210){newPage();y=14;}
   pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
   pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
-  pdf.text('PRESENCAS NAS SEXTAS  ('+totalSextasG+' sextas em '+_anoG+')',14,y);y+=6;
+  const _sAtual=sextaAtual(_anoG);
+  pdf.text('PRESENCAS NAS SEXTAS  (sexta '+_sAtual+' de '+totalSextasG+' em '+_anoG+')',14,y);y+=6;
   {
     const sedeRows=[...sortedM].map(m=>({ap:m.apelido,cnt:_sedeCount(m)||0,pct:totalSextasG>0?Math.round((_sedeCount(m)||0)/totalSextasG*100):0})).sort((a,b)=>b.cnt-a.cnt);
     const sCols=[14,90,130,165];
