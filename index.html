@@ -56,8 +56,8 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     -webkit-backdrop-filter:none !important;
     box-shadow:none !important;
   }
-  .header-info h2{font-size:15px !important;font-weight:600 !important}
-  .header-info p{font-size:11px !important;margin-top:1px !important}
+  .header-info h2{font-size:17px !important;font-weight:700 !important}
+  .header-info p{font-size:12px !important;margin-top:2px !important}
 
   /* Sidebar esquerda */
   .bnav{
@@ -154,10 +154,10 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .confete{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
 .confete-p{position:absolute;width:8px;height:8px;border-radius:2px;animation:confeteFall linear forwards}
 @keyframes confeteFall{0%{top:-20px;opacity:1;transform:rotate(0deg)}100%{top:110vh;opacity:0;transform:rotate(720deg)}}
-.header{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,102,0,.25);position:relative;overflow:hidden;background:rgba(0,0,0,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);flex-shrink:0}
+.header{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(255,102,0,.25);position:relative;overflow:hidden;background:rgba(0,0,0,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);flex-shrink:0}
 .header-flames{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(255,102,0,.6) 20%,#ff6600 40%,#ff8c2a 60%,rgba(255,102,0,.6) 80%,transparent 100%)}
-.header-info h2{font-size:17px;font-weight:700}
-.header-info p{font-size:12px;color:var(--muted);margin-top:2px}
+.header-info h2{font-size:20px;font-weight:700}
+.header-info p{font-size:13px;color:var(--muted);margin-top:3px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
@@ -891,11 +891,11 @@ function renderDiretor(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${UP.isAdmin?getLogo():avatarEl(UP.fotoUrl,UP.apelido,42)}
+      ${UP.isAdmin?getLogo():avatarEl(UP.fotoUrl,UP.apelido,54)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -943,7 +943,7 @@ function renderDiretor(el){
           </div>
         </div>
         ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
-        <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
+        <button onclick="window.setTM('sede');setTimeout(()=>window.abrirSedeModal('eventosSede'),120)" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
@@ -1126,24 +1126,11 @@ function proxSexta(){
 }
 
 function htmlSede(canEdit){
-  const _validAbas=["presenca","limpeza","bar","churrasco","eventosSede","reunioes"];
-  if(!_validAbas.includes(window._sedeAba))window._sedeAba="presenca";
-  const abaSede=window._sedeAba||"presenca";
-  const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
   const tabs=[["presenca","⛪","Presença Sexta","Confirme sua presença"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["reunioes","📋","Reuniões","Atas e presenças"]];
-  return`<div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      ${tabs.map(([a,ic,lb,sub])=>
-        `<button id="sede-tab-${a}" onclick="window.trocarAbaSede('${a}')" style="background:${abaSede===a?"var(--orange)":"var(--bg2)"};border:${abaSede===a?"none":"1px solid var(--border)"};border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;cursor:pointer;font-family:inherit;text-align:left"><span style="font-size:26px;line-height:1">${ic}</span><div style="font-size:14px;font-weight:700;color:${abaSede===a?"#fff":"var(--white)"}">${lb}</div><div style="font-size:11px;color:${abaSede===a?"rgba(255,255,255,.75)":"var(--muted)"}">${sub}</div></button>`
-      ).join("")}
-    </div>
-    <div id="sede-conteudo">
-      ${abaSede==="presenca"?htmlSedePresenca(canEdit,isAdminOrDir):""}
-      ${abaSede==="limpeza"?htmlSedeLimpeza(canEdit,isAdminOrDir):""}
-      ${abaSede==="bar"||abaSede==="churrasco"?(UP&&(UP.isAdmin||UP.isBarman)?htmlEscalaGerenciar(abaSede):htmlEscalaVisualizacao(abaSede,isAdminOrDir)):""}
-      ${abaSede==="eventosSede"?htmlEventosSede():""}
-      ${abaSede==="reunioes"?htmlReunioes():""}
-    </div>
+  return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${tabs.map(([a,ic,lb,sub])=>
+      `<button onclick="window.abrirSedeModal('${a}')" style="background:var(--bg2);border:1px solid rgba(255,102,0,.2);border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;font-family:inherit;text-align:left"><span style="font-size:28px;line-height:1">${ic}</span><div style="font-size:14px;font-weight:700;color:var(--white)">${lb}</div><div style="font-size:11px;color:var(--muted)">${sub}</div></button>`
+    ).join("")}
   </div>`;
 }
 
@@ -1461,11 +1448,11 @@ function renderBarman(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${avatarEl(UP.fotoUrl,UP.apelido,42)}
+      ${avatarEl(UP.fotoUrl,UP.apelido,54)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1513,7 +1500,7 @@ function renderBarman(el){
           </div>
         </div>
         ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
-        <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
+        <button onclick="window.setTM('sede');setTimeout(()=>window.abrirSedeModal('eventosSede'),120)" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
@@ -1660,11 +1647,11 @@ function renderMembro(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${avatarEl(UP.fotoUrl,UP.apelido,42)}
+      ${avatarEl(UP.fotoUrl,UP.apelido,54)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1712,7 +1699,7 @@ function renderMembro(el){
           </div>
         </div>
         ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
-        <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
+        <button onclick="window.setTM('sede');setTimeout(()=>window.abrirSedeModal('eventosSede'),120)" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
         <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
@@ -1879,14 +1866,14 @@ function htmlWhatsApp(ctx){
     </div>
     <span style="font-size:10px;color:var(--white);width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
   </div>`).join("");
-  const tabs=[["atividades","⚡","Atividades"],["mural","📌","Mural"],["votacoes","📊","Votações"],["aniversarios","🎂","Aniver."]];
+  const tabs=[["atividades","⚡","Feed"],["mural","📌","Mural"],["votacoes","📊","Votações"],["aniversarios","🎂","Aniver."]];
   const tabBtns=tabs.map(([id,ic,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex:1;padding:6px 2px;min-height:44px;border-radius:10px;border:${subAba===id?'none':'1px solid var(--border)'};background:${subAba===id?'var(--orange)':'var(--bg3)'};color:${subAba===id?'#fff':'var(--muted)'};font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">${ic}<br>${lb}</button>`).join("");
   return`<div style="overflow:hidden;max-width:100%">
   <div style="overflow-x:auto;padding-bottom:12px;margin-bottom:4px;scrollbar-width:none;-ms-overflow-style:none">
     <div style="display:flex;gap:14px;padding:4px 2px;width:max-content">${stories}</div>
   </div>
   <div style="display:flex;gap:6px;margin-bottom:14px">${tabBtns}</div>
-  <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card"><div class="sec-title">⚡ Últimas Atividades</div><div id="social-feed-atividades"><span class="spin">⟳</span></div></div></div>
+  <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card"><div class="sec-title">⚡ Feed</div><div id="social-feed-atividades"><span class="spin">⟳</span></div></div></div>
   <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${subAba==='mural'?htmlMural():''}</div>
   <div id="sub-msg-votacoes" style="display:${subAba==='votacoes'?'block':'none'}">${subAba==='votacoes'?htmlVotacoesTab():''}</div>
   <div id="sub-msg-aniversarios" style="display:${subAba==='aniversarios'?'block':'none'}">${subAba==='aniversarios'?htmlAniversarios():''}</div>
@@ -2055,6 +2042,7 @@ window.postarMural=async()=>{
   if(!msg)return;
   try{
     await addDoc(collection(db,"mural"),{msg,autor:UP.apelido,autorId:CU.uid,fotoUrl:UP.fotoUrl||"",criadoEm:serverTimestamp()});
+    registrarFeed(CU.uid,UP.apelido,"mural",`${UP.apelido} postou no mural`);
     input.value="";carregarMural();
   }catch{showToast("Erro ao postar.",true);}
 };
@@ -2081,27 +2069,30 @@ window.reagirMural=async(docId,emoji)=>{
 
 
 // ═══════════════════════════════════════════════════
-// FEED DE ATIVIDADES (Social → Atividades)
+// FEED DE ATIVIDADES (Social → Feed)
 // ═══════════════════════════════════════════════════
+async function registrarFeed(membroId,apelido,tipo,descricao){
+  try{await addDoc(collection(db,"feed"),{membroId,apelido,tipo,descricao,data:serverTimestamp()});}
+  catch(e){console.warn("feed",e);}
+}
+
 async function carregarAtividades(){
   const el=document.getElementById("social-feed-atividades");
   if(!el)return;
   try{
-    const snap=await getDocs(query(collection(db,"registros"),orderBy("createdAt","desc"),limit(30)));
+    const snap=await getDocs(query(collection(db,"feed"),orderBy("data","desc"),limit(30)));
     if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma atividade ainda.</div>`;return;}
     const agora=Date.now();
     el.innerHTML=snap.docs.map(d=>{
       const r=d.data();
-      const m=MEMBROS.find(x=>x.uid===r.uid||x.id===r.uid)||{apelido:r.apelido||"Membro",foto:null};
-      const ts=r.createdAt?.toMillis?r.createdAt.toMillis():(r.createdAt?.seconds?r.createdAt.seconds*1000:agora);
+      const m=MEMBROS.find(x=>x.uid===r.membroId||x.id===r.membroId)||{apelido:r.apelido||"Membro",foto:null,id:"",uid:""};
+      const ts=r.data?.toMillis?r.data.toMillis():(r.data?.seconds?r.data.seconds*1000:agora);
       const diff=agora-ts;
       const rel=diff<60000?"agora":diff<3600000?Math.floor(diff/60000)+"min":diff<86400000?Math.floor(diff/3600000)+"h":fmtDate(new Date(ts).toISOString().slice(0,10));
-      const km=r.km||r.distancia||0;
-      const evento=r.eventoNome||r.evento||"";
-      return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="flex-shrink:0" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="cursor:pointer">${avatarEl(m.foto||"",m.apelido,36)}</div>
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}');event.stopPropagation()" style="cursor:pointer">
+        <div style="flex-shrink:0">${avatarEl(m.foto||"",m.apelido,36)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600">${m.apelido} <span style="font-weight:400;color:var(--muted)">rodou</span> 🏍️ ${toInt(km)} km${evento?` <span style="color:var(--muted)">em ${evento}</span>`:""}</div>
+          <div style="font-size:12px">${r.descricao}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${rel}</div>
         </div>
       </div>`;
@@ -2716,6 +2707,7 @@ window.adicionarGraduacao=async()=>{
   const grads=[...(UP.historicoGraduacoes||[]),{nivel,data}];
   try{
     await setDoc(doc(db,'usuarios',MY_DOC_ID),{historicoGraduacoes:grads},{merge:true});
+    registrarFeed(CU.uid,UP.apelido,"graduacao",`${UP.apelido} foi promovido para ${nivel}`);
     UP.historicoGraduacoes=grads;showToast('✓ Graduação adicionada!');render();
   }catch(e){showToast('Erro: '+e.message,true);}
 };
@@ -3506,28 +3498,35 @@ window.toggleFormEscala=(tipo)=>{
   if(!el)return;
   el.style.display=el.style.display==="none"?"block":"none";
 };
-window.trocarAbaSede=(aba)=>{
+window.abrirSedeModal=(aba)=>{
   window._sedeAba=aba;
   const canEdit=true;
   const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
-  ["presenca","limpeza","bar","churrasco","reunioes"].forEach(a=>{
-    const btn=document.getElementById("sede-tab-"+a);
-    if(!btn)return;
-    btn.style.background=a===aba?"var(--orange)":"var(--bg3)";
-    btn.style.color=a===aba?"#fff":"var(--muted)";
-    btn.style.border=a===aba?"none":"1px solid var(--border)";
-  });
-  const el=document.getElementById("sede-conteudo");
-  if(!el)return;
-  if(aba==="presenca")el.innerHTML=htmlSedePresenca(canEdit,isAdminOrDir);
-  else if(aba==="limpeza")el.innerHTML=htmlSedeLimpeza(canEdit,isAdminOrDir);
-  else if(aba==="reunioes"){el.innerHTML=htmlReunioes();setTimeout(carregarReunioes,50);}
-  else if(aba==="eventosSede"){el.innerHTML=htmlEventosSede();setTimeout(async()=>{await carregarConfEventosSede();carregarEventosSede();},50);}
-  else if(aba==="aniversariosSede"){el.innerHTML=htmlAniversarios();}
-  else{window._barAba=aba;el.innerHTML=UP&&(UP.isAdmin||UP.isBarman||UP.isDiretor)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
+  let html="";
+  if(aba==="presenca")html=htmlSedePresenca(canEdit,isAdminOrDir);
+  else if(aba==="limpeza")html=htmlSedeLimpeza(canEdit,isAdminOrDir);
+  else if(aba==="bar"||aba==="churrasco"){window._barAba=aba;html=UP&&(UP.isAdmin||UP.isBarman)?htmlEscalaGerenciar(aba):htmlEscalaVisualizacao(aba,isAdminOrDir);}
+  else if(aba==="eventosSede")html=htmlEventosSede();
+  else if(aba==="reunioes")html=htmlReunioes();
+  const tabMeta={presenca:["⛪","Presença Sexta"],limpeza:["🧹","Limpeza"],bar:["🍺","Bar"],churrasco:["🔥","Churrasco"],eventosSede:["🎉","Eventos na Sede"],reunioes:["📋","Reuniões"]};
+  const [tabIc,tabLb]=tabMeta[aba]||["🏠","Sede"];
+  document.getElementById("sede-modal-overlay")?.remove();
+  const ov=document.createElement("div");
+  ov.id="sede-modal-overlay";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
+  ov.onclick=e=>{if(e.target===ov)window.fecharSedeModal();};
+  const sheet=document.createElement("div");
+  sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
+  sheet.innerHTML=`<div style="background:var(--bg2);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,102,0,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between"><div style="font-size:18px;font-weight:700">${tabIc} ${tabLb}</div><button onclick="window.fecharSedeModal()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">✕</button></div><div id="sede-modal-conteudo" style="padding:16px 20px;max-height:75vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${html}</div>`;
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
   if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
-  else if(aba!=="reunioes"&&aba!=="eventosSede")setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();},50);
+  else if(aba==="eventosSede")setTimeout(async()=>{await carregarConfEventosSede();carregarEventosSede();},50);
+  else if(aba==="reunioes")setTimeout(carregarReunioes,50);
+  else setTimeout(()=>{carregarBarVisualizacao();carregarEscalaLista();},50);
 };
+window.fecharSedeModal=()=>{document.getElementById("sede-modal-overlay")?.remove();};
+window.trocarAbaSede=(aba)=>{window.abrirSedeModal(aba);};
 window.confirmarSede=async(data,resposta,tipo)=>{
   const tp=tipo||"presenca";
   const docId=CU.uid+"_"+tp+"_"+data;
@@ -3542,6 +3541,7 @@ window.confirmarSede=async(data,resposta,tipo)=>{
     }
     showToast(resposta==="sim"?(tp==="limpeza"?"🧹 Confirmado para limpeza!":"⛪ Presença confirmada!"):"❌ Ausência registrada.");
     registrarLog("sede_confirmada",`${resposta==="sim"?"confirmou":"recusou"} ${tp==="limpeza"?"limpeza":"presença na sede"}`,fmtDate(data));
+    if(resposta==="sim")registrarFeed(CU.uid,UP.apelido,tp==="limpeza"?"limpeza":"sede",`${UP.apelido} confirmou ${tp==="limpeza"?"participação na limpeza":"presença na sede"}`);
     render();
     setTimeout(carregarSedeInfo,200);
   }catch{showToast("Erro ao confirmar.",true);}
@@ -5206,6 +5206,7 @@ window.lancarKm=async()=>{
   const m=findMembro(membroId);
   try{
     await addDoc(collection(db,"registros"),{membroId,apelido:m?.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
+    registrarFeed(membroId,m?.apelido||"","km",`${m?.apelido||"Membro"} rodou 🏍️ ${toInt(km)} km${desc?" em "+desc:""}`);
     const nt=(m?.totalKm||0)+km;
     await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
     if(m)m.totalKm=nt;
