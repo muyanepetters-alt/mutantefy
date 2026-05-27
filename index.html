@@ -56,8 +56,8 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     -webkit-backdrop-filter:none !important;
     box-shadow:none !important;
   }
-  .header-info h2{font-size:17px !important;font-weight:700 !important}
-  .header-info p{font-size:12px !important;margin-top:2px !important}
+  .header-info h2{font-size:14px !important;font-weight:700 !important}
+  .header-info p{font-size:11px !important;margin-top:2px !important}
 
   /* Sidebar esquerda */
   .bnav{
@@ -154,10 +154,10 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
 .confete{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
 .confete-p{position:absolute;width:8px;height:8px;border-radius:2px;animation:confeteFall linear forwards}
 @keyframes confeteFall{0%{top:-20px;opacity:1;transform:rotate(0deg)}100%{top:110vh;opacity:0;transform:rotate(720deg)}}
-.header{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(255,102,0,.25);position:relative;overflow:hidden;background:rgba(0,0,0,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);flex-shrink:0}
+.header{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(255,102,0,.25);position:relative;overflow:hidden;background:rgba(0,0,0,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);flex-shrink:0}
 .header-flames{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(255,102,0,.6) 20%,#ff6600 40%,#ff8c2a 60%,rgba(255,102,0,.6) 80%,transparent 100%)}
-.header-info h2{font-size:20px;font-weight:700}
-.header-info p{font-size:13px;color:var(--muted);margin-top:3px}
+.header-info h2{font-size:16px;font-weight:700}
+.header-info p{font-size:12px;color:var(--muted);margin-top:2px}
 .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .body{padding:16px;padding-top:20px;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .bnav{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid var(--border);flex-shrink:0;padding:6px 8px;gap:4px}
@@ -893,11 +893,11 @@ function renderDiretor(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${UP.isAdmin?getLogo():avatarEl(UP.fotoUrl,UP.apelido,54)}
+      ${UP.isAdmin?getLogo():avatarEl(UP.fotoUrl,UP.apelido,52)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1448,11 +1448,11 @@ function renderBarman(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${avatarEl(UP.fotoUrl,UP.apelido,54)}
+      ${avatarEl(UP.fotoUrl,UP.apelido,52)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1645,11 +1645,11 @@ function renderMembro(el){
   el.innerHTML=`
     <div class="header">
       <div class="header-flames"></div>
-      ${avatarEl(UP.fotoUrl,UP.apelido,54)}
+      ${avatarEl(UP.fotoUrl,UP.apelido,52)}
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:5px 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1857,10 +1857,13 @@ function htmlWhatsApp(ctx){
   const stories=MEMBROS.map(m=>`<div onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0">
     <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange) 0%,#ff5500 100%)">
       <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--bg1)">
-        ${m.foto?`<img src="${m.foto}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
+        ${m.fotoUrl?`<img src="${m.fotoUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
       </div>
     </div>
-    <span style="font-size:10px;color:var(--white);width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1px;width:62px">
+      <span style="font-size:10px;color:var(--white);width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
+      ${m.status?`<span style="font-size:9px;color:rgba(255,255,255,.45);width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.status}</span>`:""}
+    </div>
   </div>`).join("");
   const tabs=[["atividades","Feed"],["mural","Mural"],["galeria","Galeria"],["votacoes","Votações"],["aniversarios","Aniver."]];
   const tabBtns=tabs.map(([id,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex-shrink:0;padding:0 14px;height:36px;min-height:36px;border-radius:999px;border:${subAba===id?'none':'1px solid rgba(255,255,255,.1)'};background:${subAba===id?'#ff6600':'transparent'};color:${subAba===id?'#fff':'rgba(255,255,255,.5)'};font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap">${lb}</button>`).join("");
@@ -2088,7 +2091,7 @@ async function carregarAtividades(){
       const diff=agora-ts;
       const rel=diff<60000?"agora":diff<3600000?Math.floor(diff/60000)+"min":diff<86400000?Math.floor(diff/3600000)+"h":fmtDate(new Date(ts).toISOString().slice(0,10));
       return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}');event.stopPropagation()" style="cursor:pointer">
-        <div style="flex-shrink:0">${avatarEl(m.foto||"",m.apelido,36)}</div>
+        <div style="flex-shrink:0">${avatarEl(m.fotoUrl||"",m.apelido,36)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px">${r.descricao}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${rel}</div>
