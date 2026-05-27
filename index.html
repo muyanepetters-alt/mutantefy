@@ -780,8 +780,8 @@ function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
 function _sedeCountEv(m){return SEDE_COUNTS_EV[m.authUid]||SEDE_COUNTS_EV[m.uid]||0;}
 function _maxSedeCount(){return Math.max(0,...MEMBROS.map(_sedeCount));}
 function contarSextasDoAno(ano){
-  const hoje=new Date();let total=0;
-  for(let mm=0;mm<12;mm++){const dias=new Date(ano,mm+1,0).getDate();for(let dd=1;dd<=dias;dd++){const d=new Date(ano,mm,dd);if(d>hoje)break;if(d.getDay()===5)total++;}}
+  let total=0;
+  for(let mm=0;mm<12;mm++){const dias=new Date(ano,mm+1,0).getDate();for(let dd=1;dd<=dias;dd++){if(new Date(ano,mm,dd).getDay()===5)total++;}}
   return total;
 }
 function htmlTemporada(){
@@ -2555,10 +2555,8 @@ window.gerarRelPDF=()=>{
     y+=6.5;
   });
 
-  // ── Calcular total de sextas do ano até hoje
-  const _hj=new Date();const _anoG=_hj.getFullYear();
-  let totalSextasG=0;
-  for(let _mm=0;_mm<12;_mm++){const _dm=new Date(_anoG,_mm+1,0).getDate();for(let _dd=1;_dd<=_dm;_dd++){const _d2=new Date(_anoG,_mm,_dd);if(_d2>_hj)break;if(_d2.getDay()===5)totalSextasG++;}}
+  const _anoG=ANO_ATIVO;
+  const totalSextasG=contarSextasDoAno(_anoG);
 
   // ── Destaques da Temporada
   if(y>220){newPage();y=14;}
@@ -2636,7 +2634,7 @@ window.gerarRelPDF=()=>{
   if(y>210){newPage();y=14;}
   pdf.setDrawColor(255,102,0);pdf.setLineWidth(0.2);pdf.line(14,y,W-14,y);y+=4;
   pdf.setFontSize(7.5);pdf.setFont('helvetica','bold');pdf.setTextColor(120,120,120);
-  pdf.text('PRESENCAS NAS SEXTAS  ('+totalSextasG+' sextas ate hoje)',14,y);y+=6;
+  pdf.text('PRESENCAS NAS SEXTAS  ('+totalSextasG+' sextas em '+_anoG+')',14,y);y+=6;
   {
     const sedeRows=[...sortedM].map(m=>({ap:m.apelido,cnt:_sedeCount(m)||0,pct:totalSextasG>0?Math.round((_sedeCount(m)||0)/totalSextasG*100):0})).sort((a,b)=>b.cnt-a.cnt);
     const sCols=[14,90,130,165];
