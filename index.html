@@ -809,7 +809,7 @@ function htmlClubeCorpo(){
     const dirMenus=[
       {id:"presenca",ic:li("check-square",28),lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:li("users",28),lb:"Membros",sub:"Editar dados"},
-      {id:"eventos",ic:li("calendar",28),lb:"Eventos",sub:"Calendário 2026"},
+      {id:"eventos",ic:li("calendar",28),lb:"Viagens",sub:"Calendário 2026"},
       {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
       {id:"relatorio",ic:li("bar-chart-2",28),lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
@@ -902,7 +902,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -932,10 +932,6 @@ function renderDiretor(el){
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
-      <div class="card">
-        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
-      </div>
       ${PROXEVENTO_SEDE?`<div class="card" style="border-color:rgba(255,102,0,.2)">
         <div class="sec-title">${li("building-2",16)} Próximo evento na sede</div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -950,29 +946,8 @@ function renderDiretor(el){
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
-          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
-        </div>
-        <div id="mural-preview"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" id="painel-votacoes-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
-        </div>
-        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
-          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
-          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
-          <div style="display:flex;gap:8px">
-            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
-            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
-          </div>
-        </div>
-        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+        <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver viagens →</button>`:"<div style='font-size:13px;color:#555'>Nenhuma viagem futura.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
 `:""}
     ${TM==="historico"?`
@@ -1121,7 +1096,7 @@ function renderDiretor(el){
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
-  if(TM==="msgs")setTimeout(()=>{if((window._socialAba||"mural")==="mural")carregarMural();},100);
+  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1497,7 +1472,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1527,10 +1502,6 @@ function renderBarman(el){
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
-      <div class="card">
-        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
-      </div>
       ${PROXEVENTO_SEDE?`<div class="card" style="border-color:rgba(255,102,0,.2)">
         <div class="sec-title">${li("building-2",16)} Próximo evento na sede</div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -1545,29 +1516,8 @@ function renderBarman(el){
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
-          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
-        </div>
-        <div id="mural-preview"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" id="painel-votacoes-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
-        </div>
-        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
-          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
-          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
-          <div style="display:flex;gap:8px">
-            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
-            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
-          </div>
-        </div>
-        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+        <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver viagens →</button>`:"<div style='font-size:13px;color:#555'>Nenhuma viagem futura.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
 `:""}
     ${TM==="historico"?`
@@ -1721,7 +1671,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1751,10 +1701,6 @@ function renderMembro(el){
       </div>
       </div><!-- /desktop-grid -->
       ${htmlAniversariosInicio()}
-      <div class="card">
-        <div class="sec-title">${li("calendar-check",16)} Próximo evento</div>
-        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver todos →</button>`:"<div style='font-size:13px;color:#555'>Nenhum evento futuro.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
-      </div>
       ${PROXEVENTO_SEDE?`<div class="card" style="border-color:rgba(255,102,0,.2)">
         <div class="sec-title">${li("building-2",16)} Próximo evento na sede</div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -1769,29 +1715,8 @@ function renderMembro(el){
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="sec-title" style="margin-bottom:0">${li("message-square",16)} Mural do clube</div>
-          <button onclick="window.setTM('mural')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">Ver tudo →</button>
-        </div>
-        <div id="mural-preview"><span class="spin">⟳</span></div>
-      </div>
-      <div class="card" id="painel-votacoes-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-title" style="margin-bottom:0">${li("bar-chart-2",16)} Enquetes</div>
-          <button onclick="window.toggleCriarVotacaoPainel()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${li("plus",14)} Nova</button>
-        </div>
-        <div id="criar-votacao-painel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
-          <input type="text" id="vot-pergunta-p" placeholder="Pergunta da enquete..." autocomplete="off" style="margin-bottom:8px"/>
-          <input type="text" id="vot-op1-p" placeholder="Opção 1" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op2-p" placeholder="Opção 2" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op3-p" placeholder="Opção 3 (opcional)" autocomplete="off" style="margin-bottom:6px"/>
-          <input type="text" id="vot-op4-p" placeholder="Opção 4 (opcional)" autocomplete="off" style="margin-bottom:10px"/>
-          <div style="display:flex;gap:8px">
-            <button class="btn-primary" style="flex:1;padding:9px" onclick="window.criarVotacaoPainel()">Publicar</button>
-            <button onclick="window.toggleCriarVotacaoPainel()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit">Cancelar</button>
-          </div>
-        </div>
-        <div id="painel-votacoes"><span class="spin">⟳</span></div>
+        <div class="sec-title">${li("calendar-check",16)} Próximas Viagens</div>
+        ${(ev=>{const c2=CONF[ev?.id]||"";const ic=c2==="confirmado"||c2==="sim"?"✅":c2==="desistiu"||c2==="nao"?"❌":c2==="compareceu"?"🏁":"📅";return ev?`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${ic}</span><div><div style="font-size:14px;font-weight:600">${ev.nome}</div><div style="font-size:12px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}</div></div><button onclick="window.setTM('eventos')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver viagens →</button>`:"<div style='font-size:13px;color:#555'>Nenhuma viagem futura.</div>";})(EVENTOS.filter(e=>new Date(e.data)>=new Date())[0])}
       </div>
 `:""}
     ${TM==="historico"?`
@@ -1923,7 +1848,7 @@ function renderMembro(el){
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
-  if(TM==="msgs")setTimeout(()=>{if((window._socialAba||"mural")==="mural")carregarMural();},100);
+  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1945,24 +1870,40 @@ function htmlVotacaoAdmin(){
 }
 
 function htmlWhatsApp(ctx){
-  const subAba=window._socialAba||"mural";
-  return`<div style="overflow:hidden;max-width:100%"><div style="display:flex;gap:8px;margin-bottom:14px">
-    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:${subAba==='mural'?'none':'1px solid var(--border)'};background:${subAba==='mural'?'var(--orange)':'var(--bg3)'};color:${subAba==='mural'?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
-    <button onclick="window.setSubMsg('aniversarios')" id="sub-aniversarios" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:${subAba==='aniversarios'?'none':'1px solid var(--border)'};background:${subAba==='aniversarios'?'var(--orange)':'var(--bg3)'};color:${subAba==='aniversarios'?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🎂 Aniversários</button>
+  const subAba=window._socialAba||"atividades";
+  const stories=MEMBROS.map(m=>`<div onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0">
+    <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange) 0%,#ff5500 100%)">
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--bg1)">
+        ${m.foto?`<img src="${m.foto}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--white);width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
+  </div>`).join("");
+  const tabs=[["atividades","⚡","Atividades"],["mural","📌","Mural"],["votacoes","📊","Votações"],["aniversarios","🎂","Aniver."]];
+  const tabBtns=tabs.map(([id,ic,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex:1;padding:6px 2px;min-height:44px;border-radius:10px;border:${subAba===id?'none':'1px solid var(--border)'};background:${subAba===id?'var(--orange)':'var(--bg3)'};color:${subAba===id?'#fff':'var(--muted)'};font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">${ic}<br>${lb}</button>`).join("");
+  return`<div style="overflow:hidden;max-width:100%">
+  <div style="overflow-x:auto;padding-bottom:12px;margin-bottom:4px;scrollbar-width:none;-ms-overflow-style:none">
+    <div style="display:flex;gap:14px;padding:4px 2px;width:max-content">${stories}</div>
   </div>
-  <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${htmlMural()}</div>
-  <div id="sub-msg-aniversarios" style="display:${subAba==='aniversarios'?'block':'none'}">${subAba==='aniversarios'?htmlAniversarios():''}</div></div>`;
+  <div style="display:flex;gap:6px;margin-bottom:14px">${tabBtns}</div>
+  <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card"><div class="sec-title">⚡ Últimas Atividades</div><div id="social-feed-atividades"><span class="spin">⟳</span></div></div></div>
+  <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${subAba==='mural'?htmlMural():''}</div>
+  <div id="sub-msg-votacoes" style="display:${subAba==='votacoes'?'block':'none'}">${subAba==='votacoes'?htmlVotacoesTab():''}</div>
+  <div id="sub-msg-aniversarios" style="display:${subAba==='aniversarios'?'block':'none'}">${subAba==='aniversarios'?htmlAniversarios():''}</div>
+  </div>`;
 }
 window.setSubMsg=(aba)=>{
   window._socialAba=aba;
-  ["mural","aniversarios"].forEach(a=>{
+  ["atividades","mural","votacoes","aniversarios"].forEach(a=>{
     const btn=document.getElementById("sub-"+a);
     const el=document.getElementById("sub-msg-"+a);
     const active=a===aba;
     if(btn){btn.style.background=active?"var(--orange)":"var(--bg3)";btn.style.color=active?"#fff":"var(--muted)";btn.style.border=active?"none":"1px solid var(--border)";}
     if(el){
       el.style.display=active?"block":"none";
-      if(active&&a==="mural")setTimeout(carregarMural,50);
+      if(active&&a==="atividades")setTimeout(carregarAtividades,50);
+      if(active&&a==="mural"){el.innerHTML=htmlMural();setTimeout(carregarMural,50);}
+      if(active&&a==="votacoes"){el.innerHTML=htmlVotacoesTab();setTimeout(carregarPainelResumo,50);}
       if(active&&a==="aniversarios")el.innerHTML=htmlAniversarios();
     }
   });
@@ -2140,6 +2081,35 @@ window.reagirMural=async(docId,emoji)=>{
 
 
 // ═══════════════════════════════════════════════════
+// FEED DE ATIVIDADES (Social → Atividades)
+// ═══════════════════════════════════════════════════
+async function carregarAtividades(){
+  const el=document.getElementById("social-feed-atividades");
+  if(!el)return;
+  try{
+    const snap=await getDocs(query(collection(db,"registros"),orderBy("createdAt","desc"),limit(30)));
+    if(snap.empty){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma atividade ainda.</div>`;return;}
+    const agora=Date.now();
+    el.innerHTML=snap.docs.map(d=>{
+      const r=d.data();
+      const m=MEMBROS.find(x=>x.uid===r.uid||x.id===r.uid)||{apelido:r.apelido||"Membro",foto:null};
+      const ts=r.createdAt?.toMillis?r.createdAt.toMillis():(r.createdAt?.seconds?r.createdAt.seconds*1000:agora);
+      const diff=agora-ts;
+      const rel=diff<60000?"agora":diff<3600000?Math.floor(diff/60000)+"min":diff<86400000?Math.floor(diff/3600000)+"h":fmtDate(new Date(ts).toISOString().slice(0,10));
+      const km=r.km||r.distancia||0;
+      const evento=r.eventoNome||r.evento||"";
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex-shrink:0" onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="cursor:pointer">${avatarEl(m.foto||"",m.apelido,36)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600">${m.apelido} <span style="font-weight:400;color:var(--muted)">rodou</span> 🏍️ ${toInt(km)} km${evento?` <span style="color:var(--muted)">em ${evento}</span>`:""}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${rel}</div>
+        </div>
+      </div>`;
+    }).join("");
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
+}
+
+// ═══════════════════════════════════════════════════
 // STATUS PERSONALIZÁVEL
 // ═══════════════════════════════════════════════════
 window.editarStatus=()=>{
@@ -2148,8 +2118,8 @@ window.editarStatus=()=>{
   const cur=UP?.status||"";
   const div=document.createElement("div");
   div.style.cssText="display:flex;gap:5px;align-items:center;margin-top:2px";
-  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="O que você está pensando?" maxlength="100"
-    style="flex:1;font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--orange);background:var(--bg3);color:#fff;font-family:inherit"
+  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="O que você quer compartilhar hoje?" maxlength="100"
+    style="flex:1;font-size:12px;padding:10px 8px;min-height:48px;border-radius:6px;border:1px solid var(--orange);background:var(--bg3);color:#fff;font-family:inherit"
     onkeydown="if(event.key==='Enter')window.salvarStatus();if(event.key==='Escape')window.cancelarStatus()"/>
   <button onclick="window.salvarStatus()" style="padding:3px 7px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✓</button>
   <button onclick="window.cancelarStatus()" style="padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✕</button>`;
@@ -3325,30 +3295,29 @@ async function carregarPainelResumo(){
   // Votações abertas
   try{
     const vSnap=await getDocs(query(collection(db,"votacoes"),where("encerrada","==",false)));
-    const card=document.getElementById("painel-votacoes-card");
     const el=document.getElementById("painel-votacoes");
-    if(!el)return;
-    if(vSnap.empty){
-      if(el)el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma enquete ativa no momento.</div>`;
-      return;
+    if(el){
+      if(vSnap.empty){
+        el.innerHTML=`<div style="font-size:12px;color:#555">Nenhuma enquete ativa no momento.</div>`;
+      }else{
+        el.innerHTML=vSnap.docs.map(d=>{
+          const v=d.data();
+          const meuVoto=v.votos?.[CU.uid];
+          const total=Object.values(v.votos||{}).length;
+          const contagem={};Object.values(v.votos||{}).forEach(op=>{contagem[op]=(contagem[op]||0)+1;});
+          return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">${v.pergunta}</div>
+            ${meuVoto
+              ?v.opcoes.map(op=>{const n=contagem[op]||0;const pct=total?Math.round((n/total)*100):0;
+                return`<div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:${op===meuVoto?"var(--orange)":"var(--white)"};font-weight:${op===meuVoto?"700":"400"}">${op}${op===meuVoto?" ✓":""}</span><span style="color:var(--muted)">${pct}%</span></div>
+                <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;background:${op===meuVoto?"var(--orange)":"#444"};border-radius:3px;width:${pct}%"></div></div></div>`;
+              }).join("")+`<div style="font-size:10px;color:var(--muted);margin-top:4px">${total} resposta${total!==1?"s":""}</div>`
+              :`<div style="display:flex;flex-direction:column;gap:6px">${v.opcoes.map(op=>`<button onclick="window.votar('${d.id}','${op}')" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;text-align:left">${op}</button>`).join("")}</div>`
+            }
+          </div>`;
+        }).join("");
+      }
     }
-
-    el.innerHTML=vSnap.docs.map(d=>{
-      const v=d.data();
-      const meuVoto=v.votos?.[CU.uid];
-      const total=Object.values(v.votos||{}).length;
-      const contagem={};Object.values(v.votos||{}).forEach(op=>{contagem[op]=(contagem[op]||0)+1;});
-      return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px">${v.pergunta}</div>
-        ${meuVoto
-          ?v.opcoes.map(op=>{const n=contagem[op]||0;const pct=total?Math.round((n/total)*100):0;
-            return`<div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:${op===meuVoto?"var(--orange)":"var(--white)"};font-weight:${op===meuVoto?"700":"400"}">${op}${op===meuVoto?" ✓":""}</span><span style="color:var(--muted)">${pct}%</span></div>
-            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;background:${op===meuVoto?"var(--orange)":"#444"};border-radius:3px;width:${pct}%"></div></div></div>`;
-          }).join("")+`<div style="font-size:10px;color:var(--muted);margin-top:4px">${total} resposta${total!==1?"s":""}</div>`
-          :`<div style="display:flex;flex-direction:column;gap:6px">${v.opcoes.map(op=>`<button onclick="window.votar('${d.id}','${op}')" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;text-align:left">${op}</button>`).join("")}</div>`
-        }
-      </div>`;
-    }).join("");
   }catch(e){console.error(e);}
 }
 
