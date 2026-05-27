@@ -814,6 +814,7 @@ function htmlClubeCorpo(){
       {id:"relatorio",ic:li("bar-chart-2",28),lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:li("file-text",28),lb:"Registro",sub:"Histórico de ações"},
+      {id:"msgs_rapidas",ic:"📲",lb:"Mensagens Rápidas",sub:"Enviar para o grupo"},
     ];
     if(!TA||TA==="home"){
       return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -873,6 +874,7 @@ function htmlClubeCorpo(){
       ${TA==="reunioes"?htmlReunioes():""}
       ${TA==="relatorio"?htmlRelatorio():""}
       ${TA==="log"?`<div id="log-wrap"><span class="spin">⟳</span></div>`:""}
+      ${TA==="msgs_rapidas"?htmlWhatsAppConteudo("clube"):""}
     `;
   }
   return htmlRanking();
@@ -893,14 +895,14 @@ function renderDiretor(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -944,6 +946,7 @@ function renderDiretor(el){
             ${PROXEVENTO_SEDE.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${PROXEVENTO_SEDE.desc}</div>`:""}
           </div>
         </div>
+        ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
@@ -1118,6 +1121,7 @@ function renderDiretor(el){
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="msgs")setTimeout(()=>{if((window._socialAba||"mural")==="mural")carregarMural();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1147,9 +1151,11 @@ function proxSexta(){
 }
 
 function htmlSede(canEdit){
+  const _validAbas=["presenca","limpeza","bar","churrasco","eventosSede","reunioes"];
+  if(!_validAbas.includes(window._sedeAba))window._sedeAba="presenca";
   const abaSede=window._sedeAba||"presenca";
   const isAdminOrDir=UP&&(UP.isAdmin||UP.isDiretor||UP.isBarman);
-  const tabs=[["presenca","⛪","Presença Sexta","Confirme sua presença"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["aniversariosSede","🎂","Aniversários","Membros do clube"],["reunioes","📋","Reuniões","Atas e presenças"]];
+  const tabs=[["presenca","⛪","Presença Sexta","Confirme sua presença"],["limpeza","🧹","Limpeza","Presença quarta"],["bar","🍺","Bar","Escalas do bar"],["churrasco","🔥","Churrasco","Escalas churrasco"],["eventosSede","🎉","Eventos","Eventos na sede"],["reunioes","📋","Reuniões","Atas e presenças"]];
   return`<div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
       ${tabs.map(([a,ic,lb,sub])=>
@@ -1161,7 +1167,6 @@ function htmlSede(canEdit){
       ${abaSede==="limpeza"?htmlSedeLimpeza(canEdit,isAdminOrDir):""}
       ${abaSede==="bar"||abaSede==="churrasco"?(UP&&(UP.isAdmin||UP.isBarman)?htmlEscalaGerenciar(abaSede):htmlEscalaVisualizacao(abaSede,isAdminOrDir)):""}
       ${abaSede==="eventosSede"?htmlEventosSede():""}
-      ${abaSede==="aniversariosSede"?htmlAniversarios():""}
       ${abaSede==="reunioes"?htmlReunioes():""}
     </div>
   </div>`;
@@ -1485,14 +1490,14 @@ function renderBarman(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1536,6 +1541,7 @@ function renderBarman(el){
             ${PROXEVENTO_SEDE.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${PROXEVENTO_SEDE.desc}</div>`:""}
           </div>
         </div>
+        ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
@@ -1708,14 +1714,14 @@ function renderMembro(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
-        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;color:var(--orange);font-style:italic;margin-top:2px;cursor:pointer" title="Clique para editar seu status">"${UP.status||FRASE}"</p>
+        <p id="hdr-status" onclick="window.editarStatus()" style="font-size:10px;${UP.status?'color:var(--orange);font-style:italic':'color:#666;font-style:normal'};margin-top:2px;cursor:pointer" title="Clique para editar seu status">${UP.status?'"'+UP.status+'"':'O que você está pensando?'}</p>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("message-circle",20),"Mensagens"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Eventos"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["votacao_tab",li("check-square",20),"Votações"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1759,6 +1765,7 @@ function renderMembro(el){
             ${PROXEVENTO_SEDE.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${PROXEVENTO_SEDE.desc}</div>`:""}
           </div>
         </div>
+        ${(()=>{const st=CONF_EVENTO_SEDE[PROXEVENTO_SEDE.id]||"";const isConf=st==="confirmado"||st==="compareceu";return`<div style="display:flex;gap:8px;margin-top:10px">${isConf?`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Desistir</button><span style="font-size:11px;color:var(--green);align-self:center">✅ ${st==="compareceu"?"Compareceu":"Confirmado"}</span>`:`<button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','confirmado')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Vou</button><button onclick="window.confirmarEventoSede('${PROXEVENTO_SEDE.id}','desistiu')" style="flex:1;padding:10px;min-height:44px;border-radius:10px;border:1px solid var(--danger);background:${st==="desistiu"?"rgba(224,82,82,.15)":"transparent"};color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Não vou</button>`}</div>`;})()}
         <button onclick="window._sedeAba='eventosSede';window.setTM('sede')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">Ver eventos na sede →</button>
       </div>`:""}
       <div class="card">
@@ -1916,6 +1923,7 @@ function renderMembro(el){
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
   if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="msgs")setTimeout(()=>{if((window._socialAba||"mural")==="mural")carregarMural();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1937,22 +1945,27 @@ function htmlVotacaoAdmin(){
 }
 
 function htmlWhatsApp(ctx){
+  const subAba=window._socialAba||"mural";
   return`<div style="overflow:hidden;max-width:100%"><div style="display:flex;gap:8px;margin-bottom:14px">
-    <button onclick="window.setSubMsg('wpp')" id="sub-wpp" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("message-circle",14)} WhatsApp</button>
-    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
+    <button onclick="window.setSubMsg('mural')" id="sub-mural" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:${subAba==='mural'?'none':'1px solid var(--border)'};background:${subAba==='mural'?'var(--orange)':'var(--bg3)'};color:${subAba==='mural'?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${li("pin",14)} Mural</button>
+    <button onclick="window.setSubMsg('aniversarios')" id="sub-aniversarios" style="flex:1;padding:8px;min-height:44px;border-radius:10px;border:${subAba==='aniversarios'?'none':'1px solid var(--border)'};background:${subAba==='aniversarios'?'var(--orange)':'var(--bg3)'};color:${subAba==='aniversarios'?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🎂 Aniversários</button>
   </div>
-  <div id="sub-msg-wpp">${htmlWhatsAppConteudo(ctx)}</div>
-  <div id="sub-msg-mural" style="display:none">${htmlMural()}</div></div>`;
+  <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${htmlMural()}</div>
+  <div id="sub-msg-aniversarios" style="display:${subAba==='aniversarios'?'block':'none'}">${subAba==='aniversarios'?htmlAniversarios():''}</div></div>`;
 }
 window.setSubMsg=(aba)=>{
-  ["wpp","mural"].forEach(a=>{
+  window._socialAba=aba;
+  ["mural","aniversarios"].forEach(a=>{
     const btn=document.getElementById("sub-"+a);
     const el=document.getElementById("sub-msg-"+a);
     const active=a===aba;
     if(btn){btn.style.background=active?"var(--orange)":"var(--bg3)";btn.style.color=active?"#fff":"var(--muted)";btn.style.border=active?"none":"1px solid var(--border)";}
-    if(el)el.style.display=active?"block":"none";
+    if(el){
+      el.style.display=active?"block":"none";
+      if(active&&a==="mural")setTimeout(carregarMural,50);
+      if(active&&a==="aniversarios")el.innerHTML=htmlAniversarios();
+    }
   });
-  if(aba==="mural")setTimeout(carregarMural,50);
 };
 function htmlWhatsAppConteudo(ctx){
   const id=ctx||"painel";
@@ -2135,7 +2148,7 @@ window.editarStatus=()=>{
   const cur=UP?.status||"";
   const div=document.createElement("div");
   div.style.cssText="display:flex;gap:5px;align-items:center;margin-top:2px";
-  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="${FRASE}" maxlength="100"
+  div.innerHTML=`<input id="hdr-status-inp" type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="O que você está pensando?" maxlength="100"
     style="flex:1;font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--orange);background:var(--bg3);color:#fff;font-family:inherit"
     onkeydown="if(event.key==='Enter')window.salvarStatus();if(event.key==='Escape')window.cancelarStatus()"/>
   <button onclick="window.salvarStatus()" style="padding:3px 7px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">✓</button>
@@ -2171,9 +2184,10 @@ window.abrirPerfilPublico=async(uid)=>{
   const sc=_sedeCount(membro)||0;
   const ov=document.createElement("div");
   ov.className="app-modal-overlay";
+  ov.style.cssText="align-items:center;justify-content:center";
   ov.id="perfil-pub-ov";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
-  ov.innerHTML=`<div class="app-modal-sheet">
+  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:16px;width:90vw;max-width:440px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div style="font-size:15px;font-weight:700">👤 Perfil</div>
       <button onclick="document.getElementById('perfil-pub-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
@@ -3011,6 +3025,7 @@ window.confirmarEventoSede=async(eventoId,resposta)=>{
     CONF_EVENTO_SEDE[eventoId]=resposta;
     showToast(resposta==="confirmado"?"✅ Presença confirmada!":"❌ Desistência registrada.");
     carregarEventosSede();
+    render();
   }catch{showToast("Erro.",true);}
 };
 
@@ -3022,6 +3037,7 @@ window.marcarCompareceuEventoSede=async(eventoId)=>{
     CONF_EVENTO_SEDE[eventoId]="compareceu";
     showToast("🏁 Comparecimento marcado!");
     carregarEventosSede();
+    render();
   }catch{showToast("Erro.",true);}
 };
 
