@@ -250,7 +250,7 @@ select option{background:#161616;color:var(--white)}
 .loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
 .falta-txt{font-size:10px;color:var(--muted);margin-bottom:5px}
 .hide-scroll{scrollbar-width:none;-ms-overflow-style:none}.hide-scroll::-webkit-scrollbar{display:none}
-@media(min-width:600px){#galeria-grid{grid-template-columns:repeat(4,1fr)!important}}
+@media(min-width:600px){#galeria-grid{grid-template-columns:repeat(5,1fr)!important}}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
 .pres-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
 .pres-sim{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
@@ -972,103 +972,29 @@ function renderDiretor(el){
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="perfil"?`
       <div class="card">
-        <div class="sec-title">🔑 Trocar senha</div>
-        <div id="p-err" class="msg-err" style="display:none"></div>
-        <div id="p-ok" class="msg-ok" style="display:none"></div>
-        <label>Senha atual</label><div class="senha-wrap"><input type="password" id="p-atual" autocomplete="current-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-atual')">👁️</button></div>
-        <label>Nova senha</label><div class="senha-wrap"><input type="password" id="p-nova" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-nova')">👁️</button></div>
-        <label>Confirmar</label><div class="senha-wrap"><input type="password" id="p-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-conf')">👁️</button></div>
-        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
-      </div>
-      <div class="card">
         <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-          <div style="flex:1">
-            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
-            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
-            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
-            </div>
-          </div>
-        </div>
-        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="sec-title">${li("bike",16)} Garagem</div>
-        <div style="margin-bottom:12px">
-          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
-          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
-          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
-        </div>
-        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
-        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
-        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
-        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
-        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
-        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
-        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
-        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
-      </div>
-      <div class="card">
-
-        <div class="sec-title">👤 Meus dados</div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
             ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+            <div style="flex:1">
+              <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+              <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+              ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+                ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+              </div>
+            </div>
           </div>
-          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
-        </div>
-        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
-        <div style="font-size:13px;color:#666">${CU.email}</div>
-        <div style="margin-top:14px">
-          <label>🎖️ Nível no clube</label>
-          <select id="m-cargo" style="margin-bottom:8px">
-            <option value="">Selecione seu nível...</option>
-            ${nivelOpts(UP.nivel)}
-          </select>
-          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎂 Data de nascimento</label>
-          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>📅 Data de ingresso no clube</label>
-          <input type="text" id="m-ingresso" value="${UP.dataIngresso||''}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarIngresso()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎗️ Histórico de graduações</label>
-          ${htmlTimelineGraduacoes(UP.historicoGraduacoes||[],'window.removerGraduacao(__I__)')}
-          <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
-            <select id="m-grad-nivel" style="flex:1;margin:0;padding:9px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit">
-              <option value="">Nível...</option>
-              ${nivelOpts()}
-            </select>
-            <input type="text" id="m-grad-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off" style="flex:1;margin:0"/>
-            <button onclick="window.adicionarGraduacao()" style="padding:9px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+</button>
+          <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
+            </div>
           </div>
         </div>
-        <div style="margin-top:14px">
+        ${htmlPerfilBotoes()}
+        <div style="margin-top:16px">
           <div class="sec-title">${li("flame",16)} Conquistas</div>
           <div>${htmlConquistas(UP,REGS)}</div>
         </div>
@@ -1534,102 +1460,28 @@ function renderBarman(el){
 
     ${TM==="perfil"?`
       <div class="card">
-        <div class="sec-title">🔑 Trocar senha</div>
-        <div id="p-err" class="msg-err" style="display:none"></div>
-        <div id="p-ok" class="msg-ok" style="display:none"></div>
-        <label>Senha atual</label><div class="senha-wrap"><input type="password" id="p-atual" autocomplete="current-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-atual')">👁️</button></div>
-        <label>Nova senha</label><div class="senha-wrap"><input type="password" id="p-nova" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-nova')">👁️</button></div>
-        <label>Confirmar</label><div class="senha-wrap"><input type="password" id="p-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-conf')">👁️</button></div>
-        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
-      </div>
-      <div class="card">
         <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-          <div style="flex:1">
-            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
-            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
-            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
-            </div>
-          </div>
-        </div>
-        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="sec-title">${li("bike",16)} Garagem</div>
-        <div style="margin-bottom:12px">
-          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
-          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
-          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
-        </div>
-        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
-        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
-        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
-        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
-        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
-        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
-        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
-        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
-      </div>
-      <div class="card">
-
-        <div class="sec-title">👤 Meus dados</div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
             ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+            <div style="flex:1">
+              <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+              <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+              ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+                ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+              </div>
+            </div>
           </div>
-          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
-        </div>
-        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
-        <div style="font-size:13px;color:#666">${CU.email}</div>
-        <div style="margin-top:14px">
-          <label>🎖️ Nível no clube</label>
-          <select id="m-cargo" style="margin-bottom:8px">
-            <option value="">Selecione seu nível...</option>
-            ${nivelOpts(UP.nivel)}
-          </select>
-          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎂 Data de nascimento</label>
-          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>📅 Data de ingresso no clube</label>
-          <input type="text" id="m-ingresso" value="${UP.dataIngresso||''}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarIngresso()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎗️ Histórico de graduações</label>
-          ${htmlTimelineGraduacoes(UP.historicoGraduacoes||[],'window.removerGraduacao(__I__)')}
-          <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
-            <select id="m-grad-nivel" style="flex:1;margin:0;padding:9px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit">
-              <option value="">Nível...</option>
-              ${nivelOpts()}
-            </select>
-            <input type="text" id="m-grad-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off" style="flex:1;margin:0"/>
-            <button onclick="window.adicionarGraduacao()" style="padding:9px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+</button>
+          <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
+            </div>
           </div>
         </div>
+        ${htmlPerfilBotoes()}
       </div>`:""}
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
@@ -1724,102 +1576,28 @@ function renderMembro(el){
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="perfil"?`
       <div class="card">
-        <div class="sec-title">🔑 Trocar senha</div>
-        <div id="p-err" class="msg-err" style="display:none"></div>
-        <div id="p-ok" class="msg-ok" style="display:none"></div>
-        <label>Senha atual</label><div class="senha-wrap"><input type="password" id="p-atual" autocomplete="current-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-atual')">👁️</button></div>
-        <label>Nova senha</label><div class="senha-wrap"><input type="password" id="p-nova" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-nova')">👁️</button></div>
-        <label>Confirmar</label><div class="senha-wrap"><input type="password" id="p-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('p-conf')">👁️</button></div>
-        <button class="btn-primary" onclick="window.trocarSenha()">Salvar nova senha</button>
-      </div>
-      <div class="card">
         <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#242424);border:1px solid rgba(232,103,10,.3);padding:20px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-          <div style="flex:1">
-            <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
-            <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
-            ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-              ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
-              ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
-            </div>
-          </div>
-        </div>
-        <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div>
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="sec-title">${li("bike",16)} Garagem</div>
-        <div style="margin-bottom:12px">
-          ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
-          <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="foto-moto-input">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
-          <input type="file" id="foto-moto-input" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
-        </div>
-        <label>Nome / modelo da moto</label><input type="text" id="m-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
-        <label>Ano</label><input type="number" id="m-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
-        <label>Cilindrada</label><input type="text" id="m-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
-        <label>Cor</label><input type="text" id="m-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
-        <label>Autonomia (km/L)</label><input type="number" id="m-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
-        <label>Tanque (litros)</label><input type="number" id="m-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
-        <label>Preço gasolina (R$/L)</label><input type="number" id="m-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
-        <button class="btn-primary" onclick="window.salvarGaragem()">Salvar garagem</button>
-      </div>
-      <div class="card">
-
-        <div class="sec-title">👤 Meus dados</div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
             ${avatarEl(UP.fotoUrl,UP.apelido,56)}
-            <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+            <div style="flex:1">
+              <div style="font-size:18px;font-weight:700">${UP.apelido}</div>
+              <div style="font-size:12px;color:var(--muted)">${UP.moto||"Sem moto cadastrada"}</div>
+              ${UP.nivel?`<div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:2px">🎖️ ${UP.nivel}</div>`:""}
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                ${UP.isAdmin?`<span class="badge" style="background:rgba(232,103,10,.2);color:var(--orange);border:1px solid rgba(232,103,10,.4)">ADMIN</span>`:""}
+                ${!UP.isAdmin&&!UP.isDiretor&&!UP.isBarman?`<span class="badge" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border)">MEMBRO</span>`:""}
+              </div>
+            </div>
           </div>
-          <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${UP.moto||"—"}</div></div>
-        </div>
-        <div style="font-size:12px;color:#888;margin-bottom:4px">E-mail</div>
-        <div style="font-size:13px;color:#666">${CU.email}</div>
-        <div style="margin-top:14px">
-          <label>🎖️ Nível no clube</label>
-          <select id="m-cargo" style="margin-bottom:8px">
-            <option value="">Selecione seu nível...</option>
-            ${nivelOpts(UP.nivel)}
-          </select>
-          <button class="btn-primary" style="margin-top:4px;margin-bottom:0" onclick="window.salvarNivel()">Salvar nível</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎂 Data de nascimento</label>
-          <input type="text" id="m-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarNascimento()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>📅 Data de ingresso no clube</label>
-          <input type="text" id="m-ingresso" value="${UP.dataIngresso||''}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
-          <button class="btn-primary" style="margin-top:4px" onclick="window.salvarIngresso()">Salvar</button>
-        </div>
-        <div style="margin-top:14px">
-          <label>🎗️ Histórico de graduações</label>
-          ${htmlTimelineGraduacoes(UP.historicoGraduacoes||[],'window.removerGraduacao(__I__)')}
-          <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
-            <select id="m-grad-nivel" style="flex:1;margin:0;padding:9px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit">
-              <option value="">Nível...</option>
-              ${nivelOpts()}
-            </select>
-            <input type="text" id="m-grad-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off" style="flex:1;margin:0"/>
-            <button onclick="window.adicionarGraduacao()" style="padding:9px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+</button>
+          <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
+            </div>
           </div>
         </div>
+        ${htmlPerfilBotoes()}
       </div>`:""}
     ${TM==="ranking"?htmlRanking():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
@@ -1854,15 +1632,15 @@ function htmlVotacaoAdmin(){
 
 function htmlWhatsApp(ctx){
   const subAba=window._socialAba||"atividades";
-  const stories=MEMBROS.map(m=>`<div onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0">
+  const stories=MEMBROS.filter(m=>m.apelido&&m.apelido!=="undefined").map(m=>`<div onclick="window.abrirPerfilPublico('${m.id||m.uid||""}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0">
     <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange) 0%,#ff5500 100%)">
       <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--bg1)">
         ${m.fotoUrl?`<img src="${m.fotoUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--orange)">${(m.apelido||"?")[0].toUpperCase()}</div>`}
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:1px;width:62px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1px;width:90px">
       <span style="font-size:10px;color:var(--white);width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
-      ${m.status?`<span style="font-size:9px;color:rgba(255,255,255,.45);width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.status}</span>`:""}
+      ${m.status?`<span style="font-size:9px;color:rgba(255,255,255,.45);width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center">${m.status}</span>`:""}
     </div>
   </div>`).join("");
   const tabs=[["atividades","Feed"],["mural","Mural"],["galeria","Galeria"],["votacoes","Votações"],["aniversarios","Aniver."]];
@@ -2015,7 +1793,7 @@ async function carregarMural(){
     el.innerHTML=docs.map(r=>{
       const reacoes=r.reacoes||[];
       const meuId=CU?.uid||"";
-      const emojiList=["🤘","❤️","😂","🏍️"];
+      const emojiList=["🤘","😂"];
       const reacBar=emojiList.map(emoji=>{
         const lista=reacoes.filter(rx=>rx.emoji===emoji);
         const jaTenho=lista.some(rx=>rx.membroId===meuId);
@@ -2387,7 +2165,7 @@ function htmlGaleria(){
       ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join("")}
       <option value="geral">Geral / Sede</option>
     </select>
-    <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><span class="spin">⟳</span></div>
+    <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px"><span class="spin">⟳</span></div>
   </div>`;
 }
 
@@ -2542,6 +2320,170 @@ window.enviarComentFoto=async(fotoId)=>{
     await updateDoc(doc(db,"galeria",fotoId),{comentarios:arrayUnion(comentario)});
     inp.value="";carregarComentFoto(fotoId);
   }catch{showToast("Erro.",true);}
+};
+
+// ═══════════════════════════════════════════════════
+// PERFIL — BOTÕES MODAIS
+// ═══════════════════════════════════════════════════
+function htmlPerfilBotoes(){
+  const btns=[
+    {id:"garagem",ic:li("bike",20),lb:"Editar garagem"},
+    {id:"dados",ic:li("user",20),lb:"Meus dados"},
+    {id:"graduacoes",ic:li("award",20),lb:"Graduações"},
+    {id:"senha",ic:li("key",20),lb:"Trocar senha"},
+  ];
+  return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+    ${btns.map(b=>`<button onclick="window.abrirPerfilModal('${b.id}')" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,102,0,.25);background:rgba(255,255,255,.04);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;backdrop-filter:blur(6px)">${b.ic}<span>${b.lb}</span></button>`).join("")}
+  </div>`;
+}
+
+window.abrirPerfilModal=(tipo)=>{
+  document.getElementById("perfil-modal-overlay")?.remove();
+  let titulo="",conteudo="";
+  if(tipo==="garagem"){
+    titulo=`${li("bike",18)} Editar garagem`;
+    conteudo=`
+      <div style="margin-bottom:10px">
+        ${UP.fotoMoto?`<img src="${UP.fotoMoto}" style="width:100%;max-height:130px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:8px"/>`:""}
+        <label style="text-transform:none;letter-spacing:0;cursor:pointer;padding:7px 12px;display:inline-block;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--white);background:var(--bg3);margin:0" for="pm-foto-moto">📷 ${UP.fotoMoto?"Trocar foto":"+ Foto da moto"}</label>
+        <input type="file" id="pm-foto-moto" accept="image/*" style="display:none;margin:0" onchange="window.uploadFotoMoto(this)"/>
+      </div>
+      <label>Nome / modelo da moto</label><input type="text" id="pm-nome" placeholder="Ex: Honda CB 500F" value="${UP.moto||""}" autocomplete="off"/>
+      <label>Ano</label><input type="number" id="pm-ano" placeholder="Ex: 2022" value="${UP.motoAno||""}" autocomplete="off"/>
+      <label>Cilindrada</label><input type="text" id="pm-cil" placeholder="Ex: 500cc" value="${UP.motoCil||""}" autocomplete="off"/>
+      <label>Cor</label><input type="text" id="pm-cor" placeholder="Ex: Preto fosco" value="${UP.motoCor||""}" autocomplete="off"/>
+      <label>Autonomia (km/L)</label><input type="number" id="pm-autonomia" placeholder="Ex: 18" value="${UP.autonomia||""}" autocomplete="off"/>
+      <label>Tanque (litros)</label><input type="number" id="pm-tanque" placeholder="Ex: 13.7" step="0.1" value="${UP.tanque||""}" autocomplete="off"/>
+      <label>Preço gasolina (R$/L)</label><input type="number" id="pm-gasolina" placeholder="Ex: 6.20" step="0.01" value="${UP.gasolina||""}" autocomplete="off"/>
+      <button class="btn-primary" onclick="window.salvarGaragemModal()">Salvar garagem</button>`;
+  } else if(tipo==="dados"){
+    titulo=`${li("user",18)} Meus dados`;
+    conteudo=`
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="position:relative;cursor:pointer" onclick="window.trocarFoto('${CU.uid}','${UP.apelido}')">
+          ${avatarEl(UP.fotoUrl,UP.apelido,56)}
+          <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+        </div>
+        <div><div style="font-size:16px;font-weight:600">${UP.apelido}</div><div style="font-size:12px;color:#888">${CU.email}</div></div>
+      </div>
+      <label>🎖️ Nível no clube</label>
+      <select id="pm-cargo" style="margin-bottom:8px"><option value="">Selecione seu nível...</option>${nivelOpts(UP.nivel)}</select>
+      <button class="btn-primary" style="margin-bottom:14px" onclick="window.salvarNivelModal()">Salvar nível</button>
+      <label>🎂 Data de nascimento</label>
+      <input type="text" id="pm-nascimento" value="${nascForDisplay(UP.nascimento||"")}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
+      <button class="btn-primary" style="margin-bottom:14px" onclick="window.salvarNascimentoModal()">Salvar nascimento</button>
+      <label>📅 Data de ingresso no clube</label>
+      <input type="text" id="pm-ingresso" value="${UP.dataIngresso||''}" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off"/>
+      <button class="btn-primary" onclick="window.salvarIngressoModal()">Salvar ingresso</button>`;
+  } else if(tipo==="graduacoes"){
+    titulo=`${li("award",18)} Graduações`;
+    conteudo=`
+      <div style="margin-bottom:14px">${htmlTimelineGraduacoes(UP.historicoGraduacoes||[],'window.removerGraduacao(__I__)')}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="pm-grad-nivel" style="flex:1;margin:0;padding:9px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"><option value="">Nível...</option>${nivelOpts()}</select>
+        <input type="text" id="pm-grad-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" autocomplete="off" style="flex:1;margin:0"/>
+        <button onclick="window.adicionarGraduacaoModal()" style="padding:9px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">+</button>
+      </div>`;
+  } else if(tipo==="senha"){
+    titulo=`${li("key",18)} Trocar senha`;
+    conteudo=`
+      <div id="pm-err" class="msg-err" style="display:none"></div>
+      <div id="pm-ok" class="msg-ok" style="display:none"></div>
+      <label>Senha atual</label><div class="senha-wrap"><input type="password" id="pm-atual" autocomplete="current-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-atual')">👁️</button></div>
+      <label>Nova senha</label><div class="senha-wrap"><input type="password" id="pm-nova" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-nova')">👁️</button></div>
+      <label>Confirmar</label><div class="senha-wrap"><input type="password" id="pm-conf" autocomplete="new-password"/><button class="senha-olho" type="button" tabindex="-1" onclick="window.toggleSenha('pm-conf')">👁️</button></div>
+      <button class="btn-primary" onclick="window.trocarSenhaModal()">Salvar nova senha</button>`;
+  }
+  const ov=document.createElement("div");
+  ov.id="perfil-modal-overlay";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const sheet=document.createElement("div");
+  sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
+  sheet.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)"><div style="font-size:17px;font-weight:700">${titulo}</div><button onclick="document.getElementById('perfil-modal-overlay')?.remove()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button></div><div style="padding:16px 20px;max-height:75vh;overflow-y:auto">${conteudo}</div>`;
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+};
+
+window.salvarGaragemModal=async()=>{
+  const moto=document.getElementById("pm-nome")?.value.trim();
+  const ano=document.getElementById("pm-ano")?.value;
+  const cil=document.getElementById("pm-cil")?.value.trim();
+  const cor=document.getElementById("pm-cor")?.value.trim();
+  const autonomia=parseFloat(document.getElementById("pm-autonomia")?.value)||0;
+  const tanque=parseFloat(document.getElementById("pm-tanque")?.value)||0;
+  const gasolina=parseFloat(document.getElementById("pm-gasolina")?.value)||0;
+  if(!moto){showToast("Informe o nome da moto.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{moto,motoAno:ano||"",motoCil:cil||"",motoCor:cor||"",autonomia,tanque,gasolina},{merge:true});
+    UP.moto=moto;UP.motoAno=ano;UP.motoCil=cil;UP.motoCor=cor;
+    UP.autonomia=autonomia;UP.tanque=tanque;UP.gasolina=gasolina;
+    showToast("✓ Garagem salva!");document.getElementById("perfil-modal-overlay")?.remove();render();
+  }catch{showToast("Erro ao salvar.",true);}
+};
+
+window.salvarNivelModal=async()=>{
+  const cargo=document.getElementById("pm-cargo")?.value;
+  if(!cargo){showToast("Selecione um nível.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nivel:cargo},{merge:true});
+    UP.nivel=cargo;showToast("✓ Nível salvo!");document.getElementById("perfil-modal-overlay")?.remove();render();
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+
+window.salvarNascimentoModal=async()=>{
+  const raw=document.getElementById("pm-nascimento")?.value;
+  const nasc=nascForStorage(raw||"");
+  if(!nasc){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{nascimento:nasc},{merge:true});
+    UP.nascimento=nasc;showToast("✓ Data de nascimento salva!");
+  }catch{showToast("Erro.",true);}
+};
+
+window.salvarIngressoModal=async()=>{
+  const val=document.getElementById("pm-ingresso")?.value.trim()||"";
+  if(val&&!/^\d{2}\/\d{2}\/\d{4}$/.test(val)){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
+  try{
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{dataIngresso:val},{merge:true});
+    UP.dataIngresso=val;showToast("✓ Data de ingresso salva!");
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+
+window.adicionarGraduacaoModal=async()=>{
+  const nivel=document.getElementById("pm-grad-nivel")?.value;
+  const data=document.getElementById("pm-grad-data")?.value.trim();
+  if(!nivel||!data){showToast("Selecione o nível e informe a data.",true);return;}
+  if(!/^\d{2}\/\d{2}\/\d{4}$/.test(data)){showToast("Data inválida. Use DD/MM/AAAA.",true);return;}
+  const grads=[...(UP.historicoGraduacoes||[]),{nivel,data}];
+  try{
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{historicoGraduacoes:grads},{merge:true});
+    registrarFeed(CU.uid,UP.apelido,"graduacao",`${UP.apelido} foi promovido para ${nivel}`);
+    UP.historicoGraduacoes=grads;showToast("✓ Graduação adicionada!");
+    document.getElementById("perfil-modal-overlay")?.remove();
+    window.abrirPerfilModal("graduacoes");
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+
+window.trocarSenhaModal=async()=>{
+  const atual=document.getElementById("pm-atual")?.value;
+  const nova=document.getElementById("pm-nova")?.value;
+  const conf=document.getElementById("pm-conf")?.value;
+  const err=document.getElementById("pm-err");
+  const ok=document.getElementById("pm-ok");
+  if(err)err.style.display="none";if(ok)ok.style.display="none";
+  if(!atual||!nova||!conf){if(err){err.textContent="Preencha todos os campos.";err.style.display="block";}return;}
+  if(nova.length<6){if(err){err.textContent="Mínimo 6 caracteres.";err.style.display="block";}return;}
+  if(nova!==conf){if(err){err.textContent="As senhas não coincidem.";err.style.display="block";}return;}
+  try{
+    const cred=EmailAuthProvider.credential(CU.email,atual);
+    await reauthenticateWithCredential(CU,cred);
+    await updatePassword(CU,nova);
+    if(ok){ok.textContent="✓ Senha alterada!";ok.style.display="block";}
+    ["pm-atual","pm-nova","pm-conf"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  }catch(e){
+    if(err){err.textContent=e.code&&(e.code.includes("wrong-password")||e.code.includes("invalid-credential"))?"Senha atual incorreta.":"Erro: "+e.message;err.style.display="block";}
+  }
 };
 
 // ═══════════════════════════════════════════════════
@@ -5299,7 +5241,7 @@ window.trocarSenha=async()=>{
 };
 async function carregarMembros(){
   const snap=await getDocs(collection(db,"usuarios"));
-  MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({...d.data(),uid:d.id,authUid:d.data().uid||d.id}));
+  MEMBROS=snap.docs.filter(d=>!d.data().isAdmin).map(d=>({...d.data(),uid:d.id,authUid:d.data().uid||d.id})).filter(m=>m.apelido&&m.apelido!=="undefined");
 }
 function findMembro(id){return MEMBROS.find(m=>m.uid===id)||MEMBROS.find(m=>m.authUid===id);}
 function resolveDocId(id){const m=findMembro(id);return m?m.uid:id;}
