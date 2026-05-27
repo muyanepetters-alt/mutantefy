@@ -249,6 +249,8 @@ select option{background:#161616;color:var(--white)}
 .login-wrap::after{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:repeating-linear-gradient(45deg,rgba(232,103,10,.02) 0px,rgba(232,103,10,.02) 1px,transparent 1px,transparent 40px);pointer-events:none}
 .loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
 .falta-txt{font-size:10px;color:var(--muted);margin-bottom:5px}
+.hide-scroll{scrollbar-width:none;-ms-overflow-style:none}.hide-scroll::-webkit-scrollbar{display:none}
+@media(min-width:600px){#galeria-grid{grid-template-columns:repeat(4,1fr)!important}}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
 .pres-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
 .pres-sim{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);color:var(--green)}
@@ -902,7 +904,7 @@ function renderDiretor(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],["clube",li("shield",20),"Diretoria"]])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1073,7 +1075,6 @@ function renderDiretor(el){
       </div>`:""}
     ${TM==="clube"?htmlClubeCorpo():""}
     ${TM==="ranking"?htmlRanking():""}
-    ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
@@ -1094,9 +1095,8 @@ function renderDiretor(el){
   },100);
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
-  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
-  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="votacoes")carregarPainelResumo();},100);
+  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1459,7 +1459,7 @@ function renderBarman(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1526,7 +1526,6 @@ function renderBarman(el){
       </div>
       <div id="ev-cal-wrap" style="display:none"></div>`:""}
     ${TM==="ranking"?htmlRanking():""}
-    ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
@@ -1635,7 +1634,6 @@ function renderBarman(el){
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
-  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
@@ -1658,7 +1656,7 @@ function renderMembro(el){
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
-    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["galeria",li("image",20),"Galeria"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
+    ${htmlBnav([["painel",li("bike",20),"Início"],["sede",li("building-2",20),"Sede"],["eventos",li("calendar",20),"Viagens"],["msgs",li("users",20),"Social"],["perfil",li("user",20),"Perfil"],["ranking",li("trophy",20),"Ranking"],])}
     <div class="body">
     ${TM==="painel"?`
       ${htmlInstallBanner()}
@@ -1824,7 +1822,6 @@ function renderMembro(el){
         </div>
       </div>`:""}
     ${TM==="ranking"?htmlRanking():""}
-    ${TM==="galeria"?htmlGaleria():""}
     ${TM==="votacao_tab"?htmlVotacoesTab():""}
     ${TM==="msgs"?htmlWhatsApp("painel"):""}
     ${TM==="mural"?htmlMural():""}
@@ -1833,9 +1830,8 @@ function renderMembro(el){
     </div>`;
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");if(f){const p=f.dataset.pct;f.style.width=p+"%";}},200);}
-  if(TM==="galeria")setTimeout(()=>carregarGaleria(),100);
   if(TM==="mural")setTimeout(carregarMural,100);
-  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="votacoes")carregarPainelResumo();},100);
+  if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
@@ -1866,30 +1862,32 @@ function htmlWhatsApp(ctx){
     </div>
     <span style="font-size:10px;color:var(--white);width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${m.apelido||""}</span>
   </div>`).join("");
-  const tabs=[["atividades","⚡","Feed"],["mural","📌","Mural"],["votacoes","📊","Votações"],["aniversarios","🎂","Aniver."]];
-  const tabBtns=tabs.map(([id,ic,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex:1;padding:6px 2px;min-height:44px;border-radius:10px;border:${subAba===id?'none':'1px solid var(--border)'};background:${subAba===id?'var(--orange)':'var(--bg3)'};color:${subAba===id?'#fff':'var(--muted)'};font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">${ic}<br>${lb}</button>`).join("");
+  const tabs=[["atividades","Feed"],["mural","Mural"],["galeria","Galeria"],["votacoes","Votações"],["aniversarios","Aniver."]];
+  const tabBtns=tabs.map(([id,lb])=>`<button onclick="window.setSubMsg('${id}')" id="sub-${id}" style="flex-shrink:0;padding:0 14px;height:36px;min-height:36px;border-radius:999px;border:${subAba===id?'none':'1px solid rgba(255,255,255,.1)'};background:${subAba===id?'#ff6600':'transparent'};color:${subAba===id?'#fff':'rgba(255,255,255,.5)'};font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap">${lb}</button>`).join("");
   return`<div style="overflow:hidden;max-width:100%">
-  <div style="overflow-x:auto;padding-bottom:12px;margin-bottom:4px;scrollbar-width:none;-ms-overflow-style:none">
+  <div class="hide-scroll" style="overflow-x:auto;padding-bottom:12px;margin-bottom:4px">
     <div style="display:flex;gap:14px;padding:4px 2px;width:max-content">${stories}</div>
   </div>
-  <div style="display:flex;gap:6px;margin-bottom:14px">${tabBtns}</div>
+  <div class="hide-scroll" style="overflow-x:auto;display:flex;gap:6px;margin-bottom:14px;padding-bottom:2px">${tabBtns}</div>
   <div id="sub-msg-atividades" style="display:${subAba==='atividades'?'block':'none'}"><div class="card"><div class="sec-title">⚡ Feed</div><div id="social-feed-atividades"><span class="spin">⟳</span></div></div></div>
   <div id="sub-msg-mural" style="display:${subAba==='mural'?'block':'none'}">${subAba==='mural'?htmlMural():''}</div>
+  <div id="sub-msg-galeria" style="display:${subAba==='galeria'?'block':'none'}">${subAba==='galeria'?htmlGaleria():''}</div>
   <div id="sub-msg-votacoes" style="display:${subAba==='votacoes'?'block':'none'}">${subAba==='votacoes'?htmlVotacoesTab():''}</div>
   <div id="sub-msg-aniversarios" style="display:${subAba==='aniversarios'?'block':'none'}">${subAba==='aniversarios'?htmlAniversarios():''}</div>
   </div>`;
 }
 window.setSubMsg=(aba)=>{
   window._socialAba=aba;
-  ["atividades","mural","votacoes","aniversarios"].forEach(a=>{
+  ["atividades","mural","galeria","votacoes","aniversarios"].forEach(a=>{
     const btn=document.getElementById("sub-"+a);
     const el=document.getElementById("sub-msg-"+a);
     const active=a===aba;
-    if(btn){btn.style.background=active?"var(--orange)":"var(--bg3)";btn.style.color=active?"#fff":"var(--muted)";btn.style.border=active?"none":"1px solid var(--border)";}
+    if(btn){btn.style.background=active?"#ff6600":"transparent";btn.style.color=active?"#fff":"rgba(255,255,255,.5)";btn.style.border=active?"none":"1px solid rgba(255,255,255,.1)";}
     if(el){
       el.style.display=active?"block":"none";
       if(active&&a==="atividades")setTimeout(carregarAtividades,50);
       if(active&&a==="mural"){el.innerHTML=htmlMural();setTimeout(carregarMural,50);}
+      if(active&&a==="galeria"){el.innerHTML=htmlGaleria();setTimeout(carregarGaleria,50);}
       if(active&&a==="votacoes"){el.innerHTML=htmlVotacoesTab();setTimeout(carregarPainelResumo,50);}
       if(active&&a==="aniversarios")el.innerHTML=htmlAniversarios();
     }
@@ -2386,7 +2384,7 @@ function htmlGaleria(){
       ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join("")}
       <option value="geral">Geral / Sede</option>
     </select>
-    <div id="galeria-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><span class="spin">⟳</span></div>
+    <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><span class="spin">⟳</span></div>
   </div>`;
 }
 
