@@ -2130,111 +2130,322 @@ function htmlRelatorioIndividual(){
 // RELATÓRIO ANUAL
 // ═══════════════════════════════════════════════════
 function htmlRelatorio(){
-  const ano=new Date().getFullYear();
   const totalKmClube=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
-  const membroTop=MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0))[0];
+  const membrosAtivos=MEMBROS.filter(m=>(m.totalKm||0)>0).length;
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
-  const eventosRealizados=EVENTOS.filter(e=>new Date(e.data)<new Date()).length;
+  const hoje=new Date();
+  const eventosRealizados=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).length;
   const totalEventos=EVENTOS.length;
-  return`${(UP?.isAdmin||UP?.isDiretor)?htmlRelatorioIndividual():''}
-  <div class="card" style="border-color:rgba(232,103,10,.3)">
-    <div style="text-align:center;padding:8px 0 16px">
-      <div style="font-size:28px">📊</div>
-      <div style="font-size:18px;font-weight:700;margin-top:4px">Relatório Temporada ${ANO_ATIVO}</div>
-      <div style="font-size:12px;color:var(--muted)">Mutantes MC Itajaí</div>
+  const sorted=[...MEMBROS].filter(m=>m.apelido&&m.apelido!=='undefined').sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const membroTop=sorted[0];
+
+  // Média presença nos eventos (via REGS tipo=rota)
+  const evRealizadosIds=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).map(e=>e.id);
+  const totalPossivel=MEMBROS.length*evRealizadosIds.length;
+  const presUnicas=new Set(REGS.filter(r=>r.tipo==='rota'&&evRealizadosIds.includes(r.eventoId||parseInt(r.eventoId))).map(r=>`${r.membroId}_${r.eventoId}`)).size;
+  const mediaPresenca=totalPossivel>0?Math.round((presUnicas/totalPossivel)*100):0;
+
+  const mesesLb=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const kmMes=Array(12).fill(0);
+  REGS.forEach(r=>{const mi=parseInt((r.data||"").slice(5,7))-1;if(mi>=0&&mi<12)kmMes[mi]+=(r.km||0);});
+  const maxKm=Math.max(...kmMes,1);
+
+  const mc=(label,val,color='')=>`<div class="metric" style="padding:10px 6px;text-align:center">
+    <div class="metric-label" style="font-size:9px;line-height:1.3">${label}</div>
+    <div class="metric-value" style="font-size:18px${color?`;color:${color}`:''}">$${val}</div>
+  </div>`.replace('$${val}',val);
+
+  return`<div class="card" style="border-color:rgba(232,103,10,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sec-title" style="margin-bottom:0">📊 Temporada ${ANO_ATIVO}</div>
+      <div style="font-size:10px;color:var(--muted)">Mutantes MC Itajaí</div>
     </div>
-    <div class="grid2" style="margin-bottom:14px">
-      <div class="metric" style="padding:14px;text-align:center">
-        <div class="metric-label">${li("bike",12)} Km do clube</div>
-        <div class="metric-value" style="color:var(--orange);font-size:22px">${toInt(totalKmClube)}</div>
-      </div>
-      <div class="metric" style="padding:14px;text-align:center">
-        <div class="metric-label">👥 Membros</div>
-        <div class="metric-value" style="font-size:22px">${MEMBROS.length}</div>
-      </div>
-      <div class="metric" style="padding:14px;text-align:center">
-        <div class="metric-label">🏆 Bateram a meta</div>
-        <div class="metric-value" style="color:var(--green);font-size:22px">${bateram}</div>
-      </div>
-      <div class="metric" style="padding:14px;text-align:center">
-        <div class="metric-label">📅 Eventos</div>
-        <div class="metric-value" style="font-size:22px">${eventosRealizados}/${totalEventos}</div>
-      </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:14px">
+      ${mc('🏁 Km do clube',toInt(totalKmClube),'var(--orange)')}
+      ${mc('👥 Membros ativos',membrosAtivos)}
+      ${mc('📅 Eventos',eventosRealizados+'/'+totalEventos)}
+      ${mc('🎯 Bateram meta',bateram,'var(--green)')}
+      ${mc('📊 Média presença',mediaPresenca+'%')}
+      ${membroTop?mc('🥇 Mais ativo',`<span style="font-size:11px;font-weight:700">${membroTop.apelido}</span>`,'var(--orange)'):'<div></div>'}
     </div>
-    ${membroTop?`<div style="background:rgba(232,103,10,.08);border:1px solid rgba(232,103,10,.2);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
-      ${avatarEl(membroTop.fotoUrl,membroTop.apelido,44)}
-      <div>
-        <div style="font-size:11px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🥇 Mais km no ano</div>
-        <div style="font-size:16px;font-weight:700">${membroTop.apelido}</div>
-        <div style="font-size:13px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km rodados</div>
-      </div>
-    </div>`:""}
-    ${(()=>{
-      const mesesLb=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-      const kmMes=Array(12).fill(0);
-      REGS.forEach(r=>{const m=parseInt((r.data||"").slice(5,7))-1;if(m>=0&&m<12)kmMes[m]+=(r.km||0);});
-      const maxKm=Math.max(...kmMes,1);
-      return`<div class="sec-title">📊 Km por mês</div>
-      <div style="display:flex;align-items:flex-end;gap:3px;height:80px;margin-bottom:4px;padding:0 2px">
-        ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
-          <div style="font-size:7px;color:var(--muted);line-height:1">${km>0?toInt(km):""}</div>
-          <div style="width:100%;background:${km>0?"var(--orange)":"rgba(255,255,255,.08)"};height:${Math.max(4,Math.round((km/maxKm)*56))}px;border-radius:3px 3px 0 0"></div>
-          <div style="font-size:7px;color:var(--muted)">${mesesLb[i]}</div>
-        </div>`).join("")}
-      </div>`;
-    })()}
-    <div style="height:1px;background:rgba(255,255,255,.07);margin:12px 0"></div>
-    <div class="sec-title">📈 Ranking completo</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="window.exportarRankingCSV()" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📥 CSV</button>
-      <button onclick="window.gerarRelPDF()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📄 PDF</button>
+
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📈 Km por mês</div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:68px;margin-bottom:14px">
+      ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
+        <div style="font-size:6px;color:var(--muted);line-height:1">${km>0?toInt(km):''}</div>
+        <div style="width:100%;background:${km>0?'var(--orange)':'rgba(255,255,255,.07)'};height:${Math.max(3,Math.round((km/maxKm)*48))}px;border-radius:2px 2px 0 0"></div>
+        <div style="font-size:6px;color:var(--muted)">${mesesLb[i]}</div>
+      </div>`).join("")}
     </div>
-    ${MEMBROS.filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0)).map((m,i)=>{
+
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏆 Ranking</div>
+    ${sorted.map((m,i)=>{
       const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
-      const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
-      return`<div style="margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:8px">
-            ${avatarEl(m.fotoUrl,m.apelido,28)}
-            <span style="font-size:13px;font-weight:600">${medal} ${m.apelido}</span>
-          </div>
-          <span style="font-size:12px;font-weight:700;color:${pct>=100?"var(--green)":"var(--orange)"}">${toInt(m.totalKm||0)} km</span>
-        </div>
-        <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${pct>=100?"var(--green)":"var(--orange)"};border-radius:3px;transition:width .8s"></div>
-        </div>
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-size:10px">${i+1}.</span>`;
+      const bc2=pct>=100?'var(--green)':pct>=60?'var(--orange)':'var(--danger)';
+      return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="width:20px;text-align:center;flex-shrink:0;font-size:${i<3?'13':'10'}px">${medal}</span>
+        ${avatarEl(m.fotoUrl,m.apelido,26)}
+        <span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.apelido}</span>
+        <span style="font-size:11px;font-weight:700;color:${bc2};flex-shrink:0">${toInt(m.totalKm||0)} km</span>
+        <span style="font-size:9px;color:var(--muted);width:28px;text-align:right;flex-shrink:0">${pct}%</span>
       </div>`;
     }).join("")}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px">
+      <button onclick="window.abrirModalRelIndividual()" style="padding:11px 8px;border-radius:10px;border:1px solid rgba(255,102,0,.35);background:transparent;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">👤 Relatório Individual</button>
+      <button onclick="window.abrirModalRelTemporada()" style="padding:11px 8px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Relatório da Temporada</button>
+    </div>
   </div>
-  ${UP&&UP.isAdmin?`<div class="card" style="margin-top:6px">
-    <div class="sec-title">${li("settings",16)} Utilitários admin</div>
-    <button class="btn-outline" style="margin-bottom:10px;min-height:44px" onclick="window.recalcularTotalKm()">${li("refresh-cw",15)} Recalcular totalKm de todos os membros</button>
-    <div style="font-size:11px;color:var(--muted);line-height:1.5">Soma todos os registros de km do Firestore e corrige o contador de cada membro. Use após migrações ou se os totais estiverem incorretos.</div>
-  </div>`:""}`;
+
+  ${UP?.isAdmin?`<div class="card" style="margin-top:8px;border-color:rgba(255,255,255,.06)">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">${li("settings",13)} Utilitários Admin</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn-outline" style="min-height:40px;font-size:12px;justify-content:flex-start;gap:8px" onclick="window.recalcularTotalKm()">${li("refresh-cw",13)} Recalcular totalKm de todos os membros</button>
+      <button class="btn-outline" style="min-height:40px;font-size:12px;justify-content:flex-start;gap:8px" onclick="window.zerarTemporada()">${li("alert-triangle",13)} Zerar Temporada</button>
+      <button class="btn-outline" style="min-height:40px;font-size:12px;justify-content:flex-start;gap:8px" onclick="window.novaTemporada()">${li("plus-circle",13)} Nova Temporada</button>
+    </div>
+  </div>`:''}`;
 }
 
 window.gerarRelPDF=()=>{
   if(!window.jspdf){showToast("Aguarde, carregando PDF...",true);return;}
   const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF();
-  pdf.setFontSize(18);pdf.text(`Relatório Temporada ${ANO_ATIVO}`,20,20);
-  pdf.setFontSize(11);pdf.text("Mutantes MC Itajaí",20,30);
-  pdf.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`,20,38);
-  pdf.line(20,42,190,42);
-  let y=50;
-  const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297;
+
+  const newPage=()=>{
+    pdf.addPage();
+    pdf.setFillColor(13,13,13);
+    pdf.rect(0,0,W,H,'F');
+  };
+
+  // Dark background — first page
+  pdf.setFillColor(13,13,13);
+  pdf.rect(0,0,W,H,'F');
+
+  // Orange top bar
+  pdf.setFillColor(255,102,0);
+  pdf.rect(0,0,W,7,'F');
+
+  // Header
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(18);
+  pdf.setTextColor(255,102,0);
+  pdf.text('MUTANTES MC ITAJAÍ',14,18);
+
+  pdf.setFont('helvetica','normal');
   pdf.setFontSize(11);
-  pdf.text(`Total km do clube: ${toInt(totalKm)} km`,20,y);y+=8;
-  pdf.text(`Membros: ${MEMBROS.length} | Bateram a meta: ${MEMBROS.filter(m=>(m.totalKm||0)>=META).length}`,20,y);y+=14;
-  pdf.setFontSize(13);pdf.text("Ranking de Km",20,y);y+=6;pdf.line(20,y,190,y);y+=6;
-  pdf.setFontSize(10);
-  const sorted=[...MEMBROS].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
-  sorted.forEach((m,i)=>{
-    if(y>270){pdf.addPage();y=20;}
-    const pct=Math.round(((m.totalKm||0)/META)*100);
-    pdf.text(`${i+1}. ${m.apelido} — ${toInt(m.totalKm||0)} km (${pct}%)`,20,y);y+=6;
+  pdf.setTextColor(200,200,200);
+  pdf.text(`Relatório Temporada ${ANO_ATIVO}`,14,26);
+
+  pdf.setFontSize(8);
+  pdf.setTextColor(90,90,90);
+  pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} · Mutantefy`,14,32);
+
+  pdf.setDrawColor(255,102,0);
+  pdf.setLineWidth(0.25);
+  pdf.line(14,35,W-14,35);
+
+  let y=42;
+
+  // Metrics
+  const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
+  const eventosReal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<new Date()).length;
+  const metrics=[
+    {lb:'KM DO CLUBE',val:`${toInt(totalKm)} km`},
+    {lb:'MEMBROS',val:`${MEMBROS.length}`},
+    {lb:'EVENTOS',val:`${eventosReal}/${EVENTOS.length}`},
+    {lb:'BATERAM A META',val:`${bateram}`},
+  ];
+  const colW=(W-28)/4;
+  metrics.forEach((mt,i)=>{
+    const x=14+i*colW;
+    pdf.setFillColor(22,22,22);
+    pdf.roundedRect(x,y,colW-2,16,2,2,'F');
+    pdf.setDrawColor(45,45,45);
+    pdf.roundedRect(x,y,colW-2,16,2,2,'S');
+    pdf.setFontSize(6.5);
+    pdf.setFont('helvetica','normal');
+    pdf.setTextColor(120,120,120);
+    pdf.text(mt.lb,x+(colW-2)/2,y+5.5,{align:'center'});
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica','bold');
+    pdf.setTextColor(255,102,0);
+    pdf.text(mt.val,x+(colW-2)/2,y+12,{align:'center'});
   });
+  y+=20;
+
+  // Km por mês chart
+  pdf.setFontSize(7.5);
+  pdf.setFont('helvetica','bold');
+  pdf.setTextColor(120,120,120);
+  pdf.text('KM POR MÊS',14,y);
+  y+=3;
+
+  const mesesLb=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const kmMes=Array(12).fill(0);
+  REGS.forEach(r=>{const mi=parseInt((r.data||"").slice(5,7))-1;if(mi>=0&&mi<12)kmMes[mi]+=(r.km||0);});
+  const maxKm=Math.max(...kmMes,1);
+  const chartH=24,chartW=W-28,barW=chartW/12;
+
+  kmMes.forEach((km,i)=>{
+    const bh=km>0?Math.max(2,Math.round((km/maxKm)*chartH)):2;
+    const bx=14+i*barW+barW*0.12;
+    const bww=barW*0.76;
+    pdf.setFillColor(km>0?255:35,km>0?102:35,km>0?0:35);
+    pdf.rect(bx,y+chartH-bh,bww,bh,'F');
+    if(km>0){
+      pdf.setFontSize(5);
+      pdf.setFont('helvetica','normal');
+      pdf.setTextColor(255,102,0);
+      pdf.text(String(toInt(km)),bx+bww/2,y+chartH-bh-1,{align:'center'});
+    }
+    pdf.setFontSize(5);
+    pdf.setTextColor(90,90,90);
+    pdf.text(mesesLb[i],14+i*barW+barW/2,y+chartH+3.5,{align:'center'});
+  });
+  y+=chartH+7;
+
+  // Ranking header
+  pdf.setDrawColor(255,102,0);
+  pdf.setLineWidth(0.2);
+  pdf.line(14,y,W-14,y);
+  y+=4;
+  pdf.setFontSize(7.5);
+  pdf.setFont('helvetica','bold');
+  pdf.setTextColor(120,120,120);
+  pdf.text('RANKING DE KM',14,y);
+  y+=5;
+
+  const sortedM=[...MEMBROS].filter(m=>m.apelido&&m.apelido!=='undefined').sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  sortedM.forEach((m,i)=>{
+    if(y>280){newPage();y=14;}
+    const km2=m.totalKm||0;
+    const pct2=Math.round((km2/META)*100);
+    if(i%2===0){pdf.setFillColor(20,20,20);pdf.rect(14,y-3,W-28,6.5,'F');}
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica','bold');
+    pdf.setTextColor(i<3?255:140,i<3?102:140,i<3?0:140);
+    pdf.text(`${i+1}.`,16,y+1);
+    pdf.setFont('helvetica','normal');
+    pdf.setTextColor(210,210,210);
+    pdf.text(m.apelido||'',24,y+1);
+    const rCol=pct2>=100?[76,175,80]:(pct2>=60?[255,102,0]:[224,82,82]);
+    const bx2=102,bw2=64,pctC=Math.min(pct2,100);
+    pdf.setFillColor(35,35,35);
+    pdf.rect(bx2,y-1.5,bw2,3,'F');
+    pdf.setFillColor(...rCol);
+    pdf.rect(bx2,y-1.5,bw2*pctC/100,3,'F');
+    pdf.setFontSize(6.5);
+    pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...rCol);
+    pdf.text(`${toInt(km2)} km · ${pct2}%`,W-15,y+1,{align:'right'});
+    y+=6.5;
+  });
+
+  // Footer on last page
+  pdf.setFillColor(255,102,0);
+  pdf.rect(0,H-7,W,7,'F');
+  pdf.setFontSize(7.5);
+  pdf.setFont('helvetica','normal');
+  pdf.setTextColor(255,255,255);
+  pdf.text(`Mutantefy · Mutantes MC Itajaí · Temporada ${ANO_ATIVO}`,W/2,H-2.5,{align:'center'});
+
   pdf.save(`Relatorio_Mutantes_${ANO_ATIVO}.pdf`);
+};
+
+// ── MODAIS DE RELATÓRIO ──────────────────────────────
+window.abrirModalRelIndividual=()=>{
+  document.getElementById('rel-ind-modal')?.remove();
+  const opts=MEMBROS
+    .filter(m=>m.apelido&&m.apelido!=='undefined')
+    .sort((a,b)=>a.apelido.localeCompare(b.apelido,undefined,{sensitivity:'base'}))
+    .map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join('');
+  const ov=document.createElement('div');
+  ov.id='rel-ind-modal';
+  ov.className='app-modal-overlay';
+  ov.style.cssText='align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 60px;box-sizing:border-box';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet" style="width:92vw;max-width:480px;margin:auto;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:16px;font-weight:700">👤 Relatório Individual</div>
+      <button onclick="document.getElementById('rel-ind-modal').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <select id="rel-sel" onchange="window.carregarRelMembro(this.value)"
+      style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;cursor:pointer;margin-bottom:4px">
+      <option value="">— Selecionar membro —</option>
+      ${opts}
+    </select>
+    <div id="rel-membro-area"></div>
+  </div>`;
+  document.body.appendChild(ov);
+  lcr();
+};
+
+window.abrirModalRelTemporada=()=>{
+  document.getElementById('rel-temp-modal')?.remove();
+  const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
+  const hoje=new Date();
+  const eventosReal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).length;
+  const sorted=[...MEMBROS].filter(m=>m.apelido&&m.apelido!=='undefined').sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const membroTop=sorted[0];
+  const mesesLb=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const kmMes=Array(12).fill(0);
+  REGS.forEach(r=>{const mi=parseInt((r.data||"").slice(5,7))-1;if(mi>=0&&mi<12)kmMes[mi]+=(r.km||0);});
+  const maxKm=Math.max(...kmMes,1);
+  const ov=document.createElement('div');
+  ov.id='rel-temp-modal';
+  ov.className='app-modal-overlay';
+  ov.style.cssText='align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 60px;box-sizing:border-box';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet" style="width:92vw;max-width:480px;margin:auto;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:16px;font-weight:700">📊 Relatório da Temporada</div>
+      <button onclick="document.getElementById('rel-temp-modal').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Temporada ${ANO_ATIVO} · Mutantes MC Itajaí</div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="metric"><div class="metric-label">🏁 Km do clube</div><div class="metric-value" style="color:var(--orange)">${toInt(totalKm)}</div></div>
+      <div class="metric"><div class="metric-label">🎯 Bateram a meta</div><div class="metric-value" style="color:var(--green)">${bateram}</div></div>
+      <div class="metric"><div class="metric-label">📅 Eventos realizados</div><div class="metric-value">${eventosReal}/${EVENTOS.length}</div></div>
+      <div class="metric"><div class="metric-label">👥 Membros</div><div class="metric-value">${MEMBROS.length}</div></div>
+    </div>
+    ${membroTop?`<div style="background:rgba(232,103,10,.08);border:1px solid rgba(232,103,10,.2);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+      ${avatarEl(membroTop.fotoUrl,membroTop.apelido,40)}
+      <div>
+        <div style="font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🥇 Mais ativo</div>
+        <div style="font-size:15px;font-weight:700">${membroTop.apelido}</div>
+        <div style="font-size:12px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km</div>
+      </div>
+    </div>`:''}
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📈 Km por mês</div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:64px;margin-bottom:14px">
+      ${kmMes.map((km,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
+        <div style="font-size:6px;color:var(--muted)">${km>0?toInt(km):''}</div>
+        <div style="width:100%;background:${km>0?'var(--orange)':'rgba(255,255,255,.07)'};height:${Math.max(3,Math.round((km/maxKm)*46))}px;border-radius:2px 2px 0 0"></div>
+        <div style="font-size:6px;color:var(--muted)">${mesesLb[i]}</div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏆 Ranking</div>
+    ${sorted.map((m,i)=>{
+      const pct=Math.min(100,Math.round(((m.totalKm||0)/META)*100));
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-size:10px">${i+1}.</span>`;
+      const bc2=pct>=100?'var(--green)':pct>=60?'var(--orange)':'var(--danger)';
+      return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="width:20px;text-align:center;flex-shrink:0;font-size:${i<3?'13':'10'}px">${medal}</span>
+        ${avatarEl(m.fotoUrl,m.apelido,24)}
+        <span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.apelido}</span>
+        <span style="font-size:11px;font-weight:700;color:${bc2}">${toInt(m.totalKm||0)} km · ${pct}%</span>
+      </div>`;
+    }).join('')}
+    <button onclick="window.gerarRelPDF()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px">📄 Gerar PDF</button>
+  </div>`;
+  document.body.appendChild(ov);
+  lcr();
 };
 
 // ═══════════════════════════════════════════════════
