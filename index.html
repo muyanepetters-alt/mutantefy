@@ -280,10 +280,12 @@ select option{background:#161616;color:var(--white)}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
 *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
-.clima-cidade-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;flex-shrink:0;white-space:nowrap}
-.clima-cidade-btn.ativa{border-color:var(--orange);background:rgba(255,102,0,.12);color:var(--orange)}
-.clima-dia{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px;gap:8px}
-.clima-dia:last-child{border-bottom:none}
+.clima-cidade-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;flex-shrink:0;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.clima-cidade-btn.ativa{border-color:var(--orange);background:rgba(255,102,0,.15);color:var(--orange);font-weight:600}
+.clima-forecast{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+@media(min-width:480px){.clima-forecast{grid-template-columns:1fr 1fr}}
+.clima-card-dia{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+#clima-cidades-bar::-webkit-scrollbar{display:none}
 #clima-widget:hover{opacity:.75}
 
 </style>
@@ -1962,65 +1964,82 @@ function htmlMural(){
 // ═══════════════════════════════════════════════════
 // CLIMA (Open-Meteo + Geolocation)
 // ═══════════════════════════════════════════════════
+async function _fetchClimaCoords(lat,lon,cidade){
+  const meteo=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`).then(r=>r.json());
+  console.log("[Clima] Open-Meteo resposta:", meteo.current);
+  _CLIMA={temp:Math.round(meteo.current.temperature_2m),code:meteo.current.weather_code,cidade,lat,lon};
+  console.log("[Clima] Estado final:", _CLIMA);
+  _CLIMA_LOADING=false;
+  render();
+}
 function initClima(){
   if(_CLIMA_LOADING)return;
   _CLIMA_LOADING=true;
   console.log("[Clima] Iniciando — geolocation disponível:", !!navigator.geolocation);
-  if(!navigator.geolocation){_CLIMA_LOADING=false;return;}
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    try{
-      const {latitude:lat,longitude:lon}=pos.coords;
-      console.log("[Clima] Localização obtida:", lat, lon);
-      const [meteo,geo]=await Promise.all([
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`).then(r=>r.json()),
-        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json())
-      ]);
-      console.log("[Clima] Open-Meteo:", meteo.current);
-      console.log("[Clima] Geocode:", geo?.address);
-      const cidade=geo?.address?.city||geo?.address?.town||geo?.address?.municipality||"";
-      const uf=(geo?.address?.state_code||geo?.address?.state||"").slice(0,2).toUpperCase();
-      _CLIMA={temp:Math.round(meteo.current.temperature_2m),code:meteo.current.weather_code,cidade:cidade+(uf?", "+uf:""),lat,lon};
-      console.log("[Clima] Estado final:", _CLIMA);
-      _CLIMA_LOADING=false;
-      render();
-    }catch(e){console.error("[Clima] Erro:",e);_CLIMA_LOADING=false;}
-  },e=>{console.warn("[Clima] Geolocation negado/timeout:",e.message);_CLIMA_LOADING=false;},{timeout:8000,maximumAge:300000});
+  const fallbackItajai=()=>{
+    console.warn("[Clima] Usando fallback Itajaí, SC");
+    _fetchClimaCoords(-26.9078,-48.6619,"Itajaí, SC").catch(e=>{console.error("[Clima] Fallback falhou:",e);_CLIMA_LOADING=false;});
+  };
+  if(!navigator.geolocation){fallbackItajai();return;}
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      try{
+        const {latitude:lat,longitude:lon}=pos.coords;
+        console.log("[Clima] Localização obtida:", lat, lon);
+        const geo=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json());
+        console.log("[Clima] Geocode:", geo?.address);
+        const cidade=geo?.address?.city||geo?.address?.town||geo?.address?.municipality||"Itajaí";
+        const uf=(geo?.address?.state_code||geo?.address?.state||"SC").slice(0,2).toUpperCase();
+        await _fetchClimaCoords(lat,lon,cidade+", "+uf);
+      }catch(e){
+        console.error("[Clima] Erro na geolocation flow:", e);
+        fallbackItajai();
+      }
+    },
+    e=>{console.warn("[Clima] Geolocation negado/timeout:", e.code, e.message);fallbackItajai();},
+    {timeout:6000,maximumAge:300000,enableHighAccuracy:false}
+  );
 }
 
 async function _carregarDadosClima(cidade){
   const el=document.getElementById("clima-dados");
   if(!el)return;
-  el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Carregando...</div>`;
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:120px;font-size:14px;color:var(--muted)">Carregando...</div>`;
   try{
     let lat=cidade.lat,lon=cidade.lon;
     if(lat===null||lat===undefined){
       const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.nome.split(" - ")[0])}&count=1&language=pt`).then(r=>r.json());
       const res=geo?.results?.[0];
-      if(!res){el.innerHTML=`<div style="color:#f55;font-size:12px;text-align:center;padding:16px">Cidade não encontrada.</div>`;return;}
+      if(!res){el.innerHTML=`<div style="color:#f55;font-size:14px;text-align:center;padding:20px">Cidade não encontrada.</div>`;return;}
       lat=res.latitude;lon=res.longitude;cidade.lat=lat;cidade.lon=lon;
     }
     const meteo=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=8`).then(r=>r.json());
     const cur=meteo.current;const dias=meteo.daily;
     const diasNm=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     el.innerHTML=`
-      <div style="text-align:center;padding:12px 0 16px">
-        <div style="font-size:44px;line-height:1.1">${WMO_EMOJI(cur.weather_code)}</div>
-        <div style="font-size:34px;font-weight:800;color:var(--orange)">${Math.round(cur.temperature_2m)}°C</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">${WMO_DESC(cur.weather_code)} · ${cidade.nome}</div>
+      <div style="text-align:center;padding:14px 0 18px">
+        <div style="font-size:52px;line-height:1">${WMO_EMOJI(cur.weather_code)}</div>
+        <div style="font-size:42px;font-weight:800;color:var(--orange);margin-top:6px">${Math.round(cur.temperature_2m)}°C</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:6px">${WMO_DESC(cur.weather_code)} · ${cidade.nome}</div>
       </div>
-      <div style="border-top:1px solid var(--border);padding-top:10px">
-        ${dias.time.slice(0,8).map((d,i)=>{
+      <div class="clima-forecast">
+        ${dias.time.slice(0,7).map((d,i)=>{
           const dt=new Date(d+"T12:00:00");
           const dNome=i===0?"Hoje":i===1?"Amanhã":diasNm[dt.getDay()];
-          return`<div class="clima-dia">
-            <span style="width:80px;color:var(--muted);flex-shrink:0">${dNome}, ${d.slice(8,10)}/${d.slice(5,7)}</span>
-            <span style="font-size:16px">${WMO_EMOJI(dias.weather_code[i])}</span>
-            <span style="color:var(--orange);font-weight:700">${Math.round(dias.temperature_2m_max[i])}°</span>
-            <span style="color:var(--muted)">${Math.round(dias.temperature_2m_min[i])}°</span>
+          return`<div class="clima-card-dia">
+            <span style="font-size:24px;flex-shrink:0">${WMO_EMOJI(dias.weather_code[i])}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600">${dNome}</div>
+              <div style="font-size:12px;color:var(--muted)">${d.slice(8,10)}/${d.slice(5,7)}</div>
+            </div>
+            <div style="flex-shrink:0;text-align:right">
+              <span style="font-size:16px;font-weight:700;color:var(--orange)">${Math.round(dias.temperature_2m_max[i])}°</span>
+              <span style="font-size:14px;color:var(--muted);margin-left:5px">${Math.round(dias.temperature_2m_min[i])}°</span>
+            </div>
           </div>`;
         }).join("")}
       </div>`;
-  }catch{el.innerHTML=`<div style="color:#f55;font-size:12px;text-align:center;padding:16px">Erro ao carregar. Tente novamente.</div>`;}
+  }catch(e){console.error("[Clima] _carregarDadosClima erro:",e);el.innerHTML=`<div style="color:#f55;font-size:14px;text-align:center;padding:20px">Erro ao carregar. Verifique a conexão.</div>`;}
 }
 
 let _climaSearchTimer=null;
@@ -2084,24 +2103,22 @@ window.abrirModalClima=async()=>{
   window._climaCidades=cidades;window._climaAtual=0;
   const ov=document.createElement("div");
   ov.id="clima-ov";ov.className="app-modal-overlay";
-  ov.style.cssText="align-items:center;justify-content:center";
+  ov.style.cssText="align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
-  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:92vw;max-width:440px;padding:16px 16px 24px;animation:fadeInScale .2s cubic-bezier(.34,1.2,.64,1)">
+  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:90vw;max-width:500px;max-height:88vh;overflow-y:auto;padding:18px 16px 24px;animation:fadeInScale .2s cubic-bezier(.34,1.2,.64,1)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:15px;font-weight:700">🌤️ Previsão do Tempo</div>
-      <button onclick="document.getElementById('clima-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+      <div style="font-size:16px;font-weight:700">🌤️ Previsão do Tempo</div>
+      <button onclick="document.getElementById('clima-ov').remove()" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--white);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent">×</button>
     </div>
-    <div id="clima-cidades-bar" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;margin-bottom:10px"></div>
-    <div style="display:flex;gap:6px;margin-bottom:8px">
-      <input id="clima-search-inp" placeholder="Buscar outra cidade..." style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;font-family:inherit" oninput="window._climaSearch(this.value)" onkeydown="if(event.key==='Enter')window._climaSearchBtn()"/>
-      <button onclick="window._climaSearchBtn()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700">Buscar</button>
+    <div id="clima-cidades-bar" style="display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:10px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <input id="clima-search-inp" placeholder="Buscar outra cidade..." style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:14px;font-family:inherit" oninput="window._climaSearch(this.value)" onkeydown="if(event.key==='Enter')window._climaSearchBtn()"/>
+      <button onclick="window._climaSearchBtn()" style="padding:9px 16px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:700">Buscar</button>
     </div>
-    <div id="clima-search-results" style="display:none;margin-bottom:6px"></div>
-    <div id="clima-dados" style="min-height:140px;display:flex;align-items:center;justify-content:center">
-      <div style="font-size:12px;color:var(--muted)">Carregando...</div>
-    </div>
-    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
-      <button id="clima-salvar-btn" onclick="window._climaSalvarFavorita()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,200,0,.3);background:rgba(255,200,0,.07);color:#f5c800;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⭐ Salvar como padrão</button>
+    <div id="clima-search-results" style="display:none;margin-bottom:8px"></div>
+    <div id="clima-dados"></div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+      <button id="clima-salvar-btn" onclick="window._climaSalvarFavorita()" style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,200,0,.3);background:rgba(255,200,0,.07);color:#f5c800;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">⭐ Salvar como padrão</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
