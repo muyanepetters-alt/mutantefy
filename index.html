@@ -279,6 +279,11 @@ select option{background:#161616;color:var(--white)}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
 *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+.clima-cidade-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;flex-shrink:0;white-space:nowrap}
+.clima-cidade-btn.ativa{border-color:var(--orange);background:rgba(255,102,0,.12);color:var(--orange)}
+.clima-dia{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px;gap:8px}
+.clima-dia:last-child{border-bottom:none}
+#clima-widget:hover{opacity:.75}
 
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
@@ -609,6 +614,11 @@ function evCardMembro(ev){
 let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},SEDE_COUNTS_EV={},TOTAL_EVENTOS_SEDE=0,PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
 let ANO_ATIVO=new Date().getFullYear();
 let _presAba="massa";
+let _CLIMA={temp:null,code:null,cidade:"",lat:null,lon:null};
+let _CLIMA_LOADING=false;
+const WMO_EMOJI=c=>c===0?"☀️":c<=3?"🌤️":c<=48?"🌫️":c<=57?"🌦️":c<=67?"🌧️":c<=77?"🌨️":c<=82?"🌧️":c<=86?"🌨️":"⛈️";
+const WMO_DESC=c=>c===0?"Céu limpo":c<=3?"Nublado":c<=48?"Névoa":c<=57?"Garoa":c<=67?"Chuva":c<=77?"Neve":c<=82?"Pancadas":"Tempestade";
+function htmlClimaWidget(){const t=_CLIMA.temp;return`<span id="clima-widget" onclick="window.abrirModalClima()" style="font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:3px;border-left:1px solid rgba(255,255,255,.1);padding-left:6px;transition:opacity .2s" title="Previsão do tempo">${t!==null?WMO_EMOJI(_CLIMA.code)+" "+t+"°C":"⛅ --°C"}</span>`;}
 let VIAGENS_EXTRA=[];
 window._rankAba=window._rankAba||"km";
 const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
@@ -1038,7 +1048,10 @@ function renderDiretor(el){
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+          ${htmlClimaWidget()}
+        </div>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1524,7 +1537,10 @@ function renderBarman(el){
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+          ${htmlClimaWidget()}
+        </div>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1649,7 +1665,10 @@ function renderMembro(el){
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+          ${htmlClimaWidget()}
+        </div>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1939,6 +1958,135 @@ function htmlMural(){
   </div>`;
 }
 
+// ═══════════════════════════════════════════════════
+// CLIMA (Open-Meteo + Geolocation)
+// ═══════════════════════════════════════════════════
+function initClima(){
+  if(_CLIMA_LOADING)return;
+  _CLIMA_LOADING=true;
+  if(!navigator.geolocation){_CLIMA_LOADING=false;return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      const {latitude:lat,longitude:lon}=pos.coords;
+      const [meteo,geo]=await Promise.all([
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`).then(r=>r.json()),
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json())
+      ]);
+      const cidade=geo?.address?.city||geo?.address?.town||geo?.address?.municipality||"";
+      const uf=(geo?.address?.state_code||geo?.address?.state||"").slice(0,2).toUpperCase();
+      _CLIMA={temp:Math.round(meteo.current.temperature_2m),code:meteo.current.weather_code,cidade:cidade+(uf?", "+uf:""),lat,lon};
+      _CLIMA_LOADING=false;
+      render();
+    }catch{_CLIMA_LOADING=false;}
+  },()=>{_CLIMA_LOADING=false;},{timeout:8000});
+}
+
+async function _carregarDadosClima(cidade){
+  const el=document.getElementById("clima-dados");
+  if(!el)return;
+  el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">Carregando...</div>`;
+  try{
+    let lat=cidade.lat,lon=cidade.lon;
+    if(lat===null||lat===undefined){
+      const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade.nome.split(" - ")[0])}&count=1&language=pt`).then(r=>r.json());
+      const res=geo?.results?.[0];
+      if(!res){el.innerHTML=`<div style="color:#f55;font-size:12px;text-align:center;padding:16px">Cidade não encontrada.</div>`;return;}
+      lat=res.latitude;lon=res.longitude;cidade.lat=lat;cidade.lon=lon;
+    }
+    const meteo=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=8`).then(r=>r.json());
+    const cur=meteo.current;const dias=meteo.daily;
+    const diasNm=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+    el.innerHTML=`
+      <div style="text-align:center;padding:12px 0 16px">
+        <div style="font-size:44px;line-height:1.1">${WMO_EMOJI(cur.weather_code)}</div>
+        <div style="font-size:34px;font-weight:800;color:var(--orange)">${Math.round(cur.temperature_2m)}°C</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${WMO_DESC(cur.weather_code)} · ${cidade.nome}</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        ${dias.time.slice(0,8).map((d,i)=>{
+          const dt=new Date(d+"T12:00:00");
+          const dNome=i===0?"Hoje":i===1?"Amanhã":diasNm[dt.getDay()];
+          return`<div class="clima-dia">
+            <span style="width:80px;color:var(--muted);flex-shrink:0">${dNome}, ${d.slice(8,10)}/${d.slice(5,7)}</span>
+            <span style="font-size:16px">${WMO_EMOJI(dias.weather_code[i])}</span>
+            <span style="color:var(--orange);font-weight:700">${Math.round(dias.temperature_2m_max[i])}°</span>
+            <span style="color:var(--muted)">${Math.round(dias.temperature_2m_min[i])}°</span>
+          </div>`;
+        }).join("")}
+      </div>`;
+  }catch{el.innerHTML=`<div style="color:#f55;font-size:12px;text-align:center;padding:16px">Erro ao carregar. Tente novamente.</div>`;}
+}
+
+let _climaSearchTimer=null;
+window._climaSearch=val=>{
+  clearTimeout(_climaSearchTimer);
+  const el=document.getElementById("clima-search-results");
+  if(!val||val.length<2){if(el)el.style.display="none";return;}
+  _climaSearchTimer=setTimeout(async()=>{
+    try{
+      const res=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=5&language=pt`).then(r=>r.json());
+      if(!el)return;
+      const results=res?.results||[];
+      if(!results.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:6px">Nenhum resultado.</div>`;el.style.display="block";return;}
+      el.style.display="block";
+      el.innerHTML=results.map(r=>`<button onclick="window._climaFromSearch(${r.latitude},${r.longitude},'${(r.name+(r.admin1?", "+r.admin1:"")).replace(/'/g,"")}')" style="display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:4px">${r.name}${r.admin1?", "+r.admin1:""}${r.country?", "+r.country:""}</button>`).join("");
+    }catch{}
+  },450);
+};
+window._climaSearchBtn=()=>{const v=document.getElementById("clima-search-inp")?.value;if(v)window._climaSearch(v);};
+window._climaFromSearch=async(lat,lon,nome)=>{
+  const el=document.getElementById("clima-search-results");
+  const inp=document.getElementById("clima-search-inp");
+  if(el)el.style.display="none";if(inp)inp.value="";
+  if(!window._climaCidades)return;
+  const exists=window._climaCidades.findIndex(c=>Math.abs((c.lat||0)-lat)<0.01&&Math.abs((c.lon||0)-lon)<0.01);
+  if(exists<0)window._climaCidades.push({nome,lat,lon});
+  window._climaAtual=exists>=0?exists:window._climaCidades.length-1;
+  _renderClimaCidadesBar();
+  await _carregarDadosClima(window._climaCidades[window._climaAtual]);
+};
+function _renderClimaCidadesBar(){
+  const bar=document.getElementById("clima-cidades-bar");
+  if(!bar)return;
+  bar.innerHTML=(window._climaCidades||[]).map((c,i)=>`<button class="clima-cidade-btn${i===(window._climaAtual||0)?" ativa":""}" onclick="window._climaSelectCity(${i})">${c.nome}</button>`).join("");
+}
+window._climaSelectCity=async idx=>{
+  window._climaAtual=idx;
+  _renderClimaCidadesBar();
+  await _carregarDadosClima(window._climaCidades[idx]);
+};
+window.abrirModalClima=async()=>{
+  const evCidades=EVENTOS.filter(e=>e.destino&&e.destino!=="A confirmar").map(e=>e.destino).filter((v,i,a)=>a.indexOf(v)===i).slice(0,6).map(n=>({nome:n,lat:null,lon:null}));
+  const cidades=[{nome:"Itajaí, SC",lat:-26.9065,lon:-48.6619}];
+  if(_CLIMA.lat){
+    const nomeCur=_CLIMA.cidade||"Minha localização";
+    if(!cidades.find(c=>c.nome===nomeCur))cidades.push({nome:nomeCur,lat:_CLIMA.lat,lon:_CLIMA.lon});
+  }
+  evCidades.forEach(c=>{if(!cidades.find(x=>x.nome===c.nome))cidades.push(c);});
+  window._climaCidades=cidades;window._climaAtual=0;
+  const ov=document.createElement("div");
+  ov.id="clima-ov";ov.className="app-modal-overlay";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet" style="padding:16px 16px 28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700">🌤️ Previsão do Tempo</div>
+      <button onclick="document.getElementById('clima-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="clima-cidades-bar" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input id="clima-search-inp" placeholder="Buscar outra cidade..." style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;font-family:inherit" oninput="window._climaSearch(this.value)" onkeydown="if(event.key==='Enter')window._climaSearchBtn()"/>
+      <button onclick="window._climaSearchBtn()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700">Buscar</button>
+    </div>
+    <div id="clima-search-results" style="display:none;margin-bottom:6px"></div>
+    <div id="clima-dados" style="min-height:140px;display:flex;align-items:center;justify-content:center">
+      <div style="font-size:12px;color:var(--muted)">Carregando...</div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  _renderClimaCidadesBar();
+  await _carregarDadosClima(cidades[0]);
+};
+
 const _EMOJIS_RESP=['😂','🤘','🏍️','❤️','🔥','👊','😎','🍺','💀','👍'];
 
 async function carregarMural(){
@@ -1952,11 +2100,11 @@ async function carregarMural(){
       const reacoes=r.reacoes||[];
       const meuId=CU?.uid||"";
       const respostas=r.respostas||[];
-      const emojiList=["🤘","😂"];
+      const emojiList=["🤘","❤️","😂","🔥","👊","😎","🏍️","💀","👍","🍺"];
       const reacBar=emojiList.map(emoji=>{
         const lista=reacoes.filter(rx=>rx.emoji===emoji);
         const jaTenho=lista.some(rx=>rx.membroId===meuId);
-        return`<button class="reaction-btn${jaTenho?" active":""}" onclick="window.reagirMural('${r.id}','${emoji}')">${emoji}${lista.length>0?` <span style="font-size:11px">${lista.length}</span>`:""}</button>`;
+        return`<button class="reaction-btn${jaTenho?" active":""}" onclick="window.reagirMural('${r.id}','${emoji}')" style="padding:2px 6px;font-size:13px">${emoji}${lista.length>0?`<span style="font-size:10px;margin-left:2px">${lista.length}</span>`:""}</button>`;
       }).join("");
       const repliesHtml=respostas.length?`<div id="replies-${r.id}" style="display:none;margin-top:8px;padding-left:12px;border-left:2px solid rgba(255,102,0,.25)">
         ${respostas.map(rep=>{
@@ -2294,8 +2442,8 @@ window.abrirPerfilPublico=async(uid)=>{
       <div style="font-size:11px;color:var(--muted);margin-top:2px">Subsede Itajaí</div>
       ${membro.status?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:6px;background:rgba(255,255,255,.05);border-radius:8px;padding:5px 12px;max-width:280px;text-align:center">"${membro.status}"</div>`:""}
     </div>
-    ${membro.fotoMoto?`<div style="width:100%;height:130px;overflow:hidden;flex-shrink:0">
-      <img src="${membro.fotoMoto}" style="width:100%;height:100%;object-fit:cover">
+    ${membro.fotoMoto?`<div style="width:calc(100% - 24px);height:180px;overflow:hidden;flex-shrink:0;background:#111;border-radius:8px;margin:0 12px;position:relative">
+      <img src="${membro.fotoMoto}" style="width:100%;height:100%;object-fit:contain;border-radius:8px">
       ${membro.moto?`<div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)">🏍 ${membro.moto}</div>`:""}
     </div>`:membro.moto?`<div style="background:rgba(255,255,255,.04);padding:10px 20px;display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">🏍</span>
@@ -7111,6 +7259,7 @@ onAuthStateChanged(auth,async user=>{
     if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());}
     await Promise.all(tarefas);
     registrarTokenPush(false);
+    initClima();
   }catch(e){console.error(e);}
   // Birthday push notification
   (async()=>{
