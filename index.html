@@ -1053,7 +1053,7 @@ function renderDiretor(el){
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         ${htmlClimaWidget()}
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <div id="hdr-status" onclick="window.editarStatus()" style="display:flex;align-items:center;gap:3px;margin-top:3px;cursor:pointer;max-width:100%;overflow:hidden;height:20px;flex-shrink:0" title="Toque para editar"><span style="font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#666'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1">${UP.status?'"'+UP.status+'"':'Adicionar status...'}</span><span style="font-size:10px;opacity:.4;flex-shrink:0;line-height:1">✏️</span></div>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1540,7 +1540,7 @@ function renderBarman(el){
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         ${htmlClimaWidget()}
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <div id="hdr-status" onclick="window.editarStatus()" style="display:flex;align-items:center;gap:3px;margin-top:3px;cursor:pointer;max-width:100%;overflow:hidden;height:20px;flex-shrink:0" title="Toque para editar"><span style="font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#666'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1">${UP.status?'"'+UP.status+'"':'Adicionar status...'}</span><span style="font-size:10px;opacity:.4;flex-shrink:0;line-height:1">✏️</span></div>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -1666,7 +1666,7 @@ function renderMembro(el){
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
         ${htmlClimaWidget()}
-        <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
+        <div id="hdr-status" onclick="window.editarStatus()" style="display:flex;align-items:center;gap:3px;margin-top:3px;cursor:pointer;max-width:100%;overflow:hidden;height:20px;flex-shrink:0" title="Toque para editar"><span style="font-size:12px;${UP.status?'color:var(--orange);font-style:italic':'color:#666'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1">${UP.status?'"'+UP.status+'"':'Adicionar status...'}</span><span style="font-size:10px;opacity:.4;flex-shrink:0;line-height:1">✏️</span></div>
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
@@ -2109,7 +2109,7 @@ window.abrirModalClima=async()=>{
   await _carregarDadosClima(cidades[0]);
 };
 
-const _EMOJIS_RESP=['😂','🤘','🏍️','❤️','🔥','👊','😎','🍺','💀','👍'];
+const _EMOJIS_RESP=['🤘','😂','💩','💀','👊','❤️'];
 
 async function carregarMural(){
   const el=document.getElementById("mural-lista");
@@ -2122,7 +2122,7 @@ async function carregarMural(){
       const reacoes=r.reacoes||[];
       const meuId=CU?.uid||"";
       const respostas=r.respostas||[];
-      const emojiList=["🤘","❤️","😂","🔥","👊","😎","🏍️","💀","👍","🍺"];
+      const emojiList=["🤘","😂","💩","💀","👊","❤️"];
       const reacBar=emojiList.map(emoji=>{
         const lista=reacoes.filter(rx=>rx.emoji===emoji);
         const jaTenho=lista.some(rx=>rx.membroId===meuId);
