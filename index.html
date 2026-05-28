@@ -244,6 +244,7 @@ select option{background:#161616;color:var(--white)}
 @keyframes fadeInOv{from{opacity:0}to{opacity:1}}
 .app-modal-sheet{background:#111;border:1px solid rgba(255,255,255,.09);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:20px 20px 32px;animation:slideUp .22s cubic-bezier(.34,1.2,.64,1)}
 @keyframes slideUp{from{transform:translateY(60px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes fadeInScale{from{transform:scale(0.88);opacity:0}to{transform:scale(1);opacity:1}}
 .reaction-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--white);transition:border-color .15s,background .15s;display:inline-flex;align-items:center;gap:4px}
 .reaction-btn.active{border-color:var(--orange);background:rgba(255,102,0,.12);color:var(--orange)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
@@ -618,7 +619,13 @@ let _CLIMA={temp:null,code:null,cidade:"",lat:null,lon:null};
 let _CLIMA_LOADING=false;
 const WMO_EMOJI=c=>c===0?"☀️":c<=3?"🌤️":c<=48?"🌫️":c<=57?"🌦️":c<=67?"🌧️":c<=77?"🌨️":c<=82?"🌧️":c<=86?"🌨️":"⛈️";
 const WMO_DESC=c=>c===0?"Céu limpo":c<=3?"Nublado":c<=48?"Névoa":c<=57?"Garoa":c<=67?"Chuva":c<=77?"Neve":c<=82?"Pancadas":"Tempestade";
-function htmlClimaWidget(){const t=_CLIMA.temp;return`<span id="clima-widget" onclick="window.abrirModalClima()" style="font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:3px;border-left:1px solid rgba(255,255,255,.1);padding-left:6px;transition:opacity .2s" title="Previsão do tempo">${t!==null?WMO_EMOJI(_CLIMA.code)+" "+t+"°C":"⛅ --°C"}</span>`;}
+function htmlClimaWidget(){
+  const t=_CLIMA.temp;
+  const icon=t!==null?WMO_EMOJI(_CLIMA.code):"⛅";
+  const temp=t!==null?t+"°C":"--°C";
+  const cidadeStr=_CLIMA.cidade?` · ${_CLIMA.cidade}`:"";
+  return`<div id="clima-widget" onclick="window.abrirModalClima()" style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 11px;transition:opacity .2s" title="Previsão do tempo"><span style="font-size:20px;line-height:1">${icon}</span><span style="font-size:15px;font-weight:700;color:var(--white)">${temp}</span>${cidadeStr?`<span style="font-size:11px;color:var(--muted)">${cidadeStr}</span>`:""}</div>`;
+}
 let VIAGENS_EXTRA=[];
 window._rankAba=window._rankAba||"km";
 const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
@@ -1045,13 +1052,11 @@ function renderDiretor(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${roleBadge}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
+        ${htmlClimaWidget()}
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-          ${htmlClimaWidget()}
-        </div>
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1534,13 +1539,11 @@ function renderBarman(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
+        ${htmlClimaWidget()}
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-          ${htmlClimaWidget()}
-        </div>
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1662,13 +1665,11 @@ function renderMembro(el){
       <div class="header-info">
         <h2>🏍️ ${UP.apelido} ${UP.nivel?`<span class="badge" style="font-size:9px;vertical-align:middle;margin-left:4px;background:rgba(232,103,10,.15);color:var(--orange);border:1px solid rgba(232,103,10,.3);padding:2px 6px;border-radius:20px">${UP.nivel}</span>`:""}</h2>
         <p>${UP.moto||""} · Subsede Itajaí</p>
+        ${htmlClimaWidget()}
         <p id="hdr-status" onclick="window.editarStatus()" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;height:28px;min-height:28px;${UP.status?'color:var(--orange);font-style:italic':'color:#999;font-style:normal'};margin-top:5px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:0 10px;max-width:100%;box-sizing:border-box;" title="Toque para editar">${UP.status?'"'+UP.status+'"':'Adicionar status...'}<span style="font-size:11px;opacity:.45;flex-shrink:0">✏️</span></p>
       </div>
       <div class="header-right">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
-          ${htmlClimaWidget()}
-        </div>
+        <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1964,21 +1965,26 @@ function htmlMural(){
 function initClima(){
   if(_CLIMA_LOADING)return;
   _CLIMA_LOADING=true;
+  console.log("[Clima] Iniciando — geolocation disponível:", !!navigator.geolocation);
   if(!navigator.geolocation){_CLIMA_LOADING=false;return;}
   navigator.geolocation.getCurrentPosition(async pos=>{
     try{
       const {latitude:lat,longitude:lon}=pos.coords;
+      console.log("[Clima] Localização obtida:", lat, lon);
       const [meteo,geo]=await Promise.all([
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`).then(r=>r.json()),
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json())
       ]);
+      console.log("[Clima] Open-Meteo:", meteo.current);
+      console.log("[Clima] Geocode:", geo?.address);
       const cidade=geo?.address?.city||geo?.address?.town||geo?.address?.municipality||"";
       const uf=(geo?.address?.state_code||geo?.address?.state||"").slice(0,2).toUpperCase();
       _CLIMA={temp:Math.round(meteo.current.temperature_2m),code:meteo.current.weather_code,cidade:cidade+(uf?", "+uf:""),lat,lon};
+      console.log("[Clima] Estado final:", _CLIMA);
       _CLIMA_LOADING=false;
       render();
-    }catch{_CLIMA_LOADING=false;}
-  },()=>{_CLIMA_LOADING=false;},{timeout:8000});
+    }catch(e){console.error("[Clima] Erro:",e);_CLIMA_LOADING=false;}
+  },e=>{console.warn("[Clima] Geolocation negado/timeout:",e.message);_CLIMA_LOADING=false;},{timeout:8000,maximumAge:300000});
 }
 
 async function _carregarDadosClima(cidade){
@@ -2055,19 +2061,32 @@ window._climaSelectCity=async idx=>{
   _renderClimaCidadesBar();
   await _carregarDadosClima(window._climaCidades[idx]);
 };
+window._climaSalvarFavorita=async()=>{
+  const cidade=window._climaCidades?.[window._climaAtual||0];
+  if(!cidade||!MY_DOC_ID)return;
+  try{
+    const dados={nome:cidade.nome,lat:cidade.lat||null,lon:cidade.lon||null};
+    await setDoc(doc(db,"usuarios",MY_DOC_ID),{cidadeClima:dados},{merge:true});
+    UP.cidadeClima=dados;
+    showToast("⭐ Cidade salva como padrão!");
+    const btn=document.getElementById("clima-salvar-btn");
+    if(btn){btn.textContent="✓ Salvo como padrão";btn.style.opacity=".6";btn.disabled=true;}
+  }catch(e){showToast("Erro ao salvar.",true);}
+};
 window.abrirModalClima=async()=>{
   const evCidades=EVENTOS.filter(e=>e.destino&&e.destino!=="A confirmar").map(e=>e.destino).filter((v,i,a)=>a.indexOf(v)===i).slice(0,6).map(n=>({nome:n,lat:null,lon:null}));
-  const cidades=[{nome:"Itajaí, SC",lat:-26.9065,lon:-48.6619}];
-  if(_CLIMA.lat){
-    const nomeCur=_CLIMA.cidade||"Minha localização";
-    if(!cidades.find(c=>c.nome===nomeCur))cidades.push({nome:nomeCur,lat:_CLIMA.lat,lon:_CLIMA.lon});
-  }
+  const cidadeFav=UP?.cidadeClima;
+  const cidadePadrao=cidadeFav?.nome?cidadeFav:{nome:"Itajaí, SC",lat:-26.9065,lon:-48.6619};
+  const cidades=[cidadePadrao];
+  if(!cidades.find(c=>c.nome==="Itajaí, SC"))cidades.push({nome:"Itajaí, SC",lat:-26.9065,lon:-48.6619});
+  if(_CLIMA.lat){const nomeCur=_CLIMA.cidade||"Minha localização";if(!cidades.find(c=>c.nome===nomeCur))cidades.push({nome:nomeCur,lat:_CLIMA.lat,lon:_CLIMA.lon});}
   evCidades.forEach(c=>{if(!cidades.find(x=>x.nome===c.nome))cidades.push(c);});
   window._climaCidades=cidades;window._climaAtual=0;
   const ov=document.createElement("div");
   ov.id="clima-ov";ov.className="app-modal-overlay";
+  ov.style.cssText="align-items:center;justify-content:center";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
-  ov.innerHTML=`<div class="app-modal-sheet" style="padding:16px 16px 28px">
+  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:92vw;max-width:440px;padding:16px 16px 24px;animation:fadeInScale .2s cubic-bezier(.34,1.2,.64,1)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:15px;font-weight:700">🌤️ Previsão do Tempo</div>
       <button onclick="document.getElementById('clima-ov').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
@@ -2080,6 +2099,9 @@ window.abrirModalClima=async()=>{
     <div id="clima-search-results" style="display:none;margin-bottom:6px"></div>
     <div id="clima-dados" style="min-height:140px;display:flex;align-items:center;justify-content:center">
       <div style="font-size:12px;color:var(--muted)">Carregando...</div>
+    </div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+      <button id="clima-salvar-btn" onclick="window._climaSalvarFavorita()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,200,0,.3);background:rgba(255,200,0,.07);color:#f5c800;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⭐ Salvar como padrão</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
