@@ -2556,7 +2556,7 @@ window.abrirPerfilPublico=async(uid)=>{
       ${membro.status?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:6px;background:rgba(255,255,255,.05);border-radius:8px;padding:5px 12px;max-width:280px;text-align:center">"${membro.status}"</div>`:""}
     </div>
     ${membro.fotoMoto?`<div style="width:calc(100% - 24px);height:220px;overflow:hidden;flex-shrink:0;background:#111;border-radius:12px;margin:0 12px;position:relative;border:2px solid #ff6600;box-shadow:0 0 20px rgba(255,102,0,.5)">
-      <img src="${membro.fotoMoto}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">
+      <img src="${membro.fotoMoto}" style="width:100%;height:100%;object-fit:contain;border-radius:10px">
       ${membro.moto?`<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));border-radius:0 0 10px 10px;padding:32px 12px 12px"><span style="font-size:18px;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.9);letter-spacing:.3px">🏍 ${membro.moto}</span></div>`:""}
     </div>`:membro.moto?`<div style="background:rgba(255,255,255,.04);padding:10px 20px;display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">🏍</span>
