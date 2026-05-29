@@ -56,8 +56,15 @@ body::after{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);z-index
     -webkit-backdrop-filter:none !important;
     box-shadow:none !important;
   }
-  .header-info h2{font-size:14px !important;font-weight:700 !important}
-  .header-info p{font-size:11px !important;margin-top:2px !important}
+  .header{overflow:hidden;}
+  /* Header info: uma linha horizontal no desktop */
+  .header-info{display:flex;flex-direction:row;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden;}
+  .header-info h2{font-size:14px !important;font-weight:700 !important;flex-shrink:0;white-space:nowrap;margin:0 !important}
+  .header-info p{font-size:11px !important;color:var(--muted);flex-shrink:0;white-space:nowrap;margin:0 !important}
+  #hdr-status{display:none !important;}
+  #clima-widget{margin-top:0 !important;flex-shrink:0;}
+  /* Header right: botões em linha */
+  .header-right{flex-direction:row !important;align-items:center !important;gap:10px;margin-left:0 !important;flex-shrink:0;}
 
   /* Sidebar esquerda */
   .bnav{
@@ -2362,7 +2369,7 @@ function _renderFeedItem({id,data:getData},agora){
         </div>
         ${conteudo}
         <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
-          ${btnR("🤘")}${btnR("😂")}
+          ${btnR("🤘")}${btnR("😂")}${btnR("💩")}${btnR("💀")}${btnR("👊")}${btnR("❤️")}
           <button onclick="window.toggleReplyFeed('${id}')" style="background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:3px 6px;font-family:inherit">↩ Responder</button>
         </div>
         ${repliesHtml}
