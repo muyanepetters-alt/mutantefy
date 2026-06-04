@@ -1193,7 +1193,10 @@ function renderDiretor(el){
           <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
           <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
         </div>
-        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-sm"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-sm"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+          ${(UP.isAdmin||UP.isDiretor||r.membroId===CU?.uid||r.membroId===MY_DOC_ID)?`<button onclick="window.excluirKm('${r.id}','${r.membroId}',${r.km})" style="padding:3px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">Excluir</button>`:""}
+        </div>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
       <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
@@ -1680,7 +1683,10 @@ function renderBarman(el){
           <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
           <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
         </div>
-        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+          ${(UP.isAdmin||UP.isDiretor||r.membroId===CU?.uid||r.membroId===MY_DOC_ID)?`<button onclick="window.excluirKm('${r.id}','${r.membroId}',${r.km})" style="padding:3px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">Excluir</button>`:""}
+        </div>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
       <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -1806,7 +1812,10 @@ function renderMembro(el){
           <div><div style="font-weight:600;font-size:14px">${r.desc}</div><div style="font-size:11px;color:#888">📅 ${fmtDate(r.data)}</div></div>
           <div style="font-weight:700;color:var(--orange);font-size:15px">🏍️ ${toInt(r.km)} km</div>
         </div>
-        <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="badge ${r.tipo==="extra"?"badge-gr":"badge-ev"}">${r.tipo==="extra"?"⭐ km extra":"🗺️ rota"}</span>
+          ${(UP.isAdmin||UP.isDiretor||r.membroId===CU?.uid||r.membroId===MY_DOC_ID)?`<button onclick="window.excluirKm('${r.id}','${r.membroId}',${r.km})" style="padding:3px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">Excluir</button>`:""}
+        </div>
       </div>`).join("")}`:""}
     ${TM==="eventos"?`
       <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
@@ -5883,6 +5892,8 @@ window.abrirNovaViagemModal=()=>{
         <input type="text" id="nv-desc" placeholder="Detalhes do evento..." autocomplete="off" style="flex:1;margin:0"/>
         <button type="button" onclick="window.abrirEmojiPicker('nv-desc')" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1">😊</button>
       </div>
+      <label>Endereço (opcional)</label>
+      <input type="text" id="nv-endereco" placeholder="Ex: Rua das Flores, 123 - Florianópolis" autocomplete="off"/>
       <button class="btn-primary" onclick="window.salvarNovaViagem()" style="margin-top:6px">Salvar viagem</button>
     </div>`;
   ov.appendChild(sheet);
@@ -5896,6 +5907,7 @@ window.salvarNovaViagem=async()=>{
   const distIda=parseFloat(document.getElementById("nv-dist")?.value)||0;
   const tipo=document.getElementById("nv-tipo")?.value||"Passeio";
   const desc=document.getElementById("nv-desc")?.value.trim()||"";
+  const endereco=document.getElementById("nv-endereco")?.value.trim()||"";
   const err=document.getElementById("nv-err");
   if(err)err.style.display="none";
   if(!nome||!dataRaw||!local){if(err){err.textContent="Preencha nome, data e local.";err.style.display="block";}return;}
@@ -5903,7 +5915,7 @@ window.salvarNovaViagem=async()=>{
   const [dd,mm,yyyy]=dataRaw.split("/");
   const dataISO=`${yyyy}-${mm}-${dd}`;
   try{
-    await addDoc(collection(db,"eventos_sede"),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,categoria:"viagem",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    await addDoc(collection(db,"eventos_sede"),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,endereco,categoria:"viagem",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
     showToast("✓ Viagem salva!");
     document.getElementById("nova-viagem-modal")?.remove();
     await carregarViagensExtra();
@@ -5926,21 +5938,23 @@ function _renderViagensExtra(){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📋 VIAGENS REGISTRADAS NO APP (${docs.length})</div>
       ${docs.map(v=>`<div class="card" style="margin-bottom:10px;border-color:rgba(255,102,0,.2)">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-          <div>
+          <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:700">${v.nome}</div>
             <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmtDate(v.data)} · ${v.destino}</div>
             ${v.dist>0?`<div style="font-size:11px;color:var(--orange);margin-top:2px">📍 ${toInt(v.dist*2)} km ida+volta</div>`:""}
             ${v.tipo?`<span class="badge" style="font-size:10px;background:rgba(255,102,0,.15);color:var(--orange);border:1px solid rgba(255,102,0,.3)">${v.tipo}</span>`:""}
             ${v.desc?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${v.desc}</div>`:""}
+            ${v.endereco?`<div style="font-size:11px;color:var(--muted);margin-top:6px">📌 ${v.endereco}</div><div style="display:flex;gap:6px;margin-top:6px"><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit">Google Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit">Waze</a></div>`:""}
           </div>
-          ${UP?.isAdmin?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
+          ${UP?.isAdmin||UP?.isDiretor?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
         </div>
       </div>`).join("")}`;
 }
 
-window.excluirViagemExtra=async(id)=>{
-  if(!confirm("Excluir esta viagem?"))return;
-  try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Viagem excluída.");await carregarViagensExtra();}catch(e){showToast("Erro.",true);}
+window.excluirViagemExtra=(id)=>{
+  window.confirmarAcao("Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.",async()=>{
+    try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Viagem excluída.");await carregarViagensExtra();}catch(e){showToast("Erro.",true);}
+  });
 };
 
 window.zerarTemporada=async()=>{
@@ -6549,15 +6563,32 @@ window.salvarEdicao=async(id,membroId,kmAntigo)=>{
     render();
   }catch{showToast("Erro ao salvar.",true);}
 };
-window.excluirKm=async(id,membroId,km)=>{
-  if(!confirm("Excluir este lançamento?"))return;
-  try{
-    await deleteDoc(doc(db,"registros",id));
-    await recalcularKmMembro(membroId);
-    await carregarRegistros();showToast("Lançamento excluído");
-    registrarLog("km_excluido",`excluiu lançamento de ${toInt(km)} km`,m?.apelido||"");
-    render();
-  }catch{showToast("Erro ao excluir",true);}
+window.confirmarAcao=(texto,onConfirm)=>{
+  const ov=document.createElement("div");
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const box=document.createElement("div");
+  box.style.cssText="background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;max-width:340px;width:100%;";
+  box.innerHTML=`<div style="font-size:15px;font-weight:600;margin-bottom:20px;line-height:1.4;text-align:center">${texto}</div>
+    <div style="display:flex;gap:10px">
+      <button class="conf-cancel" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button class="conf-ok" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--danger);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Excluir</button>
+    </div>`;
+  ov.appendChild(box);document.body.appendChild(ov);
+  box.querySelector(".conf-cancel").onclick=()=>ov.remove();
+  box.querySelector(".conf-ok").onclick=()=>{ov.remove();onConfirm();};
+};
+window.excluirKm=(id,membroId,km)=>{
+  window.confirmarAcao("Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.",async()=>{
+    try{
+      await deleteDoc(doc(db,"registros",id));
+      await recalcularKmMembro(membroId);
+      await carregarRegistros();showToast("Lançamento excluído");
+      const mRef=findMembro(membroId);
+      registrarLog("km_excluido",`excluiu lançamento de ${toInt(km)} km`,mRef?.apelido||"");
+      render();
+    }catch{showToast("Erro ao excluir",true);}
+  });
 };
 window.excluirMembro=async(uid,apelido)=>{
   if(!confirm("Excluir "+apelido+"?"))return;
