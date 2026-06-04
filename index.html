@@ -3902,6 +3902,7 @@ function htmlEventosSede(){
     <label>Data</label><input type="date" id="es-data"/>
     <label>Hora</label><input type="time" id="es-hora" value="20:00"/>
     <label>Descrição (opcional)</label><input type="text" id="es-desc" placeholder="Detalhes do evento" autocomplete="off"/>
+    <label>Endereço (opcional)</label><input type="text" id="es-end" placeholder="Ex: Rua das Flores, 123 — Itajaí SC" autocomplete="off"/>
     <button class="btn-primary" onclick="window.salvarEventoSede()">Publicar evento</button>
   </div>`:""}
   <div class="card">
@@ -3973,11 +3974,12 @@ async function carregarEventosSede(){
             <div style="font-size:14px;font-weight:700">${e.nome}</div>
             <div style="font-size:12px;color:var(--muted)">${fmtDate(e.data)}${e.hora?` · ${e.hora}`:""}</div>
             ${e.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.desc}</div>`:""}
+            ${e.endereco?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.endereco} <a href="https://www.google.com/maps/search/?q=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:600;text-decoration:none">Maps</a> <a href="https://waze.com/ul?q=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:600;text-decoration:none">Waze</a></div>`:""}
             ${confirmadosNum>0?`<div style="font-size:11px;color:var(--green);margin-top:3px">✅ ${confirmadosNum} confirmado${confirmadosNum!==1?"s":""}</div>`:""}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             ${diasLabel?`<span style="font-size:10px;font-weight:700;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:2px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
-            ${isAdmin?`<button onclick="window.excluirEventoSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`:""}
+            ${isAdmin?`<button onclick="window._confirmarExcluirEvSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`:""}
           </div>
         </div>
         ${acoesHtml}
@@ -3994,17 +3996,35 @@ window.salvarEventoSede=async()=>{
   const data=document.getElementById("es-data")?.value;
   const hora=document.getElementById("es-hora")?.value;
   const desc=document.getElementById("es-desc")?.value.trim();
+  const endereco=document.getElementById("es-end")?.value.trim()||"";
   if(!nome||!data){showToast("Preencha nome e data.",true);return;}
   try{
-    await addDoc(collection(db,"eventos_sede"),{nome,data,hora:hora||"",desc:desc||"",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    await addDoc(collection(db,"eventos_sede"),{nome,data,hora:hora||"",desc:desc||"",endereco,criadoPor:UP.apelido,criadoEm:serverTimestamp()});
     document.getElementById("es-nome").value="";document.getElementById("es-desc").value="";
+    const esEnd=document.getElementById("es-end");if(esEnd)esEnd.value="";
     showToast("✓ Evento publicado!");carregarEventosSede();
   }catch{showToast("Erro.",true);}
 };
 
 window.excluirEventoSede=async(id)=>{
-  if(!confirm("Excluir este evento?"))return;
   try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Excluído.");carregarEventosSede();}catch{showToast("Erro.",true);}
+};
+window._confirmarExcluirEvSede=(id)=>{
+  const ov=document.createElement("div");
+  ov.id="_excl-ev-ov";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box";
+  ov.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(224,82,82,.3);border-radius:16px;width:90vw;max-width:400px;padding:24px 20px;text-align:center">
+    <div style="font-size:15px;font-weight:700;margin-bottom:8px">Excluir evento</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.</div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="_excl-ev-cancel" style="flex:1;max-width:140px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button id="_excl-ev-ok" style="flex:1;max-width:140px;padding:10px;border-radius:10px;border:none;background:var(--danger);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Excluir</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector("#_excl-ev-cancel").onclick=()=>ov.remove();
+  ov.querySelector("#_excl-ev-ok").onclick=()=>{ov.remove();window.excluirEventoSede(id);};
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
 };
 
 window.confirmarEventoSede=async(eventoId,resposta)=>{
@@ -6483,7 +6503,7 @@ window.lancarKm=async()=>{
   const membroId=document.getElementById("km-membro")?.value;
   const tipo=document.getElementById("km-tipo")?.value;
   const data=document.getElementById("km-data")?.value;
-  const km=parseFloat(document.getElementById("km-valor")?.value);
+  const km=parseFloat(document.getElementById("km-valor")?.value)||0;
   const err=document.getElementById("km-err");
   const btn=document.getElementById("km-btn");
   let desc="",eventoId=null;
@@ -6496,7 +6516,7 @@ window.lancarKm=async()=>{
     desc=document.getElementById("km-desc")?.value.trim();
     if(!desc){err.textContent="Informe a descrição.";err.style.display="block";return;}
   }
-  if(!membroId||!data||!km){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  if(!membroId||!data){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
   btn.disabled=true;btn.textContent="Lançando...";err.style.display="none";
   const m=findMembro(membroId);
   try{
