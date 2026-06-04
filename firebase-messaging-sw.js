@@ -1,4 +1,4 @@
-// v9
+// v10
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js');
 
@@ -13,7 +13,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-console.log('[SW] Mutantes MC — service worker carregado (v9)');
+console.log('[SW] Mutantes MC — service worker carregado (v10)');
 
 // Ativa o novo SW imediatamente, sem esperar o tab fechar
 self.addEventListener('install', e => {

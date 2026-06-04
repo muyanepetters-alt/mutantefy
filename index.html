@@ -634,11 +634,13 @@ function evCardMembro(ev){
         <div style="font-size:13px;font-weight:600">${icon} ${ev.nome}</div>
         <div style="font-size:11px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>
         ${ev.dist>0?`<div style="font-size:11px;color:var(--orange)">📍 ${toInt(ev.dist*2)} km ida+volta</div>`:""}
+        ${ev.endereco?`<div style="font-size:11px;color:var(--muted);margin-top:2px">📍 ${ev.endereco}</div><div style="display:flex;gap:6px;margin-top:4px"><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(ev.endereco)}" target="_blank" onclick="event.stopPropagation()" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none">Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(ev.endereco)}" target="_blank" onclick="event.stopPropagation()" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none">Waze</a></div>`:""}
         ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
         ${diasFalt<0?`<span style="font-size:11px;color:#888;font-weight:700;background:var(--bg3);padding:3px 8px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>`:diasLabel?`<span style="font-size:11px;color:${diasFalt===0?"var(--danger)":diasFalt<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${diasFalt===0?"rgba(224,82,82,.15)":diasFalt<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${diasFalt===0?"rgba(224,82,82,.3)":diasFalt<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
+        ${(UP?.isAdmin||UP?.isDiretor)?`<button onclick="event.stopPropagation();window.excluirEvento(${ev.id})" style="padding:3px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:14px;cursor:pointer;margin-top:2px;line-height:1" title="Excluir viagem">🗑️</button>`:""}
       </div>
     </div>
     <div class="ev-det" id="evd${ev.id}">
@@ -862,10 +864,11 @@ function htmlCadastrar(){
 }
 
 
+let _hiddenEventIds=new Set();
 function htmlEventosSplit(showHints=false){
   const hoje=new Date().toISOString().slice(0,10);
-  const proximos=EVENTOS.filter(e=>e.data>=hoje);
-  const anteriores=EVENTOS.filter(e=>e.data<hoje).reverse();
+  const proximos=EVENTOS.filter(e=>e.data>=hoje&&!_hiddenEventIds.has(e.id));
+  const anteriores=EVENTOS.filter(e=>e.data<hoje&&!_hiddenEventIds.has(e.id)).reverse();
   return`<div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 PRÓXIMOS EVENTOS (${proximos.length})</div>
     ${showHints&&!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
@@ -882,6 +885,17 @@ function htmlEventosSplit(showHints=false){
 window.toggleEventosAnteriores=()=>{
   const w=document.getElementById("ev-ant-wrap"),ic=document.getElementById("ev-ant-ic");
   if(!w)return;const open=w.style.display==="none";w.style.display=open?"block":"none";if(ic)ic.textContent=open?"▲":"▼";
+};
+window.excluirEvento=(evId)=>{
+  window.confirmarAcao("Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.",()=>{
+    _hiddenEventIds.add(evId);
+    const wrap=document.getElementById("ev-lista-wrap");
+    const showHints=!!document.getElementById("viagens-extra-wrap");
+    if(wrap)wrap.innerHTML=htmlEventosSplit(showHints);
+    const cal=document.getElementById("ev-cal-wrap");
+    if(cal&&cal.style.display!=="none")renderCalendario();
+    lcr();
+  });
 };
 function _sedeCount(m){return SEDE_COUNTS[m.authUid]||SEDE_COUNTS[m.uid]||0;}
 function _sedeCountEv(m){return SEDE_COUNTS_EV[m.authUid]||SEDE_COUNTS_EV[m.uid]||0;}
@@ -1067,7 +1081,7 @@ function htmlClubeCorpo(){
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
         <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
-          ${[["massa","📋 Lançamento"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"]].map(([a,lb])=>`
+          ${[["massa","📋 Lançamento"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"],...((UP.isAdmin||UP.isDiretor)?[["pormembro","👤 Por Membro"]]:[] )].map(([a,lb])=>`
             <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 14px;border-radius:20px;border:${(_presAba||'massa')===a?'none':'1px solid var(--border)'};background:${(_presAba||'massa')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'massa')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">${lb}</button>`).join("")}
         </div>
 
@@ -1097,6 +1111,17 @@ function htmlClubeCorpo(){
 
         <div id="pres-panel-anteriores" style="display:${(_presAba||'massa')==='anteriores'?'block':'none'}">
           <div id="pres-anteriores-wrap"><span class="spin">⟳</span></div>
+        </div>
+
+        <div id="pres-panel-pormembro" style="display:${_presAba==='pormembro'?'block':'none'}">
+          <div class="card">
+            <div class="sec-title">👤 Registros por Membro</div>
+            <select id="pormembro-sel" onchange="window.carregarRegsPorMembro()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
+              <option value="">— Selecione um membro —</option>
+              ${MEMBROS.map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join("")}
+            </select>
+            <div id="pormembro-lista"></div>
+          </div>
         </div>`:""}
 
       ${TA==="usuarios"?htmlUsuarios():""}
@@ -4779,7 +4804,7 @@ window.setTA=t=>{console.log("setTA:",t);TA=t;_presAba="massa";try{render();}cat
 window.setRankAba=aba=>{window._rankAba=aba;render();};
 window.setPresAba=(aba)=>{
   _presAba=aba;
-  ["massa","avulso","proximos","anteriores"].forEach(a=>{
+  ["massa","avulso","proximos","anteriores","pormembro"].forEach(a=>{
     const panel=document.getElementById("pres-panel-"+a);
     const btn=document.getElementById("pres-tab-"+a);
     if(panel)panel.style.display=a===aba?"block":"none";
@@ -4797,6 +4822,38 @@ window.setPresAba=(aba)=>{
     const wrap=document.getElementById("pres-anteriores-wrap");
     if(wrap&&wrap.querySelector(".spin"))carregarEventosAnteriores();
   }
+};
+window.carregarRegsPorMembro=async()=>{
+  const uid=document.getElementById("pormembro-sel")?.value;
+  const lista=document.getElementById("pormembro-lista");
+  if(!lista)return;
+  if(!uid){lista.innerHTML="";return;}
+  lista.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0"><span class="spin">⟳</span> Carregando...</div>`;
+  try{
+    const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",uid),orderBy("createdAt","desc")));
+    const regs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!regs.length){lista.innerHTML=`<div style="font-size:13px;color:#555;padding:8px 0">Nenhum registro encontrado.</div>`;return;}
+    lista.innerHTML=regs.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;color:var(--muted)">${fmtDate(r.data)}</div>
+        <div style="font-size:13px;font-weight:600">${r.tipo==="extra"?"⭐ Km avulso":"🗺️ Presença"}${r.tipo==="extra"?` — ${toInt(r.km)} km`:""}</div>
+        ${r.desc?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${r.desc}</div>`:""}
+      </div>
+      <button onclick="window.excluirRegPorMembro('${r.id}','${uid}',${r.km||0})" style="padding:5px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;margin-left:10px" title="Excluir">🗑️</button>
+    </div>`).join("");
+  }catch(e){lista.innerHTML=`<div style="font-size:12px;color:var(--danger);padding:8px 0">Erro: ${e.message}</div>`;}
+};
+window.excluirRegPorMembro=(id,membroId,km)=>{
+  window.confirmarAcao("Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.",async()=>{
+    try{
+      await deleteDoc(doc(db,"registros",id));
+      await recalcularKmMembro(membroId);
+      await carregarRegistros();
+      showToast("Registro excluído.");
+      render();
+      window.carregarRegsPorMembro();
+    }catch{showToast("Erro ao excluir.",true);}
+  });
 };
 window.toggleKmAvulso=()=>{
   const wrap=document.getElementById("km-avulso-wrap");
@@ -5944,7 +6001,7 @@ function _renderViagensExtra(){
             ${v.dist>0?`<div style="font-size:11px;color:var(--orange);margin-top:2px">📍 ${toInt(v.dist*2)} km ida+volta</div>`:""}
             ${v.tipo?`<span class="badge" style="font-size:10px;background:rgba(255,102,0,.15);color:var(--orange);border:1px solid rgba(255,102,0,.3)">${v.tipo}</span>`:""}
             ${v.desc?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${v.desc}</div>`:""}
-            ${v.endereco?`<div style="font-size:11px;color:var(--muted);margin-top:6px">📌 ${v.endereco}</div><div style="display:flex;gap:6px;margin-top:6px"><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit">Google Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit">Waze</a></div>`:""}
+            ${v.endereco?`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="font-size:11px;color:var(--muted)">📍 ${v.endereco}</span><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Waze</a></div>`:""}
           </div>
           ${UP?.isAdmin||UP?.isDiretor?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
         </div>
