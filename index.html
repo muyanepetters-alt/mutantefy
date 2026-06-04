@@ -4830,12 +4830,22 @@ window.carregarRegsPorMembro=async()=>{
   if(!uid){lista.innerHTML="";return;}
   lista.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0"><span class="spin">⟳</span> Carregando...</div>`;
   try{
-    const [regSnap,sedeSnap]=await Promise.all([
-      getDocs(query(collection(db,"registros"),where("membroId","==",uid),orderBy("createdAt","desc"))),
-      getDocs(query(collection(db,"sede_confirmacoes"),where("membroId","==",uid)))
-    ]);
-    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
-    const sedes=sedeSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.data||"").localeCompare(a.data||""));
+    const mb=findMembro(uid);
+    const ids=[...new Set([uid,mb?.authUid].filter(Boolean))];
+    const allRegs=[];
+    const allSedes=[];
+    for(const id of ids){
+      const [rs,ss]=await Promise.all([
+        getDocs(query(collection(db,"registros"),where("membroId","==",id),orderBy("createdAt","desc"))),
+        getDocs(query(collection(db,"sede_confirmacoes"),where("membroId","==",id)))
+      ]);
+      rs.docs.forEach(d=>allRegs.push({id:d.id,...d.data()}));
+      ss.docs.forEach(d=>allSedes.push({id:d.id,...d.data()}));
+    }
+    const seen=new Set();
+    const regs=allRegs.filter(r=>{if(seen.has(r.id))return false;seen.add(r.id);return true;}).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const seenS=new Set();
+    const sedes=allSedes.filter(s=>{if(seenS.has(s.id))return false;seenS.add(s.id);return true;}).sort((a,b)=>(b.data||"").localeCompare(a.data||""));
     const tipoSedeLabel=t=>t==="presenca"?"🏠 Presença Sede":t==="limpeza"?"🧹 Limpeza":t==="evento_sede"?"🎉 Evento Sede":"🏠 Sede";
     const respostaLabel=r=>r==="sim"?"✅ Confirmou":r==="não"||r==="nao"?"❌ Não vai":r==="compareceu"?"🏁 Compareceu":r||"—";
     const rowStyle="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)";
