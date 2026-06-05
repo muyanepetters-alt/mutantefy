@@ -6074,8 +6074,8 @@ window.salvarNovaViagem=async()=>{
 
 async function carregarViagensExtra(){
   try{
-    const snap=await getDocs(query(collection(db,"eventos_sede"),where("categoria","==","viagem"),orderBy("data","asc")));
-    VIAGENS_EXTRA=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await getDocs(query(collection(db,"eventos_sede"),where("categoria","==","viagem")));
+    VIAGENS_EXTRA=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.data<b.data?-1:1);
     _renderViagensExtra();
   }catch(e){VIAGENS_EXTRA=[];}
 }
