@@ -1758,6 +1758,7 @@ function renderBarman(el){
   if(TM==="sede")setTimeout(carregarSedeInfo,100);
   if(TM==="painel"){setTimeout(carregarPainelResumo,100);setTimeout(()=>{const f=document.getElementById("prog-fill-meta");const ct=document.getElementById("km-counter");if(f){const p=parseFloat(f.dataset.pct||0);f.style.setProperty("--prog-target",p+"%");f.classList.add("prog-fill-anim");}if(ct){const tgt=parseInt(ct.dataset.km||0,10);const dur=1400;const t0=Date.now();const tick=()=>{const el=Math.min((Date.now()-t0)/dur,1);const v=Math.round(tgt*(1-Math.pow(1-el,3)));ct.textContent=toInt(v);if(el<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);}},200);}
   if(TM==="mural")setTimeout(carregarMural,100);
+  if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
 }
 
