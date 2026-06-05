@@ -4018,7 +4018,10 @@ async function carregarEventosSede(){
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             ${diasLabel?`<span style="font-size:10px;font-weight:700;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:2px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
-            ${isAdmin?`<button onclick="window._confirmarExcluirEvSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>`:""}
+            ${isAdmin?`<div style="display:flex;gap:4px">
+              <button onclick="window.abrirEditarEvSede('${e.id}')" style="font-size:12px;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px" title="Editar">✏️</button>
+              <button onclick="window._confirmarExcluirEvSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>
+            </div>`:""}
           </div>
         </div>
         ${acoesHtml}
@@ -4065,6 +4068,58 @@ window._confirmarExcluirEvSede=(id)=>{
   ov.querySelector("#_excl-ev-cancel").onclick=()=>ov.remove();
   ov.querySelector("#_excl-ev-ok").onclick=()=>{ov.remove();window.excluirEventoSede(id);};
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
+};
+
+window.abrirEditarEvSede=async(id)=>{
+  document.getElementById("edit-ev-sede-modal")?.remove();
+  let e;
+  try{
+    const snap=await getDoc(doc(db,"eventos_sede",id));
+    if(!snap.exists()){showToast("Evento não encontrado.",true);return;}
+    e={id:snap.id,...snap.data()};
+  }catch{showToast("Erro ao carregar evento.",true);return;}
+  const ov=document.createElement("div");
+  ov.id="edit-ev-sede-modal";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1200;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
+  ov.onclick=ev=>{if(ev.target===ov)ov.remove();};
+  const sheet=document.createElement("div");
+  sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
+  const ob=e.obrigatorio!==false;
+  sheet.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:17px;font-weight:700">✏️ Editar evento</div>
+      <button onclick="document.getElementById('edit-ev-sede-modal')?.remove()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <label>Nome do evento</label><input type="text" id="ees-nome" value="${(e.nome||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <label>Data</label><input type="date" id="ees-data" value="${e.data||""}"/>
+      <label>Hora</label><input type="time" id="ees-hora" value="${e.hora||"20:00"}"/>
+      <label>Descrição (opcional)</label><input type="text" id="ees-desc" value="${(e.desc||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <label>Endereço (opcional)</label><input type="text" id="ees-end" value="${(e.endereco||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 10px">
+        <input type="checkbox" id="ees-obrigatorio" ${ob?"checked":""} style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+        <span style="font-size:13px;color:var(--white)">Obrigatório</span>
+      </div>
+      <button class="btn-primary" onclick="window.salvarEditarEvSede('${id}')">Salvar alterações</button>
+    </div>`;
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+};
+
+window.salvarEditarEvSede=async(id)=>{
+  const nome=document.getElementById("ees-nome")?.value.trim();
+  const data=document.getElementById("ees-data")?.value;
+  const hora=document.getElementById("ees-hora")?.value;
+  const desc=document.getElementById("ees-desc")?.value.trim();
+  const endereco=document.getElementById("ees-end")?.value.trim()||"";
+  const obrigatorio=document.getElementById("ees-obrigatorio")?.checked!==false;
+  if(!nome||!data){showToast("Preencha nome e data.",true);return;}
+  try{
+    await updateDoc(doc(db,"eventos_sede",id),{nome,data,hora:hora||"",desc:desc||"",endereco,obrigatorio});
+    showToast("✓ Evento atualizado!");
+    document.getElementById("edit-ev-sede-modal")?.remove();
+    carregarEventosSede();
+  }catch{showToast("Erro.",true);}
 };
 
 window.confirmarEventoSede=async(eventoId,resposta)=>{
@@ -6041,7 +6096,10 @@ function _renderViagensExtra(){
             ${v.desc?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${v.desc}</div>`:""}
             ${v.endereco?`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="font-size:11px;color:var(--muted)">📍 ${v.endereco}</span><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Waze</a></div>`:""}
           </div>
-          ${UP?.isAdmin||UP?.isDiretor?`<button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
+          ${UP?.isAdmin||UP?.isDiretor?`<div style="display:flex;gap:4px;flex-shrink:0">
+            <button onclick="window.abrirEditarViagem('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer" title="Editar">✏️</button>
+            <button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer">✕</button>
+          </div>`:""}
         </div>
       </div>`).join("")}`;
 }
@@ -6050,6 +6108,77 @@ window.excluirViagemExtra=(id)=>{
   window.confirmarAcao("Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.",async()=>{
     try{await deleteDoc(doc(db,"eventos_sede",id));showToast("Viagem excluída.");await carregarViagensExtra();}catch(e){showToast("Erro.",true);}
   });
+};
+
+window.abrirEditarViagem=async(id)=>{
+  document.getElementById("edit-viagem-modal")?.remove();
+  let v;
+  try{
+    const snap=await getDoc(doc(db,"eventos_sede",id));
+    if(!snap.exists()){showToast("Viagem não encontrada.",true);return;}
+    v={id:snap.id,...snap.data()};
+  }catch{showToast("Erro ao carregar viagem.",true);return;}
+  const ov=document.createElement("div");
+  ov.id="edit-viagem-modal";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 40px;box-sizing:border-box;";
+  ov.onclick=ev=>{if(ev.target===ov)ov.remove();};
+  const sheet=document.createElement("div");
+  sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
+  const ob=v.obrigatorio!==false;
+  const [vy,vm,vd]=(v.data||"").split("-");
+  const dataFmt=vy&&vm&&vd?`${vd}/${vm}/${vy}`:"";
+  sheet.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:17px;font-weight:700">${li("bike",18)} Editar viagem</div>
+      <button onclick="document.getElementById('edit-viagem-modal')?.remove()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div id="ev-err" class="msg-err" style="display:none"></div>
+      <label>Nome do evento</label><input type="text" id="ev-nome" value="${(v.nome||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <label>Data</label><input type="text" id="ev-data" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskNasc(this)" value="${dataFmt}" autocomplete="off"/>
+      <label>Local (cidade + estado)</label><input type="text" id="ev-local" value="${(v.destino||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <label>Distância ida (km) — ida+volta calculada automaticamente</label><input type="number" id="ev-dist" value="${v.dist||0}" min="0" step="1" autocomplete="off"/>
+      <label>Tipo</label>
+      <select id="ev-tipo" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:10px">
+        <option value="Passeio" ${v.tipo==="Passeio"?"selected":""}>Passeio</option>
+        <option value="Acampamento" ${v.tipo==="Acampamento"?"selected":""}>Acampamento</option>
+        <option value="Festa" ${v.tipo==="Festa"?"selected":""}>Festa</option>
+        <option value="Reunião" ${v.tipo==="Reunião"?"selected":""}>Reunião</option>
+        <option value="Outro" ${v.tipo==="Outro"?"selected":""}>Outro</option>
+      </select>
+      <label>Descrição (opcional)</label><input type="text" id="ev-desc" value="${(v.desc||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <label>Endereço (opcional)</label><input type="text" id="ev-endereco" value="${(v.endereco||"").replace(/"/g,"&quot;")}" autocomplete="off"/>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 10px">
+        <input type="checkbox" id="ev-obrigatorio" ${ob?"checked":""} style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+        <span style="font-size:13px;color:var(--white)">Obrigatório</span>
+      </div>
+      <button class="btn-primary" onclick="window.salvarEditarViagem('${id}')" style="margin-top:6px">Salvar alterações</button>
+    </div>`;
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+};
+
+window.salvarEditarViagem=async(id)=>{
+  const nome=document.getElementById("ev-nome")?.value.trim();
+  const dataRaw=document.getElementById("ev-data")?.value.trim();
+  const local=document.getElementById("ev-local")?.value.trim();
+  const distIda=parseFloat(document.getElementById("ev-dist")?.value)||0;
+  const tipo=document.getElementById("ev-tipo")?.value||"Passeio";
+  const desc=document.getElementById("ev-desc")?.value.trim()||"";
+  const endereco=document.getElementById("ev-endereco")?.value.trim()||"";
+  const obrigatorio=document.getElementById("ev-obrigatorio")?.checked!==false;
+  const err=document.getElementById("ev-err");
+  if(err)err.style.display="none";
+  if(!nome||!dataRaw||!local){if(err){err.textContent="Preencha nome, data e local.";err.style.display="block";}return;}
+  if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataRaw)){if(err){err.textContent="Data inválida. Use DD/MM/AAAA.";err.style.display="block";}return;}
+  const [dd,mm,yyyy]=dataRaw.split("/");
+  const dataISO=`${yyyy}-${mm}-${dd}`;
+  try{
+    await updateDoc(doc(db,"eventos_sede",id),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,endereco,obrigatorio});
+    showToast("✓ Viagem atualizada!");
+    document.getElementById("edit-viagem-modal")?.remove();
+    await carregarViagensExtra();
+  }catch(e){if(err){err.textContent="Erro: "+e.message;err.style.display="block";}}
 };
 
 window.zerarTemporada=async()=>{
