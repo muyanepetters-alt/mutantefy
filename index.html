@@ -227,13 +227,15 @@ select option{background:#161616;color:var(--white)}
 .btn-orange-glow{transition:box-shadow .2s,transform .1s}
 .btn-orange-glow:hover,.btn-orange-glow:focus{box-shadow:0 0 12px rgba(255,102,0,.5);outline:none}
 .btn-orange-glow:active{transform:scale(.97)}
+.card button{transition:transform .15s ease}
+.card button:active{transform:scale(.97)}
 @keyframes progGrow{from{width:0%}to{width:var(--prog-target)}}
 .prog-fill-anim{animation:progGrow 1.5s cubic-bezier(.22,1,.36,1) forwards}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-outline{width:100%;padding:11px;min-height:44px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color var(--transition),background var(--transition)}
 .btn-danger{padding:6px 10px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit}
 .btn-edit{padding:6px 10px;border-radius:6px;border:1px solid rgba(232,103,10,.3);background:transparent;color:var(--orange);font-size:11px;cursor:pointer;font-family:inherit}
-.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.ev-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px 16px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .ev-card.ev-sim,.ev-card.ev-confirmado{border-color:var(--green);background:rgba(76,175,125,.05)}
 .ev-card.ev-nao,.ev-card.ev-desistiu{border-color:var(--danger);background:rgba(224,82,82,.05)}
 .ev-card.ev-compareceu{border-color:#2d6e4f;background:rgba(76,175,125,.1)}
@@ -260,7 +262,7 @@ select option{background:#161616;color:var(--white)}
 @keyframes toastBar{from{width:100%}to{width:0%}}
 .sub-pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sub-pills::-webkit-scrollbar{display:none}
-.sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;transition:border-color var(--transition),color var(--transition)}
+.sub-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;transition:border-color var(--transition),color var(--transition),background .2s ease}
 .sub-pill.active{background:linear-gradient(135deg,#ff6600,#ff8c2a);border-color:transparent;color:#fff;font-weight:600}
 .msg-err{font-size:12px;color:var(--danger);margin-bottom:10px;padding:8px 12px;background:rgba(224,82,82,.1);border-radius:8px}
 .senha-wrap{position:relative;margin-bottom:14px}
@@ -629,7 +631,7 @@ function evCardMembro(ev){
   const diasFalt=Math.round((evData-hoje)/(1000*60*60*24));
   const diasLabel=diasFalt===0?"🔴 Hoje!":diasFalt===1?"🟠 Amanhã":diasFalt>0?`🕐 ${diasFalt} dias`:"";
   return`<div class="${cls}" onclick="window.toggleEvDet('evd${ev.id}')">
-    <div style="display:flex;align-items:flex-start;gap:10px">
+    <div style="display:flex;align-items:stretch;gap:10px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${icon} ${ev.nome}</div>
         <div style="font-size:11px;color:#888">${fmtDate(ev.data)} · ${ev.destino}</div>
@@ -637,10 +639,11 @@ function evCardMembro(ev){
         ${ev.endereco?`<div style="font-size:11px;color:var(--muted);margin-top:2px">📍 ${ev.endereco}</div><div style="display:flex;gap:6px;margin-top:4px"><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(ev.endereco)}" target="_blank" onclick="event.stopPropagation()" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none">Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(ev.endereco)}" target="_blank" onclick="event.stopPropagation()" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none">Waze</a></div>`:""}
         ${enc?`<div style="font-size:11px;color:var(--green);margin-top:3px">🕐 ${enc.hora} · 📌 ${enc.local}${enc.resp?` · 👤 ${enc.resp}`:""}</div>`:""}
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-        ${badge}${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        ${badge}
+        ${ev.sm?`<span class="badge badge-sm">sem mulheres</span>`:""}
         ${diasFalt<0?`<span style="font-size:11px;color:#888;font-weight:700;background:var(--bg3);padding:3px 8px;border-radius:20px;border:1px solid var(--border)">✓ Realizado</span>`:diasLabel?`<span style="font-size:11px;color:${diasFalt===0?"var(--danger)":diasFalt<=7?"var(--orange)":"var(--muted)"};font-weight:700;background:${diasFalt===0?"rgba(224,82,82,.15)":diasFalt<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:3px 8px;border-radius:20px;border:1px solid ${diasFalt===0?"rgba(224,82,82,.3)":diasFalt<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
-        ${(UP?.isAdmin||UP?.isDiretor)?`<button onclick="event.stopPropagation();window.excluirEvento(${ev.id})" style="padding:3px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:14px;cursor:pointer;margin-top:2px;line-height:1" title="Excluir viagem">🗑️</button>`:""}
+        ${(UP?.isAdmin||UP?.isDiretor)?`<button onclick="event.stopPropagation();window.excluirEvento(${ev.id})" style="padding:5px 7px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;margin-top:auto;line-height:1;display:flex;align-items:center" title="Excluir viagem">${li("trash-2",14)}</button>`:""}
       </div>
     </div>
     <div class="ev-det" id="evd${ev.id}">
@@ -656,12 +659,12 @@ function evCardMembro(ev){
       ${conf==="pendente"?`
         <div style="display:flex;gap:8px;margin-top:10px">
           <button style="flex:1;padding:14px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'confirmado')">✅ Vou nessa!</button>
-          <button style="padding:14px 16px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">❌ Não vou</button>
+          <button style="padding:14px 16px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">${li("x",14)} Não vou</button>
         </div>`
       :conf==="confirmado"?`
         <div style="display:flex;gap:8px;margin-top:10px;align-items:stretch">
           <div style="flex:1;padding:13px 14px;background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.35);border-radius:10px;font-size:13px;font-weight:700;color:var(--green)">✅ Você confirmou presença!</div>
-          <button style="padding:12px 14px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">🔴 Desistir</button>
+          <button style="padding:12px 14px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px" onclick="event.stopPropagation();window.confirmarPresenca(${ev.id},'desistiu')">${li("x",13)} Desistir</button>
         </div>`
       :conf==="desistiu"?`
         <div style="display:flex;gap:8px;margin-top:10px;align-items:stretch">
@@ -708,6 +711,7 @@ let VIAGENS_EXTRA=[];
 window._rankAba=window._rankAba||"km";
 const li=(n,s=16)=>`<i data-lucide="${n}" style="width:${s}px;height:${s}px;stroke-width:2;vertical-align:middle;display:inline-block;flex-shrink:0"></i>`;
 function lcr(){setTimeout(()=>{if(typeof lucide!=="undefined")lucide.createIcons();},30);}
+function _emptyState(icon,msg){return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:12px;text-align:center"><span style="color:rgba(255,255,255,.2)">${li(icon,36)}</span><div style="font-size:13px;color:rgba(255,255,255,.3);font-weight:500;line-height:1.4;max-width:220px">${msg}</div></div>`;}
 
 async function carregarEncontros(){
   try{
@@ -872,7 +876,7 @@ function htmlEventosSplit(showHints=false){
   return`<div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 PRÓXIMOS EVENTOS (${proximos.length})</div>
     ${showHints&&!UP.autonomia?`<div class="hint-box">${li("wrench",14)} Configure sua moto na aba Perfil para ver os cálculos.</div>`:""}
-    ${proximos.length?proximos.map(ev=>evCardMembro(ev)).join(""):`<div style="font-size:13px;color:#555;padding:8px 0">Nenhum evento próximo.</div>`}
+    ${proximos.length?proximos.map(ev=>evCardMembro(ev)).join(""):_emptyState("map","Nenhuma viagem no horizonte. Por enquanto.")}
     ${anteriores.length?`
       <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
       <button onclick="window.toggleEventosAnteriores()" style="width:100%;background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.5px;padding:0;margin-bottom:8px">
@@ -1136,7 +1140,7 @@ function htmlClubeCorpo(){
               <option value="">— Selecione um membro —</option>
               ${MEMBROS.map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join("")}
             </select>
-            <div id="pormembro-lista"></div>
+            <div id="pormembro-lista">${_emptyState("users","Selecione um membro para ver o histórico.")}</div>
           </div>
         </div>`:""}
 
@@ -1664,7 +1668,7 @@ async function carregarLimpezas(){
         </div>`:""}
       </div>`;
     });
-    el.innerHTML=allDatas.length===0?`<div style="font-size:12px;color:#555;padding:4px 0">Nenhuma limpeza agendada.</div>`:cards.join("");
+    el.innerHTML=allDatas.length===0?_emptyState("brush","Nenhuma limpeza agendada."):cards.join("");
   }catch(e){console.error(e);el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro ao carregar.</div>`;}
 }
 window._toggleLimpMassa=(data)=>{
@@ -1696,7 +1700,7 @@ window.abrirNovaLimpezaModal=()=>{
   ov.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:400px;overflow:hidden">
     <div style="background:var(--bg2);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,102,0,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:18px;font-weight:700">🧹 Nova Limpeza</div>
-      <button onclick="document.getElementById('_nova-limp-ov')?.remove()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="document.getElementById('_nova-limp-ov')?.remove()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">${li("x",18)}</button>
     </div>
     <div style="padding:16px 20px">
       <label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:6px">Data da limpeza</label>
@@ -1706,6 +1710,7 @@ window.abrirNovaLimpezaModal=()=>{
   </div>`;
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
+  lcr();
 };
 window.salvarNovaLimpeza=async()=>{
   const data=document.getElementById("nova-limp-data")?.value;
@@ -4115,7 +4120,7 @@ async function carregarEventosSede(){
     const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.categoria!=='limpeza'&&e.categoria!=='viagem'||!e.categoria);
     const futuros=docs.filter(e=>e.data>=hoje);
     const passados=docs.filter(e=>e.data<hoje).slice(-3).reverse();
-    if(docs.length===0){el.innerHTML=`<div style="font-size:12px;color:#555">Nenhum evento cadastrado.</div>`;return;}
+    if(docs.length===0){el.innerHTML=_emptyState("calendar","Nenhum evento agendado. Bora marcar um.");lcr();return;}
     const isAdmin=UP&&(UP.isAdmin||UP.isDiretor);
 
     // Carregar contagem de confirmados por evento
@@ -4161,7 +4166,7 @@ async function carregarEventosSede(){
             ${diasLabel?`<span style="font-size:10px;font-weight:700;color:${dias===0?"var(--danger)":dias<=7?"var(--orange)":"var(--muted)"};background:${dias===0?"rgba(224,82,82,.15)":dias<=7?"rgba(232,103,10,.15)":"var(--bg3)"};padding:2px 8px;border-radius:20px;border:1px solid ${dias===0?"rgba(224,82,82,.3)":dias<=7?"rgba(232,103,10,.3)":"var(--border)"}">${diasLabel}</span>`:""}
             ${isAdmin?`<div style="display:flex;gap:4px">
               <button onclick="window.abrirEditarEvSede('${e.id}')" style="font-size:12px;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px" title="Editar">✏️</button>
-              <button onclick="window._confirmarExcluirEvSede('${e.id}')" style="font-size:10px;color:var(--danger);background:transparent;border:none;cursor:pointer">✕</button>
+              <button onclick="window._confirmarExcluirEvSede('${e.id}')" style="padding:4px 5px;color:var(--danger);background:transparent;border:none;cursor:pointer;display:flex;align-items:center">${li("trash-2",14)}</button>
             </div>`:""}
           </div>
         </div>
@@ -4171,6 +4176,7 @@ async function carregarEventosSede(){
     el.innerHTML=(futuros.length===0?`<div style="font-size:12px;color:#555;margin-bottom:10px">Nenhum evento futuro.</div>`:"")
       +futuros.map(e=>renderEv(e)).join("")
       +(passados.length>0?`<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-top:12px;margin-bottom:6px">Passados</div>`+passados.map(e=>renderEv(e,true)).join(""):"");
+    lcr();
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--danger)">Erro.</div>`;}
 }
 
@@ -4201,7 +4207,7 @@ window.abrirNovoEventoSedeModal=()=>{
   ov.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0">
     <div style="background:var(--bg2);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,102,0,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:18px;font-weight:700">🎉 Novo Evento na Sede</div>
-      <button onclick="document.getElementById('_novo-ev-sede-ov')?.remove()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="document.getElementById('_novo-ev-sede-ov')?.remove()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">${li("x",18)}</button>
     </div>
     <div style="padding:16px 20px">
       <label>Nome do evento</label>
@@ -4244,7 +4250,7 @@ window._confirmarExcluirEvSede=(id)=>{
   const ov=document.createElement("div");
   ov.id="_excl-ev-ov";
   ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box";
-  ov.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(224,82,82,.3);border-radius:16px;width:90vw;max-width:400px;padding:24px 20px;text-align:center">
+  ov.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(224,82,82,.3);border-radius:20px;width:90vw;max-width:400px;padding:24px 20px;text-align:center">
     <div style="font-size:15px;font-weight:700;margin-bottom:8px">Excluir evento</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.</div>
     <div style="display:flex;gap:10px;justify-content:center">
@@ -4851,9 +4857,10 @@ window.abrirSedeModal=(aba)=>{
   ov.onclick=e=>{if(e.target===ov)window.fecharSedeModal();};
   const sheet=document.createElement("div");
   sheet.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;width:90vw;max-width:480px;overflow:hidden;margin:auto;flex-shrink:0;";
-  sheet.innerHTML=`<div style="background:var(--bg2);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,102,0,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between"><div style="font-size:18px;font-weight:700">${tabIc} ${tabLb}</div><button onclick="window.fecharSedeModal()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">✕</button></div><div id="sede-modal-conteudo" style="padding:16px 20px;max-height:75vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${html}</div>`;
+  sheet.innerHTML=`<div style="background:var(--bg2);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,102,0,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between"><div style="font-size:18px;font-weight:700">${tabIc} ${tabLb}</div><button onclick="window.fecharSedeModal()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">${li("x",18)}</button></div><div id="sede-modal-conteudo" style="padding:16px 20px;max-height:75vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${html}</div>`;
   ov.appendChild(sheet);
   document.body.appendChild(ov);
+  lcr();
   if(aba==="presenca"||aba==="limpeza")setTimeout(carregarSedeInfo,50);
   else if(aba==="eventosSede")setTimeout(async()=>{await carregarConfEventosSede();carregarEventosSede();},50);
   else if(aba==="reunioes")setTimeout(carregarReunioes,50);
@@ -5076,7 +5083,7 @@ window.carregarRegsPorMembro=async()=>{
   const uid=document.getElementById("pormembro-sel")?.value;
   const lista=document.getElementById("pormembro-lista");
   if(!lista)return;
-  if(!uid){lista.innerHTML="";return;}
+  if(!uid){lista.innerHTML=_emptyState("users","Selecione um membro para ver o histórico.");return;}
   lista.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0"><span class="spin">⟳</span> Carregando...</div>`;
   try{
     const mb=findMembro(uid);
@@ -5099,7 +5106,7 @@ window.carregarRegsPorMembro=async()=>{
     const respostaLabel=r=>r==="sim"?"✅ Confirmou":r==="não"||r==="nao"?"❌ Não vai":r==="compareceu"?"🏁 Compareceu":r||"—";
     const rowStyle="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)";
     const btnDel=fn=>`<button onclick="${fn}" style="padding:5px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;margin-left:10px" title="Excluir">🗑️</button>`;
-    const emptyMsg=`<div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhum registro encontrado.</div>`;
+    const emptyMsg=_emptyState("file-x","Nenhum registro encontrado.");
     const blocoKm=`<div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">🏍️ KM Rodado</div>`
       +(regs.length?regs.map(r=>`<div style="${rowStyle}"><div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--muted)">${fmtDate(r.data)}</div><div style="font-size:13px;font-weight:600">${r.tipo==="extra"?"⭐ Km avulso":"🗺️ Presença"} — ${toInt(r.km||0)} km</div>${r.desc?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${r.desc}</div>`:""}</div>${btnDel(`window.excluirRegPorMembro('${r.id}','${uid}',${r.km||0})`)}</div>`).join(""):emptyMsg);
     const blocoSede=`<div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:16px">🏠 Presenças na Sede</div>`
@@ -6291,7 +6298,7 @@ function _renderViagensExtra(){
           </div>
           ${UP?.isAdmin||UP?.isDiretor?`<div style="display:flex;gap:4px;flex-shrink:0">
             <button onclick="window.abrirEditarViagem('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer" title="Editar">✏️</button>
-            <button onclick="window.excluirViagemExtra('${v.id}')" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);font-size:11px;cursor:pointer">✕</button>
+            <button onclick="window.excluirViagemExtra('${v.id}')" style="padding:5px 7px;border-radius:6px;border:1px solid rgba(224,82,82,.3);background:transparent;color:var(--danger);cursor:pointer;display:flex;align-items:center">${li("trash-2",14)}</button>
           </div>`:""}
         </div>
       </div>`).join("")}`;
@@ -6982,10 +6989,10 @@ window.salvarEdicao=async(id,membroId,kmAntigo)=>{
 };
 window.confirmarAcao=(texto,onConfirm)=>{
   const ov=document.createElement("div");
-  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
   ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const box=document.createElement("div");
-  box.style.cssText="background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;max-width:340px;width:100%;";
+  box.style.cssText="background:var(--bg2);border:1px solid rgba(255,102,0,.25);border-radius:20px;padding:24px;max-width:340px;width:100%;";
   box.innerHTML=`<div style="font-size:15px;font-weight:600;margin-bottom:20px;line-height:1.4;text-align:center">${texto}</div>
     <div style="display:flex;gap:10px">
       <button class="conf-cancel" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
@@ -7718,17 +7725,18 @@ window.abrirModalPresenca=async(evId)=>{
   const modal=document.createElement("div");
   modal.id="modal-presenca-passado";
   modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:16px 0 32px";
-  modal.innerHTML=`<div style="width:min(100%,480px);background:var(--bg2);border-radius:16px;overflow:hidden;flex-shrink:0">
+  modal.innerHTML=`<div style="width:min(100%,480px);background:var(--bg2);border-radius:20px;overflow:hidden;flex-shrink:0">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border)">
       <div>
         <div style="font-size:15px;font-weight:700;color:var(--white)">${ev.nome}</div>
         <div style="font-size:11px;color:var(--muted)">${fmtDate(ev.data)} · ${ev.destino}</div>
       </div>
-      <button onclick="document.getElementById('modal-presenca-passado').remove()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px">×</button>
+      <button onclick="document.getElementById('modal-presenca-passado').remove()" style="width:34px;height:34px;min-height:34px;border-radius:50%;border:none;background:var(--bg3);color:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;flex-shrink:0">${li("x",18)}</button>
     </div>
     <div id="modal-presenca-corpo" style="padding:16px"><span class="spin">⟳</span></div>
   </div>`;
   document.body.appendChild(modal);
+  lcr();
   modal.addEventListener("click",e=>{if(e.target===modal)modal.remove();});
   await _carregarCorpoModalPresenca(ev);
 };
@@ -7757,7 +7765,7 @@ async function _carregarCorpoModalPresenca(ev){
             <div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div>
           </div>
           <button onclick="window.editarKmPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)} Editar</button>
-          <button onclick="window.excluirRegistroPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+          <button onclick="window.excluirRegistroPresenca('${r.id}','${r.membroId}',${r.km},${ev.id})" style="padding:6px 10px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit;display:flex;align-items:center">${li("trash-2",14)}</button>
         </div>`;
       });
     }
@@ -7777,12 +7785,13 @@ async function _carregarCorpoModalPresenca(ev){
           <div style="display:flex;gap:8px;align-items:center">
             <input id="km-inp-${m.uid}" type="number" min="1" step="1" placeholder="km total ida+volta" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
             <button onclick="window.salvarPresencaModal('${m.uid}','${m.apelido||""}',${ev.id})" style="padding:8px 14px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
-            <button onclick="window.cancelarPresencaModal('${m.uid}')" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+            <button onclick="window.cancelarPresencaModal('${m.uid}')" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center">${li("x",14)}</button>
           </div>
         </div>`;
       });
     }
     corpo.innerHTML=html;
+    lcr();
   }catch(e){corpo.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro ao carregar: ${e.message}</div>`;}
 }
 
