@@ -1081,18 +1081,17 @@ function htmlClubeCorpo(){
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
         <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
-          ${[["massa","📋 Lançamento"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"],...((UP.isAdmin||UP.isDiretor)?[["pormembro","👤 Por Membro"]]:[] )].map(([a,lb])=>`
+          ${[["massa","📋 Lançamento em Massa"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"],...((UP.isAdmin||UP.isDiretor)?[["pormembro","👤 Por Membro"]]:[] )].map(([a,lb])=>`
             <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 14px;border-radius:20px;border:${(_presAba||'massa')===a?'none':'1px solid var(--border)'};background:${(_presAba||'massa')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'massa')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">${lb}</button>`).join("")}
         </div>
 
         <div id="pres-panel-massa" style="display:${(_presAba||'massa')==='massa'?'block':'none'}">
           <div class="card" style="margin-bottom:10px">
-            <div class="sec-title">📋 Lançamento em massa</div>
+            <div class="sec-title">🗺️ Viagens e Eventos</div>
             <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
             <select id="massa-evento" onchange="window.selecionarEventoMassa(this.value)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
               <option value="">Selecione um evento...</option>
               ${EVENTOS.map(e=>`<option value="${e.id}">${e.nome} · ${fmtDate(e.data)}</option>`).join("")}
-              ${VIAGENS_EXTRA.length?`<optgroup label="── Avulsos / Compensatórios ──">${VIAGENS_EXTRA.map(v=>`<option value="ve_${v.id}">${v.nome} · ${fmtDate(v.data)}</option>`).join("")}</optgroup>`:""}
             </select>
             <div id="massa-corpo" style="margin-top:10px"></div>
           </div>
@@ -1100,6 +1099,21 @@ function htmlClubeCorpo(){
             <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
             <div id="gestao-corpo" class="card"><span class="spin">⟳</span></div>
           </div>
+          ${(UP.isAdmin||UP.isDiretor)?`
+          <div style="border-top:1px solid var(--border);margin:18px 0 14px"></div>
+          <div class="card" style="margin-bottom:10px">
+            <div class="sec-title">🛵 Avulso / Compensatório</div>
+            <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento avulso</label>
+            <select id="massa-avulso-evento" onchange="window.selecionarEventoAvulso(this.value)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
+              <option value="">Selecione uma viagem avulsa...</option>
+              ${VIAGENS_EXTRA.map(v=>`<option value="ve_${v.id}">${v.nome} · ${fmtDate(v.data)}</option>`).join("")}
+            </select>
+            <div id="massa-avulso-corpo" style="margin-top:10px"></div>
+          </div>
+          <div id="gestao-avulso-wrap" style="display:none;margin-bottom:2px">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
+            <div id="gestao-avulso-corpo" class="card"><span class="spin">⟳</span></div>
+          </div>`:""}
         </div>
 
         <div id="pres-panel-avulso" style="display:${(_presAba||'massa')==='avulso'?'block':'none'}">
@@ -1275,7 +1289,7 @@ function renderDiretor(el){
     </div>
 `;
   if(TM==="clube"&&UP&&(UP.isAdmin||UP.isDiretor))setTimeout(()=>{
-    if(TA==="presenca")carregarPresencasAdmin();
+    if(TA==="presenca"){carregarPresencasAdmin();carregarViagensExtra();}
     if(TA==="sede_adm")carregarSedeInfo();
     if(TA==="log")carregarAuditLog();
     if(TA==="votacao")carregarVotacoes();
@@ -6078,6 +6092,7 @@ async function carregarViagensExtra(){
     const snap=await getDocs(query(collection(db,"eventos_sede"),where("categoria","==","viagem")));
     VIAGENS_EXTRA=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.data<b.data?-1:1);
     _renderViagensExtra();
+    _atualizarSelectAvulso();
   }catch(e){VIAGENS_EXTRA=[];}
 }
 function _renderViagensExtra(){
@@ -7254,6 +7269,149 @@ window.selecionarEventoMassa=async(evId)=>{
 
 window.marcarTodosMassa=()=>{
   MEMBROS.forEach(m=>{const el=document.getElementById("chk-"+m.uid);if(el)el.checked=true;});
+};
+
+function _atualizarSelectAvulso(){
+  const sel=document.getElementById("massa-avulso-evento");
+  if(!sel)return;
+  const opts=VIAGENS_EXTRA.length
+    ?VIAGENS_EXTRA.map(v=>`<option value="ve_${v.id}">${v.nome} · ${fmtDate(v.data)}</option>`).join("")
+    :`<option value="" disabled>Nenhuma viagem avulsa cadastrada</option>`;
+  sel.innerHTML=`<option value="">Selecione uma viagem avulsa...</option>${opts}`;
+}
+window.selecionarEventoAvulso=async(evId)=>{
+  const corpo=document.getElementById("massa-avulso-corpo");
+  const gestaoWrap=document.getElementById("gestao-avulso-wrap");
+  if(!evId){if(corpo)corpo.innerHTML="";if(gestaoWrap)gestaoWrap.style.display="none";return;}
+  const{ev,evId:eid}=_resolveEvMassa(evId);
+  if(!ev||!corpo)return;
+  const kmDefault=ev.dist>0?(ev.distIdaVolta||ev.dist*2):0;
+  const membrosHtml=MEMBROS.map(m=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" id="chk-av-${m.uid}" value="${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+      <label for="chk-av-${m.uid}" style="flex:1;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;user-select:none">${m.apelido}</label>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <input type="number" id="km-av-${m.uid}" value="${kmDefault||""}" placeholder="km" min="1" step="1" style="width:70px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:12px;font-family:inherit;text-align:right"/>
+        <span style="font-size:11px;color:var(--muted)">km</span>
+      </div>
+    </div>`).join("");
+  corpo.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted)">Km padrão: <strong style="color:var(--white)">${kmDefault?toInt(kmDefault)+" km":"—"}</strong></div>
+      <button onclick="window.marcarTodosAvulso()" style="font-size:11px;color:var(--orange);background:transparent;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0">Selecionar todos</button>
+    </div>
+    <div style="max-height:300px;overflow-y:auto;margin-bottom:10px">${membrosHtml}</div>
+    <button onclick="window.lancarKmAvulso('${eid}')" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🏁 Lançar para selecionados</button>`;
+  if(gestaoWrap)gestaoWrap.style.display="block";
+  await window.carregarGestaoAvulso(eid);
+};
+window.marcarTodosAvulso=()=>{
+  MEMBROS.forEach(m=>{const el=document.getElementById("chk-av-"+m.uid);if(el)el.checked=true;});
+};
+window.lancarKmAvulso=async(evId)=>{
+  const{ev,evId:eid}=_resolveEvMassa(evId);
+  if(!ev)return;
+  const selecionados=MEMBROS.filter(m=>document.getElementById("chk-av-"+m.uid)?.checked);
+  if(!selecionados.length){showToast("Selecione ao menos um membro.",true);return;}
+  const kms={};
+  for(const m of selecionados){
+    const km=parseFloat(document.getElementById("km-av-"+m.uid)?.value);
+    if(!km||isNaN(km)||km<=0){showToast(`Informe o km para ${m.apelido}.`,true);return;}
+    kms[m.uid]=km;
+  }
+  showToast(`Lançando para ${selecionados.length} membro(s)...`);
+  try{
+    for(const m of selecionados){
+      const km=kms[m.uid];
+      await addDoc(collection(db,"registros"),{membroId:m.authUid,apelido:m.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:eid,createdAt:serverTimestamp()});
+    }
+    for(const m of selecionados)await recalcularKmMembro(m.uid);
+    showToast(`✓ ${selecionados.length} lançamento(s) salvos!`);
+    selecionados.forEach(m=>{const el=document.getElementById("chk-av-"+m.uid);if(el)el.checked=false;});
+    await window.carregarGestaoAvulso(eid);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.carregarGestaoAvulso=async(evId)=>{
+  const corpo=document.getElementById("gestao-avulso-corpo");
+  if(!corpo)return;
+  corpo.innerHTML=`<span class="spin">⟳</span>`;
+  const{ev,evId:eid}=_resolveEvMassa(evId);
+  try{
+    const regSnap=await getDocs(query(collection(db,"registros"),where("eventoId","==",eid)));
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const comRegs=new Set(regs.map(r=>r.membroId));
+    const naoCompareceram=MEMBROS.filter(m=>!comRegs.has(m.uid));
+    const kmDefault=ev&&ev.dist>0?(ev.distIdaVolta||ev.dist*2):0;
+    const eidJs=typeof eid==="number"?eid:`'${eid}'`;
+    let html=`<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🟢 Compareceram (${regs.length})</div>`;
+    if(regs.length===0){html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Nenhum registro ainda.</div>`;}
+    else{regs.forEach(r=>{html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--white)">${r.apelido||"?"}</div><div style="font-size:11px;color:var(--muted)">${toInt(r.km)} km</div></div>
+        <button onclick="window.editarKmGestaoAv('${r.id}','${r.membroId}',${r.km},${eidJs})" title="Editar km" style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--white);font-size:11px;cursor:pointer;font-family:inherit">${li("pencil",14)} Editar</button>
+        <button onclick="window.excluirRegGestaoAv('${r.id}','${r.membroId}',${r.km},${eidJs})" title="Excluir" style="padding:6px 9px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+      </div>`;});}
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px">⚪ Não compareceram (${naoCompareceram.length})</div>`;
+    if(naoCompareceram.length===0){html+=`<div style="font-size:12px;color:var(--muted)">Todos os membros já têm registro.</div>`;}
+    else{naoCompareceram.forEach(m=>{html+=`<div id="gest-av-row-${m.uid}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--white)">${m.apelido||"?"}</div></div>
+        <button onclick="window.marcarPresGestaoAv('${m.uid}')" id="btn-av-gest-${m.uid}" style="padding:6px 11px;border-radius:7px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Adicionar</button>
+      </div>
+      <div id="km-av-gest-form-${m.uid}" style="display:none;padding:6px 0 8px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="km-av-gest-inp-${m.uid}" type="number" min="1" step="1" value="${kmDefault||""}" placeholder="km ida+volta" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit"/>
+          <button onclick="window.salvarPresGestaoAv('${m.uid}','${m.apelido||""}',${eidJs})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+          <button onclick="window.cancelarPresGestaoAv('${m.uid}')" style="padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit">✕</button>
+        </div>
+      </div>`;});}
+    corpo.innerHTML=html;
+  }catch(e){corpo.innerHTML=`<div style="color:var(--danger);font-size:12px">Erro: ${e.message}</div>`;}
+};
+window.marcarPresGestaoAv=(uid)=>{
+  document.getElementById("btn-av-gest-"+uid).style.display="none";
+  document.getElementById("km-av-gest-form-"+uid).style.display="block";
+  const inp=document.getElementById("km-av-gest-inp-"+uid);if(inp)inp.focus();
+};
+window.cancelarPresGestaoAv=(uid)=>{
+  document.getElementById("btn-av-gest-"+uid).style.display="";
+  document.getElementById("km-av-gest-form-"+uid).style.display="none";
+};
+window.salvarPresGestaoAv=async(uid,apelido,evId)=>{
+  const inp=document.getElementById("km-av-gest-inp-"+uid);
+  const km=parseFloat(inp?.value);
+  if(!km||isNaN(km)||km<=0){showToast("Informe um km válido.",true);return;}
+  const{ev,evId:eid}=_resolveEvMassa(evId);
+  if(!ev)return;
+  inp.disabled=true;
+  try{
+    await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:eid,createdAt:serverTimestamp()});
+    const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
+    const nt=(mSnap.data()?.totalKm||0)+km;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
+    const m=findMembro(uid);if(m)m.totalKm=nt;
+    showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
+    await window.carregarGestaoAvulso(eid);
+  }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
+};
+window.editarKmGestaoAv=async(regId,membroId,kmAtual,evId)=>{
+  const novoKm=parseFloat(prompt("Novo valor de km:",kmAtual));
+  if(!novoKm||isNaN(novoKm)||novoKm<=0)return;
+  const{evId:eid}=_resolveEvMassa(evId);
+  try{
+    await setDoc(doc(db,"registros",regId),{km:novoKm},{merge:true});
+    await recalcularKmMembro(membroId);
+    showToast(`✓ Km atualizado para ${toInt(novoKm)}!`);
+    await window.carregarGestaoAvulso(eid);
+  }catch(e){showToast("Erro: "+e.message,true);}
+};
+window.excluirRegGestaoAv=async(regId,membroId,km,evId)=>{
+  if(!confirm("Excluir este registro?"))return;
+  const{evId:eid}=_resolveEvMassa(evId);
+  try{
+    await deleteDoc(doc(db,"registros",regId));
+    await recalcularKmMembro(membroId);
+    showToast("✓ Registro excluído.");
+    await window.carregarGestaoAvulso(eid);
+  }catch(e){showToast("Erro: "+e.message,true);}
 };
 
 window.lancarKmMassa=async(evId)=>{
