@@ -3937,6 +3937,10 @@ function htmlEventosSede(){
     <label>Hora</label><input type="time" id="es-hora" value="20:00"/>
     <label>Descrição (opcional)</label><input type="text" id="es-desc" placeholder="Detalhes do evento" autocomplete="off"/>
     <label>Endereço (opcional)</label><input type="text" id="es-end" placeholder="Ex: Rua das Flores, 123 — Itajaí SC" autocomplete="off"/>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 10px">
+      <input type="checkbox" id="es-obrigatorio" checked style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+      <span style="font-size:13px;color:var(--white)">Obrigatório</span>
+    </div>
     <button class="btn-primary" onclick="window.salvarEventoSede()">Publicar evento</button>
   </div>`:""}
   <div class="card">
@@ -4007,6 +4011,7 @@ async function carregarEventosSede(){
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700">${e.nome}</div>
             <div style="font-size:12px;color:var(--muted)">${fmtDate(e.data)}${e.hora?` · ${e.hora}`:""}</div>
+            ${e.obrigatorio===false?`<span style="font-size:10px;font-weight:600;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:20px;display:inline-block;margin-top:3px">Não obrigatório</span>`:""}
             ${e.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.desc}</div>`:""}
             ${e.endereco?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${e.endereco} <a href="https://www.google.com/maps/search/?q=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:600;text-decoration:none">Maps</a> <a href="https://waze.com/ul?q=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:600;text-decoration:none">Waze</a></div>`:""}
             ${confirmadosNum>0?`<div style="font-size:11px;color:var(--green);margin-top:3px">✅ ${confirmadosNum} confirmado${confirmadosNum!==1?"s":""}</div>`:""}
@@ -4031,9 +4036,10 @@ window.salvarEventoSede=async()=>{
   const hora=document.getElementById("es-hora")?.value;
   const desc=document.getElementById("es-desc")?.value.trim();
   const endereco=document.getElementById("es-end")?.value.trim()||"";
+  const obrigatorio=document.getElementById("es-obrigatorio")?.checked!==false;
   if(!nome||!data){showToast("Preencha nome e data.",true);return;}
   try{
-    await addDoc(collection(db,"eventos_sede"),{nome,data,hora:hora||"",desc:desc||"",endereco,criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    await addDoc(collection(db,"eventos_sede"),{nome,data,hora:hora||"",desc:desc||"",endereco,obrigatorio,criadoPor:UP.apelido,criadoEm:serverTimestamp()});
     document.getElementById("es-nome").value="";document.getElementById("es-desc").value="";
     const esEnd=document.getElementById("es-end");if(esEnd)esEnd.value="";
     showToast("✓ Evento publicado!");carregarEventosSede();
@@ -5977,6 +5983,10 @@ window.abrirNovaViagemModal=()=>{
       </div>
       <label>Endereço (opcional)</label>
       <input type="text" id="nv-endereco" placeholder="Ex: Rua das Flores, 123 - Florianópolis" autocomplete="off"/>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 10px">
+        <input type="checkbox" id="nv-obrigatorio" checked style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0"/>
+        <span style="font-size:13px;color:var(--white)">Obrigatório</span>
+      </div>
       <button class="btn-primary" onclick="window.salvarNovaViagem()" style="margin-top:6px">Salvar viagem</button>
     </div>`;
   ov.appendChild(sheet);
@@ -5991,6 +6001,7 @@ window.salvarNovaViagem=async()=>{
   const tipo=document.getElementById("nv-tipo")?.value||"Passeio";
   const desc=document.getElementById("nv-desc")?.value.trim()||"";
   const endereco=document.getElementById("nv-endereco")?.value.trim()||"";
+  const obrigatorio=document.getElementById("nv-obrigatorio")?.checked!==false;
   const err=document.getElementById("nv-err");
   if(err)err.style.display="none";
   if(!nome||!dataRaw||!local){if(err){err.textContent="Preencha nome, data e local.";err.style.display="block";}return;}
@@ -5998,7 +6009,7 @@ window.salvarNovaViagem=async()=>{
   const [dd,mm,yyyy]=dataRaw.split("/");
   const dataISO=`${yyyy}-${mm}-${dd}`;
   try{
-    await addDoc(collection(db,"eventos_sede"),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,endereco,categoria:"viagem",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
+    await addDoc(collection(db,"eventos_sede"),{nome,data:dataISO,destino:local,dist:distIda,distIdaVolta:distIda*2,tipo,desc,endereco,obrigatorio,categoria:"viagem",criadoPor:UP.apelido,criadoEm:serverTimestamp()});
     showToast("✓ Viagem salva!");
     document.getElementById("nova-viagem-modal")?.remove();
     await carregarViagensExtra();
@@ -6026,6 +6037,7 @@ function _renderViagensExtra(){
             <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmtDate(v.data)} · ${v.destino}</div>
             ${v.dist>0?`<div style="font-size:11px;color:var(--orange);margin-top:2px">📍 ${toInt(v.dist*2)} km ida+volta</div>`:""}
             ${v.tipo?`<span class="badge" style="font-size:10px;background:rgba(255,102,0,.15);color:var(--orange);border:1px solid rgba(255,102,0,.3)">${v.tipo}</span>`:""}
+            ${v.obrigatorio===false?`<span style="font-size:10px;font-weight:600;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:20px;display:inline-block;margin-top:3px">Não obrigatório</span>`:""}
             ${v.desc?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${v.desc}</div>`:""}
             ${v.endereco?`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="font-size:11px;color:var(--muted)">📍 ${v.endereco}</span><a href="https://www.google.com/maps/search/?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Maps</a><a href="https://waze.com/ul?q=${encodeURIComponent(v.endereco)}" target="_blank" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;font-weight:600;text-decoration:none;font-family:inherit;white-space:nowrap">Waze</a></div>`:""}
           </div>
