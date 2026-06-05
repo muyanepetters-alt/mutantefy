@@ -1002,11 +1002,12 @@ function htmlRanking(){
         const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
         const sc=_sedeCount(m);const isSedeTop=sc>0&&sc===maxSede;
         const medals=['🥇','🥈','🥉'];
-        if(i<3){
-          const bg=i===0?'rgba(255,215,0,.07)':i===1?'rgba(192,192,192,.06)':'rgba(205,127,50,.06)';
-          const border=i===0?'rgba(255,215,0,.25)':i===1?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
+        const pos=kPos[i];
+        if(pos<=3){
+          const bg=pos===1?'rgba(255,215,0,.07)':pos===2?'rgba(192,192,192,.06)':'rgba(205,127,50,.06)';
+          const border=pos===1?'rgba(255,215,0,.25)':pos===2?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
           return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
-            <span style="font-size:22px;flex-shrink:0">${medals[i]}</span>
+            <span style="font-size:22px;flex-shrink:0">${medals[pos-1]}</span>
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,64)}</div>
             <div style="flex:1;min-width:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.uid}')">
               <div style="font-size:14px;font-weight:700">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</div>
