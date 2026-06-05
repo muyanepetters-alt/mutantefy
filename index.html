@@ -967,6 +967,7 @@ function htmlRanking(){
   const membros=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined');
   const sorted=[...membros].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
   const kPos=[];for(let j=0;j<sorted.length;j++){kPos.push(j===0?1:((sorted[j].totalKm||0)===(sorted[j-1].totalKm||0)?kPos[j-1]:j+1));}
+  const distinctKm=[...new Set(sorted.map(m=>m.totalKm||0).filter(k=>k>0))].sort((a,b)=>b-a);
   const abaixo=membros.filter(m=>(m.totalKm||0)<META).length;
   const maxSede=_maxSedeCount();
   const aba=window._rankAba||"km";
@@ -1002,12 +1003,13 @@ function htmlRanking(){
         const b2=p2>=100?"var(--green)":p2>=60?"var(--orange)":"var(--danger)";
         const sc=_sedeCount(m);const isSedeTop=sc>0&&sc===maxSede;
         const medals=['🥇','🥈','🥉'];
-        const pos=kPos[i];
-        if(pos<=3){
-          const bg=pos===1?'rgba(255,215,0,.07)':pos===2?'rgba(192,192,192,.06)':'rgba(205,127,50,.06)';
-          const border=pos===1?'rgba(255,215,0,.25)':pos===2?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
+        const mKm=m.totalKm||0;
+        const mrank=mKm>0?(mKm===distinctKm[0]?1:mKm===distinctKm[1]?2:mKm===distinctKm[2]?3:0):0;
+        if(mrank>0){
+          const bg=mrank===1?'rgba(255,215,0,.07)':mrank===2?'rgba(192,192,192,.06)':'rgba(205,127,50,.06)';
+          const border=mrank===1?'rgba(255,215,0,.25)':mrank===2?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
           return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
-            <span style="font-size:22px;flex-shrink:0">${medals[pos-1]}</span>
+            <span style="font-size:22px;flex-shrink:0">${medals[mrank-1]}</span>
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,64)}</div>
             <div style="flex:1;min-width:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.uid}')">
               <div style="font-size:14px;font-weight:700">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</div>
