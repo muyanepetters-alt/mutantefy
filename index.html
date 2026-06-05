@@ -966,6 +966,7 @@ function htmlRanking(){
   if(MEMBROS.length===0)return`<div class="card" style="text-align:center;padding:40px 20px"><span class="spin">⟳</span><div style="margin-top:10px;font-size:13px;color:var(--muted)">Carregando ranking...</div></div>`;
   const membros=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined');
   const sorted=[...membros].sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
+  const kPos=[];for(let j=0;j<sorted.length;j++){kPos.push(j===0?1:((sorted[j].totalKm||0)===(sorted[j-1].totalKm||0)?kPos[j-1]:j+1));}
   const abaixo=membros.filter(m=>(m.totalKm||0)<META).length;
   const maxSede=_maxSedeCount();
   const aba=window._rankAba||"km";
@@ -984,7 +985,7 @@ function htmlRanking(){
         const myP=myM?Math.round(((myM.totalKm||0)/META)*100):0;
         const myB=myP>=100?"var(--green)":myP>=60?"var(--orange)":"var(--danger)";
         return myM&&myIdx>2?`<div style="background:rgba(255,102,0,.07);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
-          <span style="font-size:13px;color:var(--muted);font-weight:700;flex-shrink:0">#${myIdx+1}</span>
+          <span style="font-size:13px;color:var(--muted);font-weight:700;flex-shrink:0">#${kPos[myIdx]}</span>
           ${avatarEl(myM.fotoUrl,myM.apelido,36)}
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:700">${myM.apelido} <span style="font-size:10px;color:var(--muted)">· você</span></div>
@@ -1006,7 +1007,7 @@ function htmlRanking(){
           const border=i===0?'rgba(255,215,0,.25)':i===1?'rgba(192,192,192,.2)':'rgba(205,127,50,.2)';
           return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
             <span style="font-size:22px;flex-shrink:0">${medals[i]}</span>
-            <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,42)}</div>
+            <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,64)}</div>
             <div style="flex:1;min-width:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.uid}')">
               <div style="font-size:14px;font-weight:700">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</div>
               <div style="font-size:12px;color:${b2};font-weight:600">${toInt(m.totalKm||0)} km · ${p2}%</div>
@@ -1016,7 +1017,7 @@ function htmlRanking(){
         }
         return`<div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:11px;color:#555;width:18px;text-align:right;flex-shrink:0">${i+1}.</span>
+            <span style="font-size:11px;color:#555;width:18px;text-align:right;flex-shrink:0">${kPos[i]}.</span>
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div>
             <span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
             <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
@@ -1028,20 +1029,22 @@ function htmlRanking(){
       ${(()=>{
         const totalSex=contarSextasDoAno(ANO_ATIVO);
         const ss=[...membros].sort((a,b)=>(_sedeCount(b)||0)-(_sedeCount(a)||0));
+        const sPos=[];for(let j=0;j<ss.length;j++){sPos.push(j===0?1:((_sedeCount(ss[j])||0)===(_sedeCount(ss[j-1])||0)?sPos[j-1]:j+1));}
         const tot=ss.reduce((s,m)=>s+(_sedeCount(m)||0),0);
         const sexAtual=sextaAtual(ANO_ATIVO);const faltam=totalSex-sexAtual;
         return`<div style="background:rgba(255,102,0,.07);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:14px;font-weight:700;color:var(--orange)">📅 Sexta ${sexAtual} de ${totalSex}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Temporada ${ANO_ATIVO} · faltam ${faltam} sexta${faltam!==1?'s':''}</div></div><div style="font-size:11px;color:var(--muted);text-align:right">${Math.round(sexAtual/totalSex*100)}%<br>do ano</div></div>`
         +ss.map((m,i)=>{const sc=_sedeCount(m);const p=totalSex>0?Math.round(sc/totalSex*100):0;const col=p>=80?'var(--green)':p>=50?'var(--orange)':'#60b8ff';
-          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totalSex} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
+          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${sPos[i]}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totalSex} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
         }).join("");
       })()}
     `:`
       ${(()=>{
         const totEv=TOTAL_EVENTOS_SEDE;
         const ss=[...membros].sort((a,b)=>(_sedeCountEv(b)||0)-(_sedeCountEv(a)||0));
+        const ePos=[];for(let j=0;j<ss.length;j++){ePos.push(j===0?1:((_sedeCountEv(ss[j])||0)===(_sedeCountEv(ss[j-1])||0)?ePos[j-1]:j+1));}
         return`<div class="metric" style="margin-bottom:12px"><div class="metric-label">🎉 Eventos na sede este ano</div><div class="metric-value">${totEv}</div></div>`
         +ss.map((m,i)=>{const sc=_sedeCountEv(m);const p=totEv>0?Math.round(sc/totEv*100):0;const col=p>=80?'var(--green)':p>=50?'var(--orange)':'#60b8ff';
-          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${i+1}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totEv} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
+          return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:11px;color:#555;width:16px;flex-shrink:0">${ePos[i]}.</span><div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div><span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}</span><span style="font-size:12px;font-weight:700;color:${col}">${sc} de ${totEv} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${p}%)</span></span></div><div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p,100)}%;background:${col}"></div></div></div>`;
         }).join("");
       })()}
     `}
@@ -1276,6 +1279,7 @@ function renderDiretor(el){
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
           </div>
+          <div id="perfil-grafico" style="padding-top:4px"><span class="spin" style="font-size:10px;color:rgba(255,255,255,.15)">⟳</span></div>
         </div>
         ${htmlPerfilBotoes()}
         <div style="margin-top:16px">
@@ -1309,6 +1313,7 @@ function renderDiretor(el){
   if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
+  if(TM==="perfil")setTimeout(carregarGraficoPerfil,100);
 }
 
 function proxQuarta(){
@@ -1899,6 +1904,7 @@ function renderBarman(el){
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
           </div>
+          <div id="perfil-grafico" style="padding-top:4px"><span class="spin" style="font-size:10px;color:rgba(255,255,255,.15)">⟳</span></div>
         </div>
         ${htmlPerfilBotoes()}
       </div>`:""}
@@ -1908,6 +1914,7 @@ function renderBarman(el){
   if(TM==="mural")setTimeout(carregarMural,100);
   if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
+  if(TM==="perfil")setTimeout(carregarGraficoPerfil,100);
 }
 
 function renderMembro(el){
@@ -2024,6 +2031,7 @@ function renderMembro(el){
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
           </div>
+          <div id="perfil-grafico" style="padding-top:4px"><span class="spin" style="font-size:10px;color:rgba(255,255,255,.15)">⟳</span></div>
         </div>
         ${htmlPerfilBotoes()}
       </div>`:""}
@@ -2040,6 +2048,7 @@ function renderMembro(el){
   if(TM==="eventos")setTimeout(carregarViagensExtra,100);
   if(TM==="msgs")setTimeout(()=>{const sa=window._socialAba||"atividades";if(sa==="atividades")carregarAtividades();else if(sa==="mural")carregarMural();else if(sa==="galeria")carregarGaleria();else if(sa==="votacoes")carregarPainelResumo();},100);
   if(TM==="votacao_tab")setTimeout(carregarPainelResumo,100);
+  if(TM==="perfil")setTimeout(carregarGraficoPerfil,100);
 }
 
 function htmlVotacaoAdmin(){
@@ -3578,6 +3587,35 @@ function htmlPerfilBotoes(){
   return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
     ${btns.map(b=>`<button onclick="window.abrirPerfilModal('${b.id}')" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,102,0,.25);background:rgba(255,255,255,.04);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;backdrop-filter:blur(6px)">${b.ic}<span>${b.lb}</span></button>`).join("")}
   </div>`;
+}
+async function carregarGraficoPerfil(){
+  const el=document.getElementById("perfil-grafico");
+  if(!el||!CU?.uid)return;
+  const mb=UP;
+  const ids=[...new Set([CU.uid,mb?.authUid].filter(Boolean))];
+  const ano=ANO_ATIVO||new Date().getFullYear();
+  const inicio=`${ano}-01-01`;const fim=`${ano}-12-31`;
+  try{
+    const allKm=Array(12).fill(0);
+    for(const id of ids){
+      const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",id),where("data",">=",inicio),where("data","<=",fim)));
+      snap.docs.forEach(d=>{const r=d.data();const m=parseInt((r.data||"").slice(5,7),10)-1;if(m>=0&&m<12)allKm[m]+=r.km||0;});
+    }
+    const max=Math.max(...allKm,1);
+    const mesAtual=new Date().getMonth();
+    const labels=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    const allZero=allKm.every(k=>k===0);
+    el.innerHTML=`<div style="padding-top:12px;border-top:1px solid rgba(255,102,0,.12);margin-top:12px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px">📈 Evolução ${ano}</div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:60px">
+        ${allKm.map((k,i)=>{const isAtual=i===mesAtual;const barH=allZero?2:k>0?Math.max(Math.round((k/max)*44),4):2;return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:100%;border-radius:3px 3px 0 0;height:${barH}px;background:${isAtual?"var(--orange)":"rgba(232,103,10,.3)"};${isAtual?"box-shadow:0 0 6px rgba(232,103,10,.4)":""}"></div><div style="font-size:9px;color:${isAtual?"var(--orange)":"rgba(255,255,255,.25)"};font-weight:${isAtual?"700":"400"}">${labels[i]}</div></div>`;}).join("")}
+      </div>
+      ${allZero?`<div style="text-align:center;font-size:11px;color:rgba(255,255,255,.2);margin-top:6px">Nenhum km registrado ainda.</div>`:""}
+    </div>`;
+  }catch(e){
+    console.error("[RF-08] Erro ao carregar gráfico mensal. Índice composto pode ser necessário — crie em: https://console.firebase.google.com/project/mutantes-mc/firestore/indexes",e);
+    el.innerHTML="";
+  }
 }
 
 window.abrirPerfilModal=(tipo)=>{
