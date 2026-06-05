@@ -424,7 +424,7 @@ select option{background:#161616;color:var(--white)}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,addDoc,deleteDoc,updateDoc,query,where,orderBy,serverTimestamp,limit,startAfter,arrayUnion,arrayRemove}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,addDoc,deleteDoc,updateDoc,query,where,orderBy,serverTimestamp,limit,startAfter,arrayUnion,arrayRemove,deleteField}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
 const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-mc.firebaseapp.com",projectId:"mutantes-mc",storageBucket:"mutantes-mc.firebasestorage.app",messagingSenderId:"696991823272",appId:"1:696991823272:web:174f19e5178c495e2a999d"};
@@ -462,6 +462,8 @@ async function registrarTokenPush(solicitarPermissao=false){
       console.log('[FCM] token obtido:',token.slice(0,24)+'…');
       await setDoc(doc(db,'usuarios',MY_DOC_ID),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
       console.log('[FCM] token salvo em usuarios/'+MY_DOC_ID);
+      if(UP)UP.fcmToken=token;
+      document.getElementById('notif-push-banner')?.remove();
       if(!window._onMsgRegistered){
         window._onMsgRegistered=true;
         onMessage(messaging,payload=>{
@@ -472,13 +474,24 @@ async function registrarTokenPush(solicitarPermissao=false){
     }else{
       console.warn('[FCM] getToken retornou vazio — verifique VAPID key e configuração Firebase Console');
     }
-  }catch(e){console.warn('[FCM] erro:',e.message,e);}
+  }catch(e){
+    const _invalidCodes=['messaging/invalid-registration-token','messaging/registration-token-not-registered'];
+    if(_invalidCodes.some(c=>e?.code===c||e?.message?.includes(c.split('/')[1]))){
+      console.warn('[FCM] token inválido/não registrado — removendo do Firestore');
+      if(MY_DOC_ID)updateDoc(doc(db,'usuarios',MY_DOC_ID),{fcmToken:deleteField(),fcmUpdatedAt:deleteField()}).catch(()=>{});
+      if(UP){UP.fcmToken=undefined;}
+    }else{
+      console.warn('[FCM] erro:',e.message,e);
+    }
+  }
 }
 
-async function dispararPush(titulo,corpo,tokens){
+async function dispararPush(titulo,corpo,tokens,destinatarios=[]){
   if(!tokens||tokens.length===0)return;
   try{
-    await addDoc(collection(db,"notificacoes_push"),{titulo,corpo,tokens,criadoEm:serverTimestamp()});
+    const _pd={titulo,corpo,tokens,criadoEm:serverTimestamp()};
+    if(destinatarios.length>0)_pd.destinatarios=destinatarios;
+    await addDoc(collection(db,"notificacoes_push"),_pd);
   }catch{}
 }
 
@@ -498,6 +511,61 @@ async function getAllMemberTokens(){
   }
   return[...new Set(tokens)];
 }
+function tokensParaApelidos(tokens){
+  return tokens.map(t=>MEMBROS.find(m=>m.fcmToken===t)?.apelido||(UP?.fcmToken===t?UP?.apelido:null)).filter(Boolean);
+}
+async function carregarNotifBadge(){
+  try{
+    if(!CU)return;
+    const lastSeenMs=parseInt(localStorage.getItem("notif_last_seen_"+CU.uid)||"0",10);
+    const snap=await getDocs(query(collection(db,"notificacoes_push"),orderBy("criadoEm","desc"),limit(50)));
+    _notifBadgeCount=snap.docs.filter(d=>{
+      const ts=d.data().criadoEm;
+      return ts&&(ts.toDate?.()?.getTime()||0)>lastSeenMs;
+    }).length;
+  }catch{_notifBadgeCount=0;}
+}
+window.abrirModalNotifHistorico=async()=>{
+  if(!CU)return;
+  localStorage.setItem("notif_last_seen_"+CU.uid,Date.now().toString());
+  _notifBadgeCount=0;
+  document.getElementById("notif-bell-badge")?.remove();
+  const ov=document.createElement("div");
+  ov.className="app-modal-overlay";
+  ov.style.cssText="align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="app-modal-sheet" style="border-radius:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:20px 16px 28px;animation:fadeInScale .2s cubic-bezier(.34,1.2,.64,1)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--white)">${li("bell",18)} Notificações</div>
+      <button onclick="this.closest('.app-modal-overlay').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;padding:4px">${li("x",18)}</button>
+    </div>
+    <div id="notif-hist-lista"><span class="spin" style="font-size:13px;color:var(--muted)">⟳</span></div>
+  </div>`;
+  document.body.appendChild(ov);
+  lcr();
+  try{
+    const snap=await getDocs(query(collection(db,"notificacoes_push"),orderBy("criadoEm","desc"),limit(30)));
+    const el=document.getElementById("notif-hist-lista");
+    if(!el)return;
+    if(snap.empty){el.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:24px 0">Nenhuma notificação enviada ainda.</div>`;return;}
+    el.innerHTML=snap.docs.map(d=>{
+      const r=d.data();
+      const ts=r.criadoEm?.toDate?.();
+      const dtStr=ts?ts.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+ts.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
+      const dest=Array.isArray(r.destinatarios)&&r.destinatarios.length>0?r.destinatarios.join(", "):"";
+      return`<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">${r.titulo||""}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.4">${r.corpo||""}</div>
+        ${dest?`<div style="font-size:10px;color:rgba(255,102,0,.7);margin-bottom:4px">Para: ${dest}</div>`:""}
+        <div style="font-size:10px;color:rgba(255,255,255,.2)">${dtStr}</div>
+      </div>`;
+    }).join("");
+    lcr();
+  }catch{
+    const el=document.getElementById("notif-hist-lista");
+    if(el)el.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:24px 0">Erro ao carregar notificações.</div>`;
+  }
+};
 
 const LOTE=[
   {apelido:"Frankc",    email:"frankc@mutantesmc.com",    senha:"Frank@2026"},
@@ -679,7 +747,7 @@ function evCardMembro(ev){
 }
 
 let CU=null,UP=null,MY_DOC_ID=null,TA="home",TM="painel",REGS=[],MEMBROS=[],CONF={},CONF_SEDE={},ENCONTROS={},SEDE_COUNTS={},SEDE_COUNTS_EV={},SEDE_COUNTS_LIMP={},TOTAL_EVENTOS_SEDE=0,TOTAL_LIMPEZAS=0,PROXEVENTO_SEDE=null,CONF_EVENTO_SEDE={};
-let _unsubs={};let _rtRenderTimer=null;
+let _unsubs={};let _rtRenderTimer=null;let _notifBadgeCount=0;
 function _schedRT(){clearTimeout(_rtRenderTimer);_rtRenderTimer=setTimeout(render,350);}
 function pararRealtimeListeners(){Object.values(_unsubs).forEach(u=>{try{u();}catch{}});_unsubs={};clearTimeout(_rtRenderTimer);}
 function iniciarRealtimeListeners(){
@@ -1185,6 +1253,7 @@ function renderDiretor(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button onclick="window.abrirModalNotifHistorico()" style="position:relative;background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;padding:5px 7px" title="Notificações">${li("bell",16)}${_notifBadgeCount>0?`<span id="notif-bell-badge" style="position:absolute;top:-5px;right:-5px;background:var(--orange);color:#fff;border-radius:50%;font-size:9px;font-weight:700;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 2px;line-height:1">${_notifBadgeCount>99?"99+":_notifBadgeCount}</span>`:""}</button>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1805,6 +1874,7 @@ function renderBarman(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button onclick="window.abrirModalNotifHistorico()" style="position:relative;background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;padding:5px 7px" title="Notificações">${li("bell",16)}${_notifBadgeCount>0?`<span id="notif-bell-badge" style="position:absolute;top:-5px;right:-5px;background:var(--orange);color:#fff;border-radius:50%;font-size:9px;font-weight:700;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 2px;line-height:1">${_notifBadgeCount>99?"99+":_notifBadgeCount}</span>`:""}</button>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -1937,6 +2007,7 @@ function renderMembro(el){
       </div>
       <div class="header-right">
         <span style="font-size:11px;color:var(--orange);font-weight:600">${toInt(km)} / ${toInt(META)} km</span>
+        <button onclick="window.abrirModalNotifHistorico()" style="position:relative;background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;padding:5px 7px" title="Notificações">${li("bell",16)}${_notifBadgeCount>0?`<span id="notif-bell-badge" style="position:absolute;top:-5px;right:-5px;background:var(--orange);color:#fff;border-radius:50%;font-size:9px;font-weight:700;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 2px;line-height:1">${_notifBadgeCount>99?"99+":_notifBadgeCount}</span>`:""}</button>
         <button class="btn" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:4px" onclick="window.fazerLogout()">${li("log-out",14)} Sair</button>
       </div>
     </div>
@@ -5218,8 +5289,16 @@ function htmlInstallBanner(){
 // ── BANNER DE NOTIFICAÇÕES PUSH ─────────────────────
 function htmlNotifBanner(){
   if(!('Notification' in window))return'';
-  if(Notification.permission==='granted')return'';
   const _base='background:rgba(0,0,0,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+  if(Notification.permission==='granted'){
+    if(!CU||UP?.fcmToken)return'';
+    return`<div id="notif-push-banner" style="${_base};border:1px solid rgba(255,102,0,.25)">
+      <span style="font-size:22px;flex-shrink:0">🔔</span>
+      <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.4">Reconecte as notificações para receber alertas do clube!</div>
+      <button id="notif-ativar-btn" onclick="window.ativarNotificacoes()" style="padding:7px 12px;min-height:34px;border-radius:20px;border:none;background:var(--orange);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">Reconectar</button>
+      <button onclick="window.dispensarNotifBanner()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0 2px;flex-shrink:0">✕</button>
+    </div>`;
+  }
   const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
   const _isStandalone=window.matchMedia('(display-mode:standalone)').matches||!!window.navigator.standalone;
   // iOS fora do standalone — push requer app instalado na tela inicial
@@ -6094,7 +6173,7 @@ window.confirmarPresenca=async(eventoId,status)=>{
     showToast(msgs[status]||"✓ Atualizado.");render();
     const adminTokens=await getTokenAdmin();
     const emoji=status==="confirmado"?"✅":"🔴";
-    dispararPush(emoji+" Confirmação de presença",`${UP.apelido} ${status==="confirmado"?"confirmou":"desistiu de"} ${ev.nome}`,adminTokens);
+    dispararPush(emoji+" Confirmação de presença",`${UP.apelido} ${status==="confirmado"?"confirmou":"desistiu de"} ${ev.nome}`,adminTokens,tokensParaApelidos(adminTokens));
     registrarLog("presenca_confirmada",`${status==="confirmado"?"confirmou":"desistiu de"} presença`,ev.nome);
   }catch{showToast("Erro ao confirmar.",true);}
 };
@@ -6117,7 +6196,7 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
     await _recarregarPanelPresenca(eventoId);
     // Push para o membro
     const mToken=m?.fcmToken;
-    if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken]);
+    if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken],[m?.apelido||apelido].filter(Boolean));
     registrarLog("compareceu",`registrou comparecimento de ${apelido} — ${toInt(km)} km`,ev.nome);
   }catch(e){
     showToast("Erro ao lançar km.",true);
@@ -6187,7 +6266,7 @@ window.salvarFormComp=async(uid,apelido,evId)=>{
       if(m)m.totalKm=nt;
       await setDoc(doc(db,"presencas",uid+"_"+evId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
       const mToken=m?.fcmToken;
-      if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken]);
+      if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken],[m?.apelido||apelido].filter(Boolean));
       registrarLog("compareceu",`registrou comparecimento de ${apelido||uid} — ${toInt(km)} km`,ev.nome);
       showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
     }
@@ -7015,7 +7094,7 @@ window.lancarKm=async()=>{
     btn.disabled=false;btn.textContent="Lançar km";render();
     // Push para o membro
     const mToken=m?.fcmToken;
-    if(mToken)dispararPush("🏍️ Km lançado!",`${toInt(km)} km registrados para você — ${desc}`,[mToken]);
+    if(mToken)dispararPush("🏍️ Km lançado!",`${toInt(km)} km registrados para você — ${desc}`,[mToken],[m?.apelido].filter(Boolean));
     registrarLog("km_lancado",`lançou ${toInt(km)} km para ${m?.apelido||""}`,desc);
   }catch(e){err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Lançar km";}
 };
@@ -8043,6 +8122,7 @@ onAuthStateChanged(auth,async user=>{
     setDoc(doc(db,'usuarios',MY_DOC_ID),{lastSeen:serverTimestamp()},{merge:true}).catch(()=>{});
     const tarefas=[carregarRegistros(),carregarConfirmacoes(),carregarPedagiosCustom(),carregarEncontros(),carregarMembros(),carregarProxEventoSede(),carregarConfEventosSede(),carregarTemporada(),carregarViagensExtra()];
     if(UP.isAdmin||UP.isDiretor||UP.isBarman){tarefas.push(carregarSedePresencas());}
+    tarefas.push(carregarNotifBadge());
     await Promise.all(tarefas);
     iniciarRealtimeListeners();
     registrarTokenPush(false);
@@ -8064,7 +8144,7 @@ onAuthStateChanged(auth,async user=>{
           localStorage.setItem(key,"1");
           const tokens=await getAllMemberTokens();
           for(const a of aniv){
-            await dispararPush("🎂 Aniversário hoje!",`Hoje é aniversário de ${a.apelido}! Manda um abraço! 🎉`,tokens);
+            await dispararPush("🎂 Aniversário hoje!",`Hoje é aniversário de ${a.apelido}! Manda um abraço! 🎉`,tokens,MEMBROS.map(m=>m.apelido).filter(Boolean));
           }
         }
       }
