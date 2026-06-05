@@ -424,7 +424,7 @@ select option{background:#161616;color:var(--white)}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,EmailAuthProvider,reauthenticateWithCredential,updatePassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,addDoc,deleteDoc,updateDoc,query,where,orderBy,serverTimestamp,limit,startAfter,arrayUnion,arrayRemove,deleteField}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,addDoc,deleteDoc,updateDoc,query,where,orderBy,serverTimestamp,limit,startAfter,arrayUnion,arrayRemove,deleteField,writeBatch}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import{getMessaging,getToken,onMessage}from"https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
 const FC={apiKey:"AIzaSyDtquDfDzLnxOSzD2rd-nxH8AEKWqITT2U",authDomain:"mutantes-mc.firebaseapp.com",projectId:"mutantes-mc",storageBucket:"mutantes-mc.firebasestorage.app",messagingSenderId:"696991823272",appId:"1:696991823272:web:174f19e5178c495e2a999d"};
@@ -1174,12 +1174,12 @@ function htmlClubeCorpo(){
       {id:"presenca",ic:li("check-square",28),lb:"Presença & Km",sub:"Confirmações e lançamentos"},
       {id:"usuarios",ic:li("users",28),lb:"Membros",sub:"Editar dados"},
       {id:"eventos",ic:li("calendar",28),lb:"Viagens",sub:"Calendário 2026"},
-      {id:"mensalidades",ic:"💰",lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
+      {id:"mensalidades",ic:li("wallet",28),lb:"Mensalidades",sub:"Controle de pagamentos",hidden:true},
       {id:"relatorio",ic:li("bar-chart-2",28),lb:"Relatório",sub:"Resumo do ano"},
       {id:"reunioes",ic:li("clipboard",28),lb:"Reuniões",sub:"Atas e presenças"},
       {id:"log",ic:li("file-text",28),lb:"Registro",sub:"Histórico de ações"},
-      {id:"msgs_rapidas",ic:"📲",lb:"Mensagens Rápidas",sub:"Enviar para o grupo"},
-      {id:"temporada",ic:"📅",lb:"Temporada",sub:"Gerenciar temporada ativa"},
+      {id:"msgs_rapidas",ic:li("bell",28),lb:"Mensagens Rápidas e Notificações",sub:"Enviar para o grupo"},
+      {id:"temporada",ic:li("calendar-range",28),lb:"Temporada",sub:"Gerenciar temporada ativa"},
     ];
     if(!TA||TA==="home"){
       return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1203,13 +1203,13 @@ function htmlClubeCorpo(){
       ${TA==="cadastrar"?htmlCadastrar():""}
       ${TA==="presenca"?`
         <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
-          ${[["massa","📋 Lançamento em Massa"],["avulso","➕ Avulso"],["proximos","📅 Próximos"],["anteriores","📆 Anteriores"],...((UP.isAdmin||UP.isDiretor)?[["pormembro","👤 Por Membro"]]:[] )].map(([a,lb])=>`
+          ${[["massa",li("list-checks",14)+" Lançamento em Massa"],["avulso",li("plus-circle",14)+" Avulso"],["proximos",li("calendar",14)+" Próximos"],["anteriores",li("calendar-check",14)+" Anteriores"],...((UP.isAdmin||UP.isDiretor)?[["pormembro",li("user",14)+" Por Membro"]]:[] )].map(([a,lb])=>`
             <button id="pres-tab-${a}" onclick="window.setPresAba('${a}')" style="padding:8px 14px;border-radius:20px;border:${(_presAba||'massa')===a?'none':'1px solid var(--border)'};background:${(_presAba||'massa')===a?'var(--orange)':'var(--bg3)'};color:${(_presAba||'massa')===a?'#fff':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">${lb}</button>`).join("")}
         </div>
 
         <div id="pres-panel-massa" style="display:${(_presAba||'massa')==='massa'?'block':'none'}">
           <div class="card" style="margin-bottom:10px">
-            <div class="sec-title">🗺️ Viagens e Eventos</div>
+            <div class="sec-title">${li("map",16)} Viagens e Eventos</div>
             <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento</label>
             <select id="massa-evento" onchange="window.selecionarEventoMassa(this.value)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
               <option value="">Selecione um evento...</option>
@@ -1218,13 +1218,13 @@ function htmlClubeCorpo(){
             <div id="massa-corpo" style="margin-top:10px"></div>
           </div>
           <div id="gestao-evento-wrap" style="display:none;margin-bottom:2px">
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${li("bar-chart-2",13)} Já lançado neste evento</div>
             <div id="gestao-corpo" class="card"><span class="spin">⟳</span></div>
           </div>
           ${(UP.isAdmin||UP.isDiretor)?`
           <div style="border-top:1px solid var(--border);margin:18px 0 14px"></div>
           <div class="card" style="margin-bottom:10px">
-            <div class="sec-title">🛵 Avulso / Compensatório</div>
+            <div class="sec-title">${li("bike",16)} Avulso / Compensatório</div>
             <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Evento avulso</label>
             <select id="massa-avulso-evento" onchange="window.selecionarEventoAvulso(this.value)" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
               <option value="">Selecione uma viagem avulsa...</option>
@@ -1233,8 +1233,27 @@ function htmlClubeCorpo(){
             <div id="massa-avulso-corpo" style="margin-top:10px"></div>
           </div>
           <div id="gestao-avulso-wrap" style="display:none;margin-bottom:2px">
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Já lançado neste evento</div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${li("bar-chart-2",13)} Já lançado neste evento</div>
             <div id="gestao-avulso-corpo" class="card"><span class="spin">⟳</span></div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin:18px 0 14px"></div>
+          <div class="card">
+            <div class="sec-title">${li("building-2",16)} Presença na Sede</div>
+            <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Data da sexta</label>
+            <input type="date" id="presenca-sede-data" value="${proxSexta()}" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:14px;box-sizing:border-box"/>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros presentes</div>
+              <button onclick="window._toggleTodosPresencaSede()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+              ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
+                <input type="checkbox" id="chk-psede-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
+                ${avatarEl(m.fotoUrl,m.apelido,28)}
+                <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
+              </label>`).join("")}
+            </div>
+            <button id="btn-lancar-psede" class="btn-primary" style="width:100%;padding:12px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="window.lancarPresencaSedeMassa()">${li("check",16)} Lançar presenças</button>
+            <div id="psede-feedback" style="display:none"></div>
           </div>`:""}
         </div>
 
@@ -1252,7 +1271,7 @@ function htmlClubeCorpo(){
 
         <div id="pres-panel-pormembro" style="display:${_presAba==='pormembro'?'block':'none'}">
           <div class="card">
-            <div class="sec-title">👤 Registros por Membro</div>
+            <div class="sec-title">${li("user",16)} Registros por Membro</div>
             <select id="pormembro-sel" onchange="window.carregarRegsPorMembro()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:4px">
               <option value="">— Selecione um membro —</option>
               ${MEMBROS.map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join("")}
@@ -1812,6 +1831,39 @@ window.lancarLimpezaMassa=async(data)=>{
     showToast(`✓ ${selecionados.length} membro(s) lançado(s)!`);
     carregarLimpezas();
   }catch(e){showToast("Erro: "+e.message,true);}
+};
+window._toggleTodosPresencaSede=()=>{
+  const todos=MEMBROS.every(m=>document.getElementById("chk-psede-"+m.uid)?.checked);
+  MEMBROS.forEach(m=>{const el=document.getElementById("chk-psede-"+m.uid);if(el)el.checked=!todos;});
+};
+window.lancarPresencaSedeMassa=async()=>{
+  const data=document.getElementById("presenca-sede-data")?.value;
+  if(!data){showToast("Selecione a data.",true);return;}
+  const selecionados=MEMBROS.filter(m=>document.getElementById("chk-psede-"+m.uid)?.checked);
+  if(!selecionados.length){showToast("Selecione ao menos um membro.",true);return;}
+  const btn=document.getElementById("btn-lancar-psede");
+  if(btn){btn.disabled=true;btn.innerHTML=`<span class="spin">⟳</span> Lançando...`;}
+  try{
+    const existSnap=await getDocs(query(collection(db,"sede_confirmacoes"),where("data","==",data),where("tipo","==","presenca")));
+    const existIds=new Set(existSnap.docs.map(d=>d.id));
+    const bw=writeBatch(db);
+    let lancados=0;
+    for(const m of selecionados){
+      const docId=m.uid+"_presenca_"+data;
+      if(existIds.has(docId))continue;
+      bw.set(doc(db,"sede_confirmacoes",docId),{membroId:m.authUid||m.uid,apelido:m.apelido,data,resposta:"confirmado",tipo:"presenca",updatedAt:serverTimestamp()});
+      lancados++;
+    }
+    if(lancados>0)await bw.commit();
+    const fb=document.getElementById("psede-feedback");
+    if(fb){
+      fb.style.display="block";
+      fb.innerHTML=`<div style="margin-top:10px;font-size:12px;color:var(--green);padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px">✓ ${lancados} presença${lancados!==1?"s":""} lançada${lancados!==1?"s":""}!${lancados<selecionados.length?` (${selecionados.length-lancados} já existiam)`:""}</div>`;
+      setTimeout(()=>{fb.style.display="none";},4000);
+    }
+    MEMBROS.forEach(m=>{const el=document.getElementById("chk-psede-"+m.uid);if(el)el.checked=false;});
+  }catch(e){showToast("Erro: "+e.message,true);}
+  if(btn){btn.disabled=false;btn.innerHTML=`${li("check",16)} Lançar presenças`;lcr();}
 };
 window.abrirNovaLimpezaModal=()=>{
   document.getElementById("_nova-limp-ov")?.remove();
