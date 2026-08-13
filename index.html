@@ -1241,17 +1241,8 @@ function htmlClubeCorpo(){
             <div class="sec-title">${li("building-2",16)} Presença na Sede</div>
             <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Data da sexta</label>
             <input type="date" id="presenca-sede-data" value="${proxSexta()}" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;margin-bottom:14px;box-sizing:border-box"/>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros presentes</div>
-              <button onclick="window._toggleTodosPresencaSede()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
-              ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
-                <input type="checkbox" id="chk-psede-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
-                ${avatarEl(m.fotoUrl,m.apelido,28)}
-                <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
-              </label>`).join("")}
-            </div>
+            <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Membros presentes</label>
+            ${htmlMembroPicker("psede","chk-psede-","_toggleTodosPresencaSede")}
             <button id="btn-lancar-psede" class="btn-primary" style="width:100%;padding:12px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="window.lancarPresencaSedeMassa()">${li("check",16)} Lançar presenças</button>
             <div id="psede-feedback" style="display:none"></div>
           </div>`:""}
@@ -1835,6 +1826,7 @@ window.lancarLimpezaMassa=async(data)=>{
 window._toggleTodosPresencaSede=()=>{
   const todos=MEMBROS.every(m=>document.getElementById("chk-psede-"+m.uid)?.checked);
   MEMBROS.forEach(m=>{const el=document.getElementById("chk-psede-"+m.uid);if(el)el.checked=!todos;});
+  window.atualizarMembroPickerLabel("psede");
 };
 window.lancarPresencaSedeMassa=async()=>{
   const data=document.getElementById("presenca-sede-data")?.value;
@@ -1862,6 +1854,7 @@ window.lancarPresencaSedeMassa=async()=>{
       setTimeout(()=>{fb.style.display="none";},4000);
     }
     MEMBROS.forEach(m=>{const el=document.getElementById("chk-psede-"+m.uid);if(el)el.checked=false;});
+    window.atualizarMembroPickerLabel("psede");
   }catch(e){showToast("Erro: "+e.message,true);}
   if(btn){btn.disabled=false;btn.innerHTML=`${li("check",16)} Lançar presenças`;lcr();}
 };
@@ -4991,6 +4984,66 @@ window.trocarAbaBar=(aba)=>{
 };
 function htmlWhatsapp(){return htmlWhatsApp("clube");}
 
+// ── Dropdown colapsável de seleção múltipla de membros (usado em Avulso e Presença na Sede)
+function htmlMembroPicker(key,chkPrefix,todosFn){
+  return`<div id="mp-wrap-${key}" style="position:relative;margin-bottom:14px">
+    <button type="button" id="mp-toggle-${key}" onclick="window.toggleMembroPicker('${key}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--white);font-size:13px;font-family:inherit;cursor:pointer">
+      <span id="mp-label-${key}">Selecione membros...</span>
+      <span id="mp-chevron-${key}" style="display:flex;transition:transform .2s">${li("chevron-down",16)}</span>
+    </button>
+    <div id="mp-list-${key}" style="display:none;margin-top:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros</div>
+        <button type="button" onclick="window.${todosFn}()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto">
+        ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
+          <input type="checkbox" id="${chkPrefix}${m.uid}" onchange="window.atualizarMembroPickerLabel('${key}')" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
+          ${avatarEl(m.fotoUrl,m.apelido,28)}
+          <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
+        </label>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+window._membroPickers={lk:"chk-lk-",psede:"chk-psede-"};
+window.toggleMembroPicker=(key)=>{
+  const list=document.getElementById("mp-list-"+key);
+  const chevron=document.getElementById("mp-chevron-"+key);
+  if(!list)return;
+  const abrindo=list.style.display==="none"||!list.style.display;
+  Object.keys(window._membroPickers).forEach(k=>{
+    if(k===key)return;
+    const l=document.getElementById("mp-list-"+k);
+    const c=document.getElementById("mp-chevron-"+k);
+    if(l)l.style.display="none";
+    if(c)c.style.transform="";
+  });
+  list.style.display=abrindo?"block":"none";
+  if(chevron)chevron.style.transform=abrindo?"rotate(180deg)":"";
+};
+window.atualizarMembroPickerLabel=(key)=>{
+  const chkPrefix=window._membroPickers[key];
+  const label=document.getElementById("mp-label-"+key);
+  if(!chkPrefix||!label)return;
+  const n=MEMBROS.filter(m=>document.getElementById(chkPrefix+m.uid)?.checked).length;
+  label.textContent=n>0?`${n} membro${n!==1?"s":""} selecionado${n!==1?"s":""}`:"Selecione membros...";
+};
+if(!window._membroPickerOutsideBound){
+  window._membroPickerOutsideBound=true;
+  document.addEventListener("click",e=>{
+    Object.keys(window._membroPickers).forEach(k=>{
+      const wrap=document.getElementById("mp-wrap-"+k);
+      if(wrap&&!wrap.contains(e.target)){
+        const l=document.getElementById("mp-list-"+k);
+        const c=document.getElementById("mp-chevron-"+k);
+        if(l)l.style.display="none";
+        if(c)c.style.transform="";
+      }
+    });
+  });
+}
+
 function htmlLancarKm(){
   return`<div class="card">
     <div class="sec-title">📍 Lançar km para membros</div>
@@ -5016,17 +5069,8 @@ function htmlLancarKm(){
     <input type="date" id="km-data"/>
     <label>Km rodados</label>
     <input type="number" id="km-valor" placeholder="Ex: 320" step="1"/>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px">
-      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros</div>
-      <button type="button" onclick="window.toggleTodosKmMembros()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-height:280px;overflow-y:auto">
-      ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
-        <input type="checkbox" id="chk-lk-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
-        ${avatarEl(m.fotoUrl,m.apelido,28)}
-        <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
-      </label>`).join("")}
-    </div>
+    <label>Membros</label>
+    ${htmlMembroPicker("lk","chk-lk-","toggleTodosKmMembros")}
     <button class="btn-primary" id="km-btn" onclick="window.lancarKm()">Lançar km</button>
     <div id="km-multi-feedback" style="display:none"></div>
   </div>`;
@@ -7175,6 +7219,7 @@ window.copiarLinkRedefinicao=async(uid,email,apelido)=>{
 window.toggleTodosKmMembros=()=>{
   const todos=MEMBROS.every(m=>document.getElementById("chk-lk-"+m.uid)?.checked);
   MEMBROS.forEach(m=>{const el=document.getElementById("chk-lk-"+m.uid);if(el)el.checked=!todos;});
+  window.atualizarMembroPickerLabel("lk");
 };
 window.lancarKm=async()=>{
   const selecionados=MEMBROS.filter(m=>document.getElementById("chk-lk-"+m.uid)?.checked);
@@ -7223,6 +7268,7 @@ window.lancarKm=async()=>{
     }
     showToast(`✓ ${lancadosPara.length} registro${lancadosPara.length!==1?"s":""} lançado${lancadosPara.length!==1?"s":""}!`);
     MEMBROS.forEach(m=>{const el=document.getElementById("chk-lk-"+m.uid);if(el)el.checked=false;});
+    window.atualizarMembroPickerLabel("lk");
     ["km-evento","km-data","km-valor"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
     const kd=document.getElementById("km-desc");if(kd)kd.value="";
     btn.disabled=false;btn.textContent="Lançar km";render();
