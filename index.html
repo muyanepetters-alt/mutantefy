@@ -4992,12 +4992,20 @@ window.trocarAbaBar=(aba)=>{
 function htmlWhatsapp(){return htmlWhatsApp("clube");}
 
 function htmlLancarKm(){
-  const opts=MEMBROS.map(m=>`<option value="${m.uid}">${m.apelido}</option>`).join("");
   return`<div class="card">
-    <div class="sec-title">📍 Lançar km para membro</div>
+    <div class="sec-title">📍 Lançar km para membros</div>
     <div id="km-err" class="msg-err" style="display:none"></div>
-    <label>Membro</label>
-    <select id="km-membro"><option value="">Selecione...</option>${opts}</select>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros</div>
+      <button type="button" onclick="window.toggleTodosKmMembros()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-height:280px;overflow-y:auto">
+      ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
+        <input type="checkbox" id="chk-lk-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
+        ${avatarEl(m.fotoUrl,m.apelido,28)}
+        <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
+      </label>`).join("")}
+    </div>
     <label>Tipo</label>
     <select id="km-tipo" onchange="window.toggleTipo()">
       <option value="rota">🗺️ Rota (evento)</option>
@@ -5020,6 +5028,7 @@ function htmlLancarKm(){
     <label>Km rodados</label>
     <input type="number" id="km-valor" placeholder="Ex: 320" step="1"/>
     <button class="btn-primary" id="km-btn" onclick="window.lancarKm()">Lançar km</button>
+    <div id="km-multi-feedback" style="display:none"></div>
   </div>`;
 }
 
@@ -7163,8 +7172,12 @@ window.copiarLinkRedefinicao=async(uid,email,apelido)=>{
   }catch(e){showToast("Erro: "+e.message,true);}
   finally{if(btn){btn.disabled=false;btn.textContent="📋 Enviar redefinição e copiar mensagem";}}
 };
+window.toggleTodosKmMembros=()=>{
+  const todos=MEMBROS.every(m=>document.getElementById("chk-lk-"+m.uid)?.checked);
+  MEMBROS.forEach(m=>{const el=document.getElementById("chk-lk-"+m.uid);if(el)el.checked=!todos;});
+};
 window.lancarKm=async()=>{
-  const membroId=document.getElementById("km-membro")?.value;
+  const selecionados=MEMBROS.filter(m=>document.getElementById("chk-lk-"+m.uid)?.checked);
   const tipo=document.getElementById("km-tipo")?.value;
   const data=document.getElementById("km-data")?.value;
   const km=parseFloat(document.getElementById("km-valor")?.value)||0;
@@ -7180,24 +7193,42 @@ window.lancarKm=async()=>{
     desc=document.getElementById("km-desc")?.value.trim();
     if(!desc){err.textContent="Informe a descrição.";err.style.display="block";return;}
   }
-  if(!membroId||!data){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
+  if(!selecionados.length){err.textContent="Selecione ao menos um membro.";err.style.display="block";return;}
+  if(!data||!km){err.textContent="Preencha todos os campos.";err.style.display="block";return;}
   btn.disabled=true;btn.textContent="Lançando...";err.style.display="none";
-  const m=findMembro(membroId);
   try{
-    await addDoc(collection(db,"registros"),{membroId,apelido:m?.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
-    registrarFeed(membroId,m?.apelido||"","km",`${m?.apelido||"Membro"} rodou 🏍️ ${toInt(km)} km${desc?" em "+desc:""}`);
-    const nt=(m?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    if(m)m.totalKm=nt;
+    // Verifica duplicatas: membro já com registro nesse evento/data
+    const existSnap=await getDocs(query(collection(db,"registros"),where("data","==",data)));
+    const jaLancados=new Set(existSnap.docs.filter(d=>(d.data().eventoId??null)===(eventoId??null)).map(d=>d.data().membroId));
+    const bw=writeBatch(db);
+    const lancadosPara=[];
+    selecionados.forEach(m=>{
+      const membroId=m.authUid||m.uid;
+      if(jaLancados.has(membroId)||jaLancados.has(m.uid))return;
+      bw.set(doc(collection(db,"registros")),{membroId,apelido:m.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
+      const nt=(m.totalKm||0)+km;
+      bw.set(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
+      m.totalKm=nt;
+      lancadosPara.push(m);
+    });
+    if(lancadosPara.length)await bw.commit();
+    lancadosPara.forEach(m=>registrarFeed(m.authUid||m.uid,m.apelido||"","km",`${m.apelido||"Membro"} rodou 🏍️ ${toInt(km)} km${desc?" em "+desc:""}`));
     await carregarRegistros();
-    showToast("✓ "+toInt(km)+" km lançado!");
-    ["km-membro","km-evento","km-data","km-valor"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const ignorados=selecionados.length-lancadosPara.length;
+    const fb=document.getElementById("km-multi-feedback");
+    if(fb){
+      fb.style.display="block";
+      fb.innerHTML=`<div style="margin-top:10px;font-size:12px;color:var(--green);padding:8px 12px;background:rgba(76,175,125,.1);border-radius:8px">✓ ${lancadosPara.length} registro${lancadosPara.length!==1?"s":""} lançado${lancadosPara.length!==1?"s":""}!${ignorados>0?` (${ignorados} já existia${ignorados!==1?"m":""})`:""}</div>`;
+      setTimeout(()=>{fb.style.display="none";},4000);
+    }
+    showToast(`✓ ${lancadosPara.length} registro${lancadosPara.length!==1?"s":""} lançado${lancadosPara.length!==1?"s":""}!`);
+    MEMBROS.forEach(m=>{const el=document.getElementById("chk-lk-"+m.uid);if(el)el.checked=false;});
+    ["km-evento","km-data","km-valor"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
     const kd=document.getElementById("km-desc");if(kd)kd.value="";
     btn.disabled=false;btn.textContent="Lançar km";render();
-    // Push para o membro
-    const mToken=m?.fcmToken;
-    if(mToken)dispararPush("🏍️ Km lançado!",`${toInt(km)} km registrados para você — ${desc}`,[mToken],[m?.apelido].filter(Boolean));
-    registrarLog("km_lancado",`lançou ${toInt(km)} km para ${m?.apelido||""}`,desc);
+    // Push para os membros lançados
+    lancadosPara.forEach(m=>{const mToken=m.fcmToken;if(mToken)dispararPush("🏍️ Km lançado!",`${toInt(km)} km registrados para você — ${desc}`,[mToken],[m.apelido].filter(Boolean));});
+    registrarLog("km_lancado",`lançou ${toInt(km)} km para ${lancadosPara.length} membro(s)`,desc);
   }catch(e){err.textContent="Erro: "+e.message;err.style.display="block";btn.disabled=false;btn.textContent="Lançar km";}
 };
 window.salvarEdicao=async(id,membroId,kmAntigo)=>{
