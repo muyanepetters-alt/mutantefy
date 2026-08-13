@@ -4995,17 +4995,6 @@ function htmlLancarKm(){
   return`<div class="card">
     <div class="sec-title">📍 Lançar km para membros</div>
     <div id="km-err" class="msg-err" style="display:none"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros</div>
-      <button type="button" onclick="window.toggleTodosKmMembros()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-height:280px;overflow-y:auto">
-      ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
-        <input type="checkbox" id="chk-lk-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
-        ${avatarEl(m.fotoUrl,m.apelido,28)}
-        <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
-      </label>`).join("")}
-    </div>
     <label>Tipo</label>
     <select id="km-tipo" onchange="window.toggleTipo()">
       <option value="rota">🗺️ Rota (evento)</option>
@@ -5027,6 +5016,17 @@ function htmlLancarKm(){
     <input type="date" id="km-data"/>
     <label>Km rodados</label>
     <input type="number" id="km-valor" placeholder="Ex: 320" step="1"/>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Membros</div>
+      <button type="button" onclick="window.toggleTodosKmMembros()" style="font-size:11px;color:var(--orange);background:none;border:1px solid rgba(255,102,0,.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit">Todos</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-height:280px;overflow-y:auto">
+      ${MEMBROS.map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">
+        <input type="checkbox" id="chk-lk-${m.uid}" style="width:16px;height:16px;accent-color:var(--orange);flex-shrink:0">
+        ${avatarEl(m.fotoUrl,m.apelido,28)}
+        <span style="font-size:13px;color:var(--white)">${m.apelido}</span>
+      </label>`).join("")}
+    </div>
     <button class="btn-primary" id="km-btn" onclick="window.lancarKm()">Lançar km</button>
     <div id="km-multi-feedback" style="display:none"></div>
   </div>`;
