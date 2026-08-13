@@ -1028,11 +1028,13 @@ function sextaAtual(ano){
 }
 function htmlTemporada(){
   const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const totalEventosClube=MEMBROS.reduce((a,m)=>a+(m.totalEventos||0),0);
   const meta100=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   return`<div class="card">
     <div class="sec-title">📅 Temporada ${ANO_ATIVO}</div>
     <div class="grid2" style="margin-bottom:14px">
       <div class="metric"><div class="metric-label">🏁 Km do clube</div><div class="metric-value" style="color:var(--orange)">${toInt(totalKm)}</div></div>
+      <div class="metric"><div class="metric-label">🛣️ Eventos rodados</div><div class="metric-value" style="color:var(--orange)">${totalEventosClube}</div></div>
       <div class="metric"><div class="metric-label">👥 Membros ativos</div><div class="metric-value">${MEMBROS.filter(m=>(m.totalKm||0)>0).length}</div></div>
       <div class="metric"><div class="metric-label">🎯 Bateram a meta</div><div class="metric-value" style="color:var(--green)">${meta100}</div></div>
       <div class="metric"><div class="metric-label">📅 Ano ativo</div><div class="metric-value">${ANO_ATIVO}</div></div>
@@ -1061,10 +1063,10 @@ window.novaTemporada=async()=>{
     }
     for(const m of MEMBROS){
       const docId=resolveDocId(m.uid)||m.uid;
-      await setDoc(doc(db,"usuarios",docId),{totalKm:0},{merge:true});
-      m.totalKm=0;
+      await setDoc(doc(db,"usuarios",docId),{totalKm:0,totalEventos:0},{merge:true});
+      m.totalKm=0;m.totalEventos=0;
     }
-    if(UP)UP.totalKm=0;
+    if(UP){UP.totalKm=0;UP.totalEventos=0;}
     REGS=[];
     ANO_ATIVO=novoAno;
     await setDoc(doc(db,"config","temporada"),{anoAtivo:novoAno,atualizadoEm:serverTimestamp(),atualizadoPor:UP.apelido},{merge:true});
@@ -1101,7 +1103,7 @@ function htmlRanking(){
           ${avatarEl(myM.fotoUrl,myM.apelido,36)}
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:700">${myM.apelido} <span style="font-size:10px;color:var(--muted)">· você</span></div>
-            <div style="font-size:11px;color:${myB}">${toInt(myM.totalKm||0)} km · ${myP}%</div>
+            <div style="font-size:11px;color:${myB}">${toInt(myM.totalKm||0)} km · ${myP}% · ${myM.totalEventos||0} eventos</div>
           </div>
         </div>`:''
       })()}
@@ -1124,7 +1126,7 @@ function htmlRanking(){
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,64)}</div>
             <div style="flex:1;min-width:0;cursor:pointer" onclick="window.abrirPerfilPublico('${m.uid}')">
               <div style="font-size:14px;font-weight:700">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}</div>
-              <div style="font-size:12px;color:${b2};font-weight:600">${toInt(m.totalKm||0)} km · ${p2}%</div>
+              <div style="font-size:12px;color:${b2};font-weight:600">${toInt(m.totalKm||0)} km · ${p2}% · ${m.totalEventos||0} eventos</div>
               <div style="margin-top:5px;height:3px;background:rgba(255,255,255,.08);border-radius:2px"><div style="width:${Math.min(p2,100)}%;height:100%;background:${b2};border-radius:2px"></div></div>
             </div>
           </div>`;
@@ -1134,7 +1136,7 @@ function htmlRanking(){
             <span style="font-size:11px;color:#555;width:18px;text-align:right;flex-shrink:0">${kPos[i]}.</span>
             <div onclick="window.abrirPerfilPublico('${m.uid}')" style="cursor:pointer;flex-shrink:0">${avatarEl(m.fotoUrl,m.apelido,30)}</div>
             <span onclick="window.abrirPerfilPublico('${m.uid}')" style="font-size:13px;font-weight:600;flex:1;cursor:pointer">${m.apelido}${m.isDiretor?` <span style="font-size:9px;color:var(--green)">(adm)</span>`:""}${isSedeTop?` <span style="font-size:9px;color:#60b8ff">🏠</span>`:""}</span>
-            <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}%${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
+            <span style="font-size:12px;font-weight:700;color:${b2}">${toInt(m.totalKm||0)} km · ${p2}% · ${m.totalEventos||0} eventos${sc>0?`<span style="font-size:10px;color:#60b8ff;font-weight:600"> ⛪${sc}</span>`:""}</span>
           </div>
           <div class="prog-bar" style="margin-left:26px"><div class="prog-fill" style="width:${Math.min(p2,100)}%;background:${b2}"></div></div>
         </div>`;
@@ -1399,8 +1401,9 @@ function renderDiretor(el){
             </div>
           </div>
           <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${UP.totalEventos||0}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">eventos</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
@@ -2060,8 +2063,9 @@ function renderBarman(el){
             </div>
           </div>
           <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${UP.totalEventos||0}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">eventos</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
@@ -2188,8 +2192,9 @@ function renderMembro(el){
             </div>
           </div>
           <div style="border-top:1px solid rgba(232,103,10,.2);padding-top:12px">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${toInt(UP.totalKm||0)}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">km rodados</div></div>
+              <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--orange)">${UP.totalEventos||0}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">eventos</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700">${Math.min(100,Math.round(((UP.totalKm||0)/META)*100))}%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">da meta</div></div>
               <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#60b8ff">${meuSedeCount()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">⛪ sede</div></div>
             </div>
@@ -2930,6 +2935,10 @@ window.abrirPerfilPublico=async(uid)=>{
           <div style="font-size:18px;font-weight:700;color:var(--orange)">${toInt(km)}</div>
           <div style="font-size:10px;color:var(--muted)">km rodados</div>
         </div>
+        <div style="text-align:center;background:rgba(255,102,0,.08);border:1px solid rgba(255,102,0,.2);border-radius:12px;padding:10px 6px">
+          <div style="font-size:18px;font-weight:700;color:var(--orange)">${membro.totalEventos||0}</div>
+          <div style="font-size:10px;color:var(--muted)">eventos rodados</div>
+        </div>
         <div style="text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 6px">
           <div style="font-size:18px;font-weight:700">#${rankPos||'—'}</div>
           <div style="font-size:10px;color:var(--muted)">no ranking</div>
@@ -2980,6 +2989,7 @@ function htmlRelatorioIndividual(){
 // ═══════════════════════════════════════════════════
 function htmlRelatorio(){
   const totalKmClube=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const totalEventosClube=MEMBROS.reduce((a,m)=>a+(m.totalEventos||0),0);
   const membrosAtivos=MEMBROS.filter(m=>m.apelido&&m.apelido!=='undefined').length;
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   const hoje=new Date();
@@ -3012,6 +3022,7 @@ function htmlRelatorio(){
 
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:14px">
       ${mc('Km do Clube',`${toInt(totalKmClube)}<span style="font-size:13px;font-weight:400;color:#999"> km</span>`)}
+      ${mc('Eventos Rodados',totalEventosClube,'#ddd')}
       ${mc('Membros Ativos',membrosAtivos,'#ddd')}
       ${mc('Eventos',`${eventosRealizados}<span style="font-size:13px;font-weight:400;color:#999">/${totalEventos}</span>`,'#ddd')}
       ${mc('Bateram Meta',bateram,'var(--green)')}
@@ -3042,7 +3053,7 @@ function htmlRelatorio(){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:12px;font-weight:700;color:${bc2}">${toInt(m.totalKm||0)} km</div>
-          <div style="font-size:9px;color:var(--muted)">${pct}%</div>
+          <div style="font-size:9px;color:var(--muted)">${pct}% · ${m.totalEventos||0} eventos</div>
         </div>
       </div>`;
     }).join("")}
@@ -3113,15 +3124,17 @@ window.gerarRelPDF=()=>{
 
   // Metrics
   const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const totalEventosClube=MEMBROS.reduce((a,m)=>a+(m.totalEventos||0),0);
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   const eventosReal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<new Date()).length;
   const metrics=[
     {lb:'KM DO CLUBE',val:`${toInt(totalKm)} km`},
+    {lb:'EVENTOS RODADOS',val:`${totalEventosClube}`},
     {lb:'MEMBROS',val:`${MEMBROS.length}`},
     {lb:'EVENTOS',val:`${eventosReal}/${EVENTOS.length}`},
     {lb:'BATERAM A META',val:`${bateram}`},
   ];
-  const colW=(W-28)/4;
+  const colW=(W-28)/metrics.length;
   metrics.forEach((mt,i)=>{
     const x=14+i*colW;
     pdf.setFillColor(22,22,22);
@@ -3203,7 +3216,7 @@ window.gerarRelPDF=()=>{
     pdf.setFontSize(6.5);
     pdf.setFont('helvetica','bold');
     pdf.setTextColor(...rCol);
-    pdf.text(`${toInt(km2)} km · ${pct2}%`,W-15,y+1,{align:'right'});
+    pdf.text(`${toInt(km2)} km · ${pct2}% · ${m.totalEventos||0} ev.`,W-15,y+1,{align:'right'});
     y+=6.5;
   });
 
@@ -3228,7 +3241,7 @@ window.gerarRelPDF=()=>{
     const neverMissed=passedIds.length?sortedM.filter(m=>passedIds.every(eid=>REGS.some(r=>(r.membroId===m.uid||r.membroId===m.authUid)&&String(r.eventoId)===String(eid)&&r.tipo==='rota'))):[];
     const hlW=(W-30)/2,hlH=19;
     const hls=[
-      {lb:'MVP DA TEMPORADA',val:mvp?mvp.m.apelido:'—',sub:mvp?toInt(mvp.m.totalKm||0)+' km · '+(_sedeCount(mvp.m)||0)+' presenças sede':''},
+      {lb:'MVP DA TEMPORADA',val:mvp?mvp.m.apelido:'—',sub:mvp?toInt(mvp.m.totalKm||0)+' km · '+(mvp.m.totalEventos||0)+' eventos · '+(_sedeCount(mvp.m)||0)+' presenças sede':''},
       {lb:'VIAGEM MAIS POPULAR',val:popTripEv?popTripEv.nome:'—',sub:popE?popE.cnt+' participantes':''},
       {lb:'MES MAIS ATIVO',val:maxMesKm>0?mesesLb[maxMesIdx]:'—',sub:maxMesKm>0?toInt(maxMesKm)+' km':''},
       {lb:'NUNCA FALTARAM',val:neverMissed.length?neverMissed.slice(0,3).map(m=>m.apelido).join(', ')+(neverMissed.length>3?'...':''):'Nenhum',sub:neverMissed.length+' membro'+(neverMissed.length!==1?'s':'')},
@@ -3347,7 +3360,7 @@ window.gerarRelPDF=()=>{
     pdf.setFontSize(8.5);pdf.setFont('helvetica','bold');pdf.setTextColor(255,102,0);
     pdf.text((mi+1)+'. '+m.apelido,16,y+2);
     pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(180,180,180);
-    pdf.text(toInt(m.totalKm||0)+' km',W-16,y+2,{align:'right'});
+    pdf.text(toInt(m.totalKm||0)+' km · '+(m.totalEventos||0)+' eventos',W-16,y+2,{align:'right'});
     y+=10;
     const memTrips=REGS.filter(r=>(r.membroId===m.uid||r.membroId===m.authUid)&&r.tipo==='rota').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
     if(memTrips.length){
@@ -3412,6 +3425,7 @@ window.abrirModalRelIndividual=()=>{
 window.abrirModalRelTemporada=()=>{
   document.getElementById('rel-temp-modal')?.remove();
   const totalKm=MEMBROS.reduce((a,m)=>a+(m.totalKm||0),0);
+  const totalEventosClube=MEMBROS.reduce((a,m)=>a+(m.totalEventos||0),0);
   const bateram=MEMBROS.filter(m=>(m.totalKm||0)>=META).length;
   const hoje=new Date();
   const eventosReal=EVENTOS.filter(e=>new Date(e.data+'T00:00:00')<hoje).length;
@@ -3434,6 +3448,7 @@ window.abrirModalRelTemporada=()=>{
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Temporada ${ANO_ATIVO} · Mutantes MC Itajaí</div>
     <div class="grid2" style="margin-bottom:12px">
       <div class="metric"><div class="metric-label">🏁 Km do clube</div><div class="metric-value" style="color:var(--orange)">${toInt(totalKm)}</div></div>
+      <div class="metric"><div class="metric-label">🛣️ Eventos rodados</div><div class="metric-value" style="color:var(--orange)">${totalEventosClube}</div></div>
       <div class="metric"><div class="metric-label">🎯 Bateram a meta</div><div class="metric-value" style="color:var(--green)">${bateram}</div></div>
       <div class="metric"><div class="metric-label">📅 Eventos realizados</div><div class="metric-value">${eventosReal}/${EVENTOS.length}</div></div>
       <div class="metric"><div class="metric-label">👥 Membros</div><div class="metric-value">${MEMBROS.length}</div></div>
@@ -3443,7 +3458,7 @@ window.abrirModalRelTemporada=()=>{
       <div>
         <div style="font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🥇 Mais ativo</div>
         <div style="font-size:15px;font-weight:700">${membroTop.apelido}</div>
-        <div style="font-size:12px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km</div>
+        <div style="font-size:12px;color:var(--muted)">${toInt(membroTop.totalKm||0)} km · ${membroTop.totalEventos||0} eventos</div>
       </div>
     </div>`:''}
     <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📈 Km por mês</div>
@@ -3463,7 +3478,7 @@ window.abrirModalRelTemporada=()=>{
         <span style="width:20px;text-align:center;flex-shrink:0;font-size:${i<3?'13':'10'}px">${medal}</span>
         ${avatarEl(m.fotoUrl,m.apelido,24)}
         <span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.apelido}</span>
-        <span style="font-size:11px;font-weight:700;color:${bc2}">${toInt(m.totalKm||0)} km · ${pct}%</span>
+        <span style="font-size:11px;font-weight:700;color:${bc2}">${toInt(m.totalKm||0)} km · ${pct}% · ${m.totalEventos||0} eventos</span>
       </div>`;
     }).join('')}
     <button onclick="window.gerarRelPDF()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px">📄 Gerar PDF</button>
@@ -5664,10 +5679,10 @@ window.enviarReset=async()=>{
 // ═══════════════════════════════════════════════════
 window.exportarRankingCSV=()=>{
   const sorted=[...MEMBROS].filter(m=>m.totalKm>0).sort((a,b)=>(b.totalKm||0)-(a.totalKm||0));
-  const linhas=[["Posição","Apelido","Km Rodados","% da Meta","Meta Atingida"]];
+  const linhas=[["Posição","Apelido","Km Rodados","Eventos Rodados","% da Meta","Meta Atingida"]];
   sorted.forEach((m,i)=>{
     const pct=Math.round(((m.totalKm||0)/META)*100);
-    linhas.push([i+1,m.apelido,m.totalKm||0,pct+"%",pct>=100?"Sim":"Não"]);
+    linhas.push([i+1,m.apelido,m.totalKm||0,m.totalEventos||0,pct+"%",pct>=100?"Sim":"Não"]);
   });
   const csv=linhas.map(l=>l.join(";")).join("\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
@@ -5770,6 +5785,7 @@ window.carregarRelMembro=async(uid)=>{
     </div>
     <div class="grid2" style="margin-bottom:14px">
       <div class="metric"><div class="metric-label">${li("route",12)} Total km</div><div class="metric-value" style="color:var(--orange)">${toInt(kmRaw)}</div></div>
+      <div class="metric"><div class="metric-label">🏁 Eventos rodados</div><div class="metric-value" style="color:var(--orange)">${m.totalEventos||0}</div></div>
       <div class="metric"><div class="metric-label">${li("target",12)} Meta ${toInt(META)} km</div><div class="metric-value" style="color:${pctColor}">${pct}%</div></div>
       <div class="metric"><div class="metric-label">📅 Eventos</div><div class="metric-value">${evComp}/${evTotal} <span style="font-size:11px;color:var(--muted)">(${pctEv}%)</span></div></div>
       <div class="metric"><div class="metric-label">🗓️ Sextas sede</div><div class="metric-value" style="color:#60b8ff">${sc}/${totalSextas} <span style="font-size:11px;color:var(--muted)">(${pctSede}%)</span></div></div>
@@ -5974,6 +5990,7 @@ window.gerarPdfMembro=async(uid)=>{
   const cW=(CW-5)/2,cH=22;
   const cards=[
     {lbl:'Km rodados',val:kmRaw.toLocaleString('pt-BR')+' km',col:'#ff6600'},
+    {lbl:'Eventos rodados',val:String(m.totalEventos||0),col:'#ff6600'},
     {lbl:'Meta ('+Math.round(META/1000)+'k km)',val:pct+'%',col:pctHex},
     {lbl:'Eventos comparecidos',val:evComp+'/'+evTotal+' ('+pctEv+'%)',col:pctEvHex},
     {lbl:'Sextas na sede',val:sc+'/'+totalSextas+' ('+pctSede+'%)',col:pctSedeHex},
@@ -6344,8 +6361,9 @@ window.registrarComparecimento=async(membroId,apelido,eventoId)=>{
   try{
     const regRef=await addDoc(collection(db,"registros"),{membroId,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId,createdAt:serverTimestamp()});
     const nt=(m?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-    if(m)m.totalKm=nt;
+    const ne=(m?.totalEventos||0)+1;
+    await setDoc(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt,totalEventos:ne},{merge:true});
+    if(m){m.totalKm=nt;m.totalEventos=ne;}
     await setDoc(doc(db,"presencas",membroId+"_"+eventoId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
     showToast("✓ "+toInt(km)+" km lançado para "+apelido+"!");
     await _recarregarPanelPresenca(eventoId);
@@ -6417,8 +6435,9 @@ window.salvarFormComp=async(uid,apelido,evId)=>{
       const m=findMembro(uid);
       const regRef=await addDoc(collection(db,"registros"),{membroId:uid,apelido:apelido||m?.apelido||"",desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
       const nt=(m?.totalKm||0)+km;
-      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-      if(m)m.totalKm=nt;
+      const ne=(m?.totalEventos||0)+1;
+      await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt,totalEventos:ne},{merge:true});
+      if(m){m.totalKm=nt;m.totalEventos=ne;}
       await setDoc(doc(db,"presencas",uid+"_"+evId),{resposta:"compareceu",compareceu:true,registroId:regRef.id,kmLancado:km},{merge:true});
       const mToken=m?.fcmToken;
       if(mToken)dispararPush("🏁 Presença confirmada!",`${toInt(km)} km do evento ${ev.nome} foram lançados no seu perfil`,[mToken],[m?.apelido||apelido].filter(Boolean));
@@ -6447,7 +6466,7 @@ window.limparDadosTeste=async()=>{
     for(const d of regSnap.docs){
       const r=d.data();
       const m=MEMBROS.find(m=>m.uid===r.membroId);
-      if(m){const nt=Math.max(0,(m.totalKm||0)-r.km);await setDoc(doc(db,"usuarios",r.membroId),{totalKm:nt},{merge:true});m.totalKm=nt;}
+      if(m){const nt=Math.max(0,(m.totalKm||0)-r.km);const ne=Math.max(0,(m.totalEventos||0)-1);await setDoc(doc(db,"usuarios",r.membroId),{totalKm:nt,totalEventos:ne},{merge:true});m.totalKm=nt;m.totalEventos=ne;}
       await deleteDoc(doc(db,"registros",d.id));
     }
     CONF_SEDE={};
@@ -6460,22 +6479,27 @@ window.recalcularTotalKm=async()=>{
   showToast("Recalculando...");
   try{
     const snap=await getDocs(collection(db,"registros"));
-    const totais={};
+    const totais={},contagens={};
     snap.docs.forEach(d=>{
       const r=d.data();
       const id=r.membroId;
-      if(id&&typeof r.km==="number")totais[id]=(totais[id]||0)+r.km;
+      if(!id)return;
+      if(typeof r.km==="number")totais[id]=(totais[id]||0)+r.km;
+      contagens[id]=(contagens[id]||0)+1;
     });
+    const ids=new Set([...Object.keys(totais),...Object.keys(contagens)]);
     const batch=[];
-    for(const[id,total] of Object.entries(totais)){
+    for(const id of ids){
       const docId=resolveDocId(id)||id;
-      batch.push(setDoc(doc(db,"usuarios",docId),{totalKm:Math.round(total)},{merge:true}));
+      const totalKm=Math.round(totais[id]||0);
+      const totalEventos=contagens[id]||0;
+      batch.push(setDoc(doc(db,"usuarios",docId),{totalKm,totalEventos},{merge:true}));
       const m=MEMBROS.find(m=>m.uid===id||m.authUid===id);
-      if(m)m.totalKm=Math.round(total);
+      if(m){m.totalKm=totalKm;m.totalEventos=totalEventos;}
     }
     await Promise.all(batch);
     await carregarMembros();
-    showToast(`✓ totalKm recalculado para ${Object.keys(totais).length} membros`);
+    showToast(`✓ totalKm e totalEventos recalculados para ${ids.size} membros`);
     render();
   }catch(e){showToast("Erro: "+e.message,true);}
 };
@@ -6674,13 +6698,13 @@ window.zerarTemporada=async()=>{
       await setDoc(doc(db,`registros_arquivo/${ano}/registros`,d.id),d.data());
       await deleteDoc(doc(db,"registros",d.id));
     }
-    // Zera totalKm de todos os membros
+    // Zera totalKm e totalEventos de todos os membros
     const userSnap=await getDocs(collection(db,"usuarios"));
     for(const d of userSnap.docs){
-      await setDoc(doc(db,"usuarios",d.id),{totalKm:0},{merge:true});
+      await setDoc(doc(db,"usuarios",d.id),{totalKm:0,totalEventos:0},{merge:true});
     }
-    MEMBROS.forEach(m=>{m.totalKm=0;});
-    if(UP)UP.totalKm=0;
+    MEMBROS.forEach(m=>{m.totalKm=0;m.totalEventos=0;});
+    if(UP){UP.totalKm=0;UP.totalEventos=0;}
     // Audit log
     await addDoc(collection(db,"audit_log"),{tipo:"zerar_temporada",autor:UP.apelido,autorId:CU.uid,ano,registrosArquivados:regSnap.docs.length,criadoEm:serverTimestamp()});
     await carregarRegistros();
@@ -6692,15 +6716,15 @@ async function recalcularKmMembro(membroId){
   const m=findMembro(membroId);
   const docId=resolveDocId(membroId)||membroId;
   const ids=[...new Set([membroId,m?.uid,m?.authUid].filter(Boolean))];
-  let total=0;
+  let total=0,count=0;
   for(const id of ids){
     const snap=await getDocs(query(collection(db,"registros"),where("membroId","==",id)));
-    snap.docs.forEach(d=>{total+=d.data().km||0;});
+    snap.docs.forEach(d=>{total+=d.data().km||0;count++;});
   }
   const rounded=Math.round(total);
-  await setDoc(doc(db,"usuarios",docId),{totalKm:rounded},{merge:true});
-  if(m)m.totalKm=rounded;
-  if(UP&&(UP.uid===docId||resolveDocId(membroId)===MY_DOC_ID))UP.totalKm=rounded;
+  await setDoc(doc(db,"usuarios",docId),{totalKm:rounded,totalEventos:count},{merge:true});
+  if(m){m.totalKm=rounded;m.totalEventos=count;}
+  if(UP&&(UP.uid===docId||resolveDocId(membroId)===MY_DOC_ID)){UP.totalKm=rounded;UP.totalEventos=count;}
   return rounded;
 }
 window.toggleFicha=async(uid)=>{
@@ -7252,8 +7276,9 @@ window.lancarKm=async()=>{
       if(jaLancados.has(membroId)||jaLancados.has(m.uid))return;
       bw.set(doc(collection(db,"registros")),{membroId,apelido:m.apelido||"",desc,data,km,tipo,eventoId,createdAt:serverTimestamp()});
       const nt=(m.totalKm||0)+km;
-      bw.set(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt},{merge:true});
-      m.totalKm=nt;
+      const ne=(m.totalEventos||0)+1;
+      bw.set(doc(db,"usuarios",resolveDocId(membroId)),{totalKm:nt,totalEventos:ne},{merge:true});
+      m.totalKm=nt;m.totalEventos=ne;
       lancadosPara.push(m);
     });
     if(lancadosPara.length)await bw.commit();
@@ -7708,8 +7733,9 @@ window.salvarAntAdd=async(uid,apelido,evId)=>{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
     const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-    const m=findMembro(uid);if(m)m.totalKm=nt;
+    const ne=(mSnap.data()?.totalEventos||0)+1;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt,totalEventos:ne},{merge:true});
+    const m=findMembro(uid);if(m){m.totalKm=nt;m.totalEventos=ne;}
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await carregarCorpoEventoAnt(evId);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -7872,8 +7898,9 @@ window.salvarPresGestaoAv=async(uid,apelido,evId)=>{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:eid,createdAt:serverTimestamp()});
     const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-    const m=findMembro(uid);if(m)m.totalKm=nt;
+    const ne=(mSnap.data()?.totalEventos||0)+1;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt,totalEventos:ne},{merge:true});
+    const m=findMembro(uid);if(m){m.totalKm=nt;m.totalEventos=ne;}
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await window.carregarGestaoAvulso(eid);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -7996,8 +8023,9 @@ window.salvarPresencaGestao=async(uid,apelido,evId)=>{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:eid,createdAt:serverTimestamp()});
     const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-    const m=findMembro(uid);if(m)m.totalKm=nt;
+    const ne=(mSnap.data()?.totalEventos||0)+1;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt,totalEventos:ne},{merge:true});
+    const m=findMembro(uid);if(m){m.totalKm=nt;m.totalEventos=ne;}
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await window.carregarGestaoEvento(eid);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
@@ -8118,8 +8146,9 @@ window.salvarPresencaModal=async(uid,apelido,evId)=>{
     await addDoc(collection(db,"registros"),{membroId:uid,apelido,desc:ev.nome,data:ev.data,km,tipo:"rota",eventoId:evId,createdAt:serverTimestamp()});
     const mSnap=await getDoc(doc(db,"usuarios",resolveDocId(uid)));
     const nt=(mSnap.data()?.totalKm||0)+km;
-    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt},{merge:true});
-    const m=findMembro(uid);if(m)m.totalKm=nt;
+    const ne=(mSnap.data()?.totalEventos||0)+1;
+    await setDoc(doc(db,"usuarios",resolveDocId(uid)),{totalKm:nt,totalEventos:ne},{merge:true});
+    const m=findMembro(uid);if(m){m.totalKm=nt;m.totalEventos=ne;}
     showToast(`✓ ${toInt(km)} km lançado para ${apelido}!`);
     await _carregarCorpoModalPresenca(ev);
   }catch(e){showToast("Erro: "+e.message,true);inp.disabled=false;}
